@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../utils/prisma');
 const asyncHandler = require('../utils/asyncHandler');
-const { protect } = require('../middleware/auth');
+const { protect } = require('../middleware/auth.middleware');
 const webpush = require('web-push');
 
 // Configure web-push
