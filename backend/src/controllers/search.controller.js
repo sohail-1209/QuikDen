@@ -60,25 +60,70 @@ const search = asyncHandler(async (req, res) => {
   });
 });
 
-// ─── POST /search/ai — natural language → filters → results ─
+// ─── POST /search/ai — natural language → filters + keywords → results ──
 const aiSearch = asyncHandler(async (req, res) => {
   const { query } = req.body;
   if (!query) return res.status(400).json({ success: false, message: 'Query required' });
 
-  // Parse the natural language query to structured filters
-  const filters = await parseAIQuery(query);
+  // Parse the natural language query to structured filters + keywords
+  const parsed = await parseAIQuery(query);
+  const { keywords = [], ...filters } = parsed;
 
-  // Run the parsed filters through normal search logic
-  req.query = { ...filters };
-  const where = {
+  // Build structured filter where clause
+  const structuredWhere = {
     status: { in: ['ACTIVE', 'RENTED'] },
     ...(filters.type && { type: filters.type }),
     ...(filters.city && { city: { contains: filters.city, mode: 'insensitive' } }),
     ...(filters.maxRent && { rent: { lte: parseInt(filters.maxRent) } }),
     ...(filters.minRent && { rent: { gte: parseInt(filters.minRent) } }),
     ...(filters.furnished !== undefined && { furnished: filters.furnished }),
-    ...(filters.gender && { roomSharing: { genderRequired: { in: [filters.gender, 'ANY'] } } }),
+    ...(filters.gender && {
+      OR: [
+        { roomSharing: { genderRequired: { in: [filters.gender, 'ANY'] } } },
+        { hostelSharing: { genderRequired: { in: [filters.gender, 'ANY'] } } },
+      ],
+    }),
     ...(filters.bedrooms && { bedrooms: parseInt(filters.bedrooms) }),
+    ...(filters.parking !== undefined && { amenities: { parking: true } }),
+    ...(filters.wifi !== undefined && { amenities: { wifi: true } }),
+    ...(filters.ac !== undefined && { amenities: { ac: true } }),
+    ...(filters.security !== undefined && { amenities: { security: true } }),
+    ...(filters.lift !== undefined && { amenities: { lift: true } }),
+    ...(filters.kitchen !== undefined && { amenities: { kitchen: true } }),
+    ...(filters.powerBackup !== undefined && { amenities: { powerBackup: true } }),
+    ...(filters.waterSupply !== undefined && { amenities: { waterSupply: true } }),
+    ...(filters.cctv !== undefined && { amenities: { cctv: true } }),
+    ...(filters.balcony !== undefined && { balcony: filters.balcony }),
+  };
+
+  // Build free-text search conditions from keywords + original query
+  const textSearchTerms = [...keywords];
+
+  // Also add area as a text search term (matches address/description)
+  if (filters.area) textSearchTerms.push(filters.area);
+  // Add city as text search too (matches address containing city name)
+  if (filters.city) textSearchTerms.push(filters.city);
+
+  // Clean up short/noise terms
+  const cleanTerms = textSearchTerms
+    .map(t => t.trim())
+    .filter(t => t.length > 1);
+
+  const textOR = cleanTerms.length > 0
+    ? cleanTerms.map(term => ({
+        OR: [
+          { title: { contains: term, mode: 'insensitive' } },
+          { description: { contains: term, mode: 'insensitive' } },
+          { address: { contains: term, mode: 'insensitive' } },
+          { city: { contains: term, mode: 'insensitive' } },
+        ],
+      }))
+    : [];
+
+  // Combine: structured filters AND (any text match OR no text search)
+  const where = {
+    ...structuredWhere,
+    ...(textOR.length > 0 && { OR: textOR }),
   };
 
   const results = await prisma.listing.findMany({
@@ -86,17 +131,79 @@ const aiSearch = asyncHandler(async (req, res) => {
     select: {
       id: true, title: true, type: true, rent: true, deposit: true,
       city: true, address: true, latitude: true, longitude: true,
-      bedrooms: true, furnished: true, createdAt: true,
+      bedrooms: true, furnished: true, views: true, createdAt: true,
       owner: { select: { id: true, name: true, profileImage: true, avgRating: true } },
       photos: { where: { isPrimary: true }, take: 1 },
       amenities: true,
       hostelSharing: { include: { tiers: true } },
+      roomSharing: true,
+      _count: { select: { savedBy: true } },
     },
     orderBy: { createdAt: 'desc' },
     take: 20,
   });
 
-  res.json({ success: true, data: results, parsedFilters: filters });
+  // If text search returned too few results, fall back to progressively looser searches
+  let finalResults = results;
+  if (results.length < 3) {
+    // Fallback 1: structured filters only (remove text constraint)
+    if (textOR.length > 0) {
+      const fallbackResults = await prisma.listing.findMany({
+        where: structuredWhere,
+        select: {
+          id: true, title: true, type: true, rent: true, deposit: true,
+          city: true, address: true, latitude: true, longitude: true,
+          bedrooms: true, furnished: true, views: true, createdAt: true,
+          owner: { select: { id: true, name: true, profileImage: true, avgRating: true } },
+          photos: { where: { isPrimary: true }, take: 1 },
+          amenities: true,
+          hostelSharing: { include: { tiers: true } },
+          roomSharing: true,
+          _count: { select: { savedBy: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+      });
+      const seenIds = new Set(results.map(r => r.id));
+      for (const r of fallbackResults) {
+        if (!seenIds.has(r.id)) { finalResults.push(r); seenIds.add(r.id); }
+      }
+    }
+
+    // Fallback 2: if still empty, remove type filter and search by city + text only
+    if (finalResults.length === 0 && (filters.city || filters.area)) {
+      const looseWhere = {
+        status: { in: ['ACTIVE', 'RENTED'] },
+        ...(filters.city && { city: { contains: filters.city, mode: 'insensitive' } }),
+        ...(filters.maxRent && { rent: { lte: parseInt(filters.maxRent) } }),
+        ...(filters.minRent && { rent: { gte: parseInt(filters.minRent) } }),
+        // Remove type, bedrooms, gender constraints — just match city + budget + text
+        ...(textOR.length > 0 && { OR: textOR }),
+      };
+      const looseResults = await prisma.listing.findMany({
+        where: looseWhere,
+        select: {
+          id: true, title: true, type: true, rent: true, deposit: true,
+          city: true, address: true, latitude: true, longitude: true,
+          bedrooms: true, furnished: true, views: true, createdAt: true,
+          owner: { select: { id: true, name: true, profileImage: true, avgRating: true } },
+          photos: { where: { isPrimary: true }, take: 1 },
+          amenities: true,
+          hostelSharing: { include: { tiers: true } },
+          roomSharing: true,
+          _count: { select: { savedBy: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+      });
+      const seenIds = new Set(finalResults.map(r => r.id));
+      for (const r of looseResults) {
+        if (!seenIds.has(r.id)) { finalResults.push(r); seenIds.add(r.id); }
+      }
+    }
+  }
+
+  res.json({ success: true, data: finalResults, parsedFilters: { ...filters, keywords } });
 });
 
 module.exports = { search, aiSearch };
