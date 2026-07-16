@@ -68,15 +68,24 @@ const register = asyncHandler(async (req, res) => {
 
   // Generate verification token — do NOT send tokens yet
   const { token } = await generateVerificationToken(user.id);
+  const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${token}`;
 
   // Send verification email (non-blocking — don't let email failure block registration)
-  sendEmail(email, name, token).catch((err) => {
+  let emailSent = false;
+  try {
+    await Promise.race([
+      sendEmail(email, name, token),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Email timeout')), 15000)),
+    ]);
+    emailSent = true;
+  } catch (err) {
     console.error('Failed to send verification email:', err.message);
-  });
+  }
 
   res.status(201).json({
     success: true,
-    message: 'Account created. Please verify your email.',
+    message: emailSent ? 'Account created. Please verify your email.' : 'Account created. Email could not be sent.',
+    ...(emailSent ? {} : { verificationUrl }),
   });
 });
 

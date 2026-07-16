@@ -94,6 +94,7 @@ const RegisterPage = () => {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [step, setStep] = useState('form'); // 'form' | 'verify-email'
+  const [verificationUrl, setVerificationUrl] = useState('');
 
   // Initialize Google Sign-In
   useEffect(() => {
@@ -170,9 +171,12 @@ const RegisterPage = () => {
     if (!validate()) return;
     setLoading(true);
     try {
-      await register({ name: form.name, email: form.email, phone: form.phone, password: form.password, role: form.role });
+      const result = await register({ name: form.name, email: form.email, phone: form.phone, password: form.password, role: form.role });
+      if (result.verificationUrl) {
+        setVerificationUrl(result.verificationUrl);
+      }
       setStep('verify-email');
-      toast.success('Account created! Please check your email.');
+      toast.success(result.message || 'Account created! Please check your email.');
     } catch (err) {
       toast.error(err.response?.data?.message || err.message || 'Registration failed');
     } finally {
@@ -238,6 +242,16 @@ const RegisterPage = () => {
               <p className="text-[11px] text-surface-400 mb-4">
                 Click the link in the email to verify your account and sign in.
               </p>
+
+              {verificationUrl && (
+                <div className="bg-surface-50 rounded-lg p-3 mb-4">
+                  <p className="text-[10px] text-surface-400 mb-1">Email could not be delivered. Use this link to verify:</p>
+                  <a href={verificationUrl} target="_blank" rel="noopener noreferrer"
+                    className="text-[10px] text-primary-600 hover:underline break-all">
+                    {verificationUrl}
+                  </a>
+                </div>
+              )}
 
               <button onClick={() => setStep('form')}
                 className="text-xs text-primary-600 hover:underline font-medium">
