@@ -21,6 +21,14 @@ const CATEGORIES = [
 
 const CITIES = ['Hyderabad', 'Bangalore', 'Mumbai', 'Pune', 'Delhi', 'Chennai'];
 
+const HERO_QUOTES = [
+  'where stories begin',
+  'your next adventure starts',
+  'life finds its place',
+  'comfort meets trust',
+  'dreams become homes',
+];
+
 function AnimatedCounter({ target, duration = 1500, suffix = '' }) {
   const [count, setCount] = useState(0);
   const [started, setStarted] = useState(false);
@@ -118,12 +126,37 @@ export default function HomePage() {
   const [activeType, setActiveType] = useState('');
   const [page, setPage] = useState(1);
   const [heroVisible, setHeroVisible] = useState(false);
+  const [quoteIdx, setQuoteIdx] = useState(0);
+  const [typedText, setTypedText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
   const loaderRef = useRef(null);
 
   useEffect(() => {
     const t = setTimeout(() => setHeroVisible(true), 100);
     return () => clearTimeout(t);
   }, []);
+
+  // Typing animation
+  useEffect(() => {
+    const currentQuote = HERO_QUOTES[quoteIdx];
+    let timeout;
+
+    if (!isDeleting && typedText === currentQuote) {
+      timeout = setTimeout(() => setIsDeleting(true), 2000);
+    } else if (isDeleting && typedText === '') {
+      setIsDeleting(false);
+      setQuoteIdx((p) => (p + 1) % HERO_QUOTES.length);
+    } else {
+      timeout = setTimeout(() => {
+        setTypedText(
+          isDeleting
+            ? currentQuote.substring(0, typedText.length - 1)
+            : currentQuote.substring(0, typedText.length + 1)
+        );
+      }, isDeleting ? 40 : 80);
+    }
+    return () => clearTimeout(timeout);
+  }, [typedText, isDeleting, quoteIdx]);
 
   const { data, isLoading, isFetching } = useQuery({
     queryKey: ['home-listings', activeType, page],
@@ -175,10 +208,13 @@ export default function HomePage() {
               <Sparkles size={12} />
               India&#39;s Fastest Growing Room Finder
             </div>
-            <h1 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight text-surface-900 mb-3">
-              Find your next<br />
-              <span className="gradient-text">home, effortlessly</span>
+            <h1 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight text-surface-900 mb-1">
+              Find your next
             </h1>
+            <h2 className="font-caveat text-4xl sm:text-5xl lg:text-6xl font-bold text-primary-600 h-[1.2em] mb-3">
+              {typedText}
+              <span className="inline-block w-[3px] h-[0.8em] bg-primary-500 ml-0.5 align-middle animate-pulse" />
+            </h2>
             <p className="text-surface-500 text-sm sm:text-base max-w-md mx-auto">
               Verified rentals, shared rooms, and hostels across India. No brokers.
             </p>
