@@ -1,10 +1,10 @@
-﻿// HomePage — Liquid glass design, floating blobs, aurora backgrounds
+﻿// HomePage — Lightest glass hero, proper spacing, animated trust bar
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   Search, MapPin, Home, Users, BedDouble, LandPlot, SlidersHorizontal,
-  ArrowRight, Sparkles, Shield, Building2, Star, TrendingUp, Zap,
+  ArrowRight, Sparkles, Shield, Building2, Star, TrendingUp, Zap, CheckCircle,
 } from 'lucide-react';
 import { listingsAPI } from '../services/endpoints';
 import ListingCard from '../components/listing/ListingCard';
@@ -20,6 +20,73 @@ const CATEGORIES = [
 ];
 
 const CITIES = ['Hyderabad', 'Bangalore', 'Mumbai', 'Pune', 'Delhi', 'Chennai'];
+
+function AnimatedCounter({ target, duration = 1500, suffix = '' }) {
+  const [count, setCount] = useState(0);
+  const [started, setStarted] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting && !started) setStarted(true); },
+      { threshold: 0.5 }
+    );
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, [started]);
+
+  useEffect(() => {
+    if (!started) return;
+    const num = parseInt(target.replace(/[^0-9]/g, ''), 10);
+    if (isNaN(num)) { setCount(target); return; }
+    let start = 0;
+    const step = num / (duration / 16);
+    const timer = setInterval(() => {
+      start += step;
+      if (start >= num) { setCount(num); clearInterval(timer); }
+      else setCount(Math.floor(start));
+    }, 16);
+    return () => clearInterval(timer);
+  }, [started, target, duration]);
+
+  return <span ref={ref}>{typeof count === 'number' ? count : count}{suffix || target.replace(/[0-9]/g, '')}</span>;
+}
+
+function TrustStat({ Icon, value, label, delay }) {
+  const [visible, setVisible] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) setVisible(true); },
+      { threshold: 0.5 }
+    );
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className={`flex items-center gap-2 sm:gap-3 justify-center sm:justify-start transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+      style={{ transitionDelay: `${delay}ms` }}
+    >
+      <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-white/60 flex items-center justify-center shrink-0 shadow-sm">
+        {visible ? (
+          <Icon size={16} className="text-primary-500 animate-bounce-subtle" />
+        ) : (
+          <div className="w-4 h-4 skeleton rounded" />
+        )}
+      </div>
+      <div>
+        <p className="font-display font-bold text-sm sm:text-lg text-surface-900 leading-tight">
+          {visible ? <AnimatedCounter target={value} /> : <span className="inline-block h-5 w-12 skeleton rounded" />}
+        </p>
+        <p className="text-[10px] sm:text-xs text-surface-500">{label}</p>
+      </div>
+    </div>
+  );
+}
 
 function SkeletonCard({ index }) {
   return (
@@ -95,41 +162,40 @@ export default function HomePage() {
     <div className="min-h-screen bg-surface-50">
       <Navbar />
 
-      {/* HERO — Liquid glass with aurora */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary-400 via-primary-300 to-accent-300 animate-aurora" />
-        <div className="absolute top-10 left-[10%] w-48 sm:w-72 h-48 sm:h-72 bg-white/20 rounded-full blur-3xl animate-liquid-float" />
-        <div className="absolute bottom-10 right-[15%] w-40 sm:w-64 h-40 sm:h-64 bg-accent-300/30 rounded-full blur-3xl animate-liquid-float" style={{ animationDelay: '2s' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 sm:w-96 h-64 sm:h-96 bg-primary-300/25 rounded-full blur-[80px] sm:blur-[100px] animate-liquid-float" style={{ animationDelay: '4s' }} />
-        <div className="absolute -top-16 sm:-top-20 -right-16 sm:-right-20 w-56 sm:w-80 h-56 sm:h-80 bg-white/10 animate-morph" />
+      {/* HERO — Near-white with subtle teal tints */}
+      <section className="relative overflow-hidden bg-gradient-to-b from-primary-50/80 via-white to-surface-50">
+        {/* Subtle floating blobs */}
+        <div className="absolute top-0 left-[15%] w-64 sm:w-96 h-64 sm:h-96 bg-primary-100/40 rounded-full blur-3xl animate-liquid-float" />
+        <div className="absolute bottom-0 right-[10%] w-56 sm:w-80 h-56 sm:h-80 bg-accent-100/30 rounded-full blur-3xl animate-liquid-float" style={{ animationDelay: '3s' }} />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-72 sm:w-[500px] h-72 sm:h-[500px] bg-primary-50/50 rounded-full blur-[80px] animate-liquid-float" style={{ animationDelay: '1.5s' }} />
 
-        <div className={`relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pt-8 sm:pt-12 pb-16 sm:pb-20 transition-all duration-700 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+        <div className={`relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pt-10 sm:pt-14 pb-8 transition-all duration-700 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
           <div className="text-center mb-6 sm:mb-8">
-            <div className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full glass text-white text-[11px] sm:text-xs font-medium mb-4">
+            <div className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-primary-50 text-primary-600 text-[11px] sm:text-xs font-medium mb-4 border border-primary-100">
               <Sparkles size={12} />
               India&#39;s Fastest Growing Room Finder
             </div>
-            <h1 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight text-white mb-3">
+            <h1 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight text-surface-900 mb-3">
               Find your next<br />
-              <span className="text-white/90">home, effortlessly</span>
+              <span className="gradient-text">home, effortlessly</span>
             </h1>
-            <p className="text-white/70 text-sm sm:text-base max-w-md mx-auto">
+            <p className="text-surface-500 text-sm sm:text-base max-w-md mx-auto">
               Verified rentals, shared rooms, and hostels across India. No brokers.
             </p>
           </div>
 
-          {/* Liquid glass search panel */}
+          {/* Search panel */}
           <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
             <div className="glass-strong rounded-3xl p-3">
               <div className="flex gap-2">
                 <div className="relative flex-1">
-                  <MapPin size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-primary-500" />
+                  <MapPin size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-primary-400" />
                   <input
                     type="text"
                     value={searchCity}
                     onChange={(e) => setSearchCity(e.target.value)}
                     placeholder="Which city are you looking in?"
-                    className="w-full pl-11 pr-4 py-3.5 bg-white/80 border border-white/40 rounded-2xl text-sm text-surface-900 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white transition-all duration-200"
+                    className="w-full pl-11 pr-4 py-3.5 bg-white/80 border border-surface-200/60 rounded-2xl text-sm text-surface-900 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 focus:bg-white transition-all duration-200"
                   />
                 </div>
                 <button type="submit" className="btn-primary px-5 sm:px-7 py-3.5 rounded-2xl text-sm font-semibold shrink-0 ripple-container shadow-lg">
@@ -148,8 +214,8 @@ export default function HomePage() {
                 onClick={() => navigate(type ? `/search?type=${type}` : '/search')}
                 className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 ${
                   activeType === type
-                    ? 'glass-strong text-primary-700 shadow-lg'
-                    : 'glass text-white/80 hover:text-white hover:bg-white/20'
+                    ? 'bg-primary-600 text-white shadow-md'
+                    : 'bg-white text-surface-600 border border-surface-200 hover:border-primary-300 hover:text-primary-600 shadow-sm'
                 }`}
               >
                 <Icon size={14} />
@@ -160,8 +226,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CATEGORY CARDS — Floating glass */}
-      <section className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 -mt-2">
+      {/* CATEGORY CARDS — Below hero, no overlap */}
+      <section className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 py-6">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 stagger-children">
           {CATEGORIES.filter((c) => c.type).map(({ type, label, icon: Icon, color }) => (
             <Link
@@ -182,7 +248,7 @@ export default function HomePage() {
       </section>
 
       {/* LISTINGS */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-8">
         <div className="flex items-center justify-between mb-5">
           <div>
             <h2 className="font-display font-bold text-lg text-surface-900">
@@ -226,30 +292,18 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* TRUST BAR — Glass panel */}
+      {/* TRUST BAR — Animated loading */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-6">
         <div className="glass-tinted rounded-3xl p-6 sm:p-8">
-          <div className="grid grid-cols-3 gap-2 sm:gap-4 stagger-children">
-            {[
-              { Icon: Shield, value: '100%', label: 'Verified Owners' },
-              { Icon: Star, value: '0%', label: 'Brokerage Fee' },
-              { Icon: TrendingUp, value: '500+', label: 'Active Listings' },
-            ].map(({ Icon, value, label }) => (
-              <div key={label} className="flex items-center gap-2 sm:gap-3 justify-center sm:justify-start">
-                <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-white/60 flex items-center justify-center shrink-0 shadow-sm">
-                  <Icon size={16} className="text-primary-500 sm:text-primary-500" />
-                </div>
-                <div>
-                  <p className="font-display font-bold text-sm sm:text-lg text-surface-900 leading-tight">{value}</p>
-                  <p className="text-[10px] sm:text-xs text-surface-500">{label}</p>
-                </div>
-              </div>
-            ))}
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
+            <TrustStat Icon={Shield} value="100%" label="Verified Owners" delay={0} />
+            <TrustStat Icon={Star} value="0%" label="Brokerage Fee" delay={150} />
+            <TrustStat Icon={TrendingUp} value="500+" label="Active Listings" delay={300} />
           </div>
         </div>
       </section>
 
-      {/* CITIES — Glass pills */}
+      {/* CITIES */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-6">
         <h3 className="font-display font-bold text-sm text-surface-900 mb-3">Explore by City</h3>
         <div className="flex flex-wrap gap-2 stagger-children">
@@ -265,7 +319,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA — Dark glass */}
+      {/* CTA */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
         <div className="glass-dark rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-white">
           <div className="text-center sm:text-left">

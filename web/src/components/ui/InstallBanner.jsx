@@ -1,6 +1,7 @@
-// InstallBanner — PWA install prompt for mobile
+// InstallBanner — PWA install prompt + welcome message
 import { useState, useEffect } from 'react';
-import { X, Download, Smartphone } from 'lucide-react';
+import { X, Download, Smartphone, Sparkles } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function InstallBanner() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -9,6 +10,18 @@ export default function InstallBanner() {
 
   useEffect(() => {
     const dismissed = localStorage.getItem('houziee-install-dismissed');
+    const welcomed = localStorage.getItem('houziee-welcomed');
+
+    if (!welcomed && ('standalone' in window.navigator || window.matchMedia('(display-mode: standalone)').matches)) {
+      localStorage.setItem('houziee-welcomed', '1');
+      setTimeout(() => {
+        toast.success('Welcome to Houziee! Find your perfect home.', {
+          duration: 5000,
+          icon: <Sparkles size={18} className="text-primary-500" />,
+        });
+      }, 1500);
+    }
+
     if (dismissed) return;
 
     const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -26,7 +39,14 @@ export default function InstallBanner() {
     };
 
     window.addEventListener('beforeinstallprompt', handler);
-    window.addEventListener('appinstalled', () => setShowBanner(false));
+    window.addEventListener('appinstalled', () => {
+      setShowBanner(false);
+      localStorage.setItem('houziee-welcomed', '1');
+      toast.success('Houziee installed! Welcome aboard.', {
+        duration: 5000,
+        icon: <Sparkles size={18} className="text-primary-500" />,
+      });
+    });
 
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);

@@ -57,7 +57,7 @@ const ListingCard = ({ listing, onSave, isSaved = false }) => {
 
   return (
     <article
-      className="card-hover overflow-hidden flex flex-col"
+      className="glass-card glass-shimmer cursor-pointer group overflow-hidden flex flex-col"
       onClick={handleCardClick}
       role="link"
       tabIndex={0}

@@ -6,7 +6,7 @@ import {
   Home, Search, Bell, Menu, X, ChevronDown, User,
   LayoutDashboard, ListPlus, LogOut, CheckCheck,
   BedDouble, LandPlot, Users, MessageCircle,
-  PlusCircle, Building2,
+  PlusCircle, Building2, Download,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { notificationsAPI } from '../../services/endpoints';
@@ -70,6 +70,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState(null);
 
   const dropdownRef = useRef(null);
   const notifRef = useRef(null);
@@ -79,6 +80,12 @@ export default function Navbar() {
     const onScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    const handler = (e) => { e.preventDefault(); setInstallPrompt(e); };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
   useEffect(() => {
@@ -135,6 +142,13 @@ export default function Navbar() {
     setMobileOpen(false);
     await logout();
     navigate('/');
+  };
+
+  const handleInstall = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === 'accepted') setInstallPrompt(null);
   };
 
   const activeType = new URLSearchParams(location.search).get('type');
@@ -403,7 +417,7 @@ export default function Navbar() {
       {/* ── Bottom Nav (mobile, logged in) ──────────── */}
       {user && (
         <nav className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-xl border-t border-surface-100 md:hidden safe-area-bottom">
-          <div className="flex items-center justify-around h-16 px-2">
+          <div className="flex items-center justify-around h-16 px-1">
             {[
               { to: '/', icon: Home, label: 'Home' },
               { to: '/search', icon: Search, label: 'Search' },
@@ -416,17 +430,27 @@ export default function Navbar() {
                 <Link
                   key={to}
                   to={to}
-                  className={`flex flex-col items-center gap-0.5 py-1 px-3 transition-all duration-200 rounded-xl ${
+                  className={`flex flex-col items-center gap-0.5 py-1 px-2 transition-all duration-200 rounded-xl ${
                     isActive ? 'text-primary-600' : 'text-surface-400 active:text-surface-600'
                   }`}
                 >
-                  <Icon size={22} strokeWidth={isActive ? 2.5 : 1.8} />
+                  <Icon size={20} strokeWidth={isActive ? 2.5 : 1.8} />
                   <span className="text-[10px] font-medium">{label}</span>
                 </Link>
               );
             })}
           </div>
         </nav>
+      )}
+
+      {/* ── Install FAB (mobile, not logged in or no install) ────── */}
+      {!user && installPrompt && (
+        <button
+          onClick={handleInstall}
+          className="fixed bottom-6 right-6 z-50 md:hidden w-14 h-14 rounded-full bg-primary-600 text-white shadow-lg flex items-center justify-center animate-bounce-subtle"
+        >
+          <Download size={22} />
+        </button>
       )}
 
       {/* Spacer */}

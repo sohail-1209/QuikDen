@@ -173,12 +173,29 @@ export default function App() {
               </Routes>
             </Suspense>
 
-            {/* Global toast notifications */}
+            {/* Global toast notifications — Glass style */}
             <Toaster
-              position="top-right"
+              position="top-center"
               toastOptions={{
                 duration: 3500,
-                style: { fontFamily: 'Inter, sans-serif', fontSize: '14px', borderRadius: '12px' },
+                style: {
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: '14px',
+                  borderRadius: '16px',
+                  background: 'rgba(255, 255, 255, 0.85)',
+                  backdropFilter: 'blur(20px) saturate(1.8)',
+                  WebkitBackdropFilter: 'blur(20px) saturate(1.8)',
+                  border: '1px solid rgba(255, 255, 255, 0.5)',
+                  boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.5), 0 8px 32px rgba(0,0,0,0.1)',
+                  padding: '12px 16px',
+                  color: '#1e293b',
+                },
+                success: {
+                  iconTheme: { primary: '#0d9488', secondary: '#fff' },
+                },
+                error: {
+                  iconTheme: { primary: '#ef4444', secondary: '#fff' },
+                },
               }}
             />
 
