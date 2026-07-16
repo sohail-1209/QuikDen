@@ -1,4 +1,4 @@
-// Navbar — clean minimal with category hover dropdowns
+// Navbar — Google M3 style with smooth dropdown animations
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -47,6 +47,19 @@ function buildSearchURL(params) {
   return `/search?${sp.toString()}`;
 }
 
+function createRipple(e) {
+  const btn = e.currentTarget;
+  const rect = btn.getBoundingClientRect();
+  const ripple = document.createElement('span');
+  const size = Math.max(rect.width, rect.height);
+  ripple.style.width = ripple.style.height = `${size}px`;
+  ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
+  ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
+  ripple.className = 'ripple';
+  btn.appendChild(ripple);
+  ripple.addEventListener('animationend', () => ripple.remove());
+}
+
 export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -57,11 +70,10 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
-  const [hoveredNav, setHoveredNav] = useState(null);
 
   const dropdownRef = useRef(null);
   const notifRef = useRef(null);
-  const hoverTimerRef = useRef(null);
+  const hoverTimerRef = useRef({});
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -78,19 +90,25 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const handleNavEnter = useCallback((idx) => {
-    clearTimeout(hoverTimerRef.current);
-    hoverTimerRef.current = setTimeout(() => setHoveredNav(idx), 200);
+  const openDropdown = useCallback((idx) => {
+    clearTimeout(hoverTimerRef.current[idx]);
+    hoverTimerRef.current[idx] = setTimeout(() => {
+      document.querySelectorAll(`[data-nav-dropdown]`).forEach((el) => el.classList.remove('nav-dropdown-open'));
+      const el = document.querySelector(`[data-nav-dropdown="${idx}"]`);
+      if (el) el.classList.add('nav-dropdown-open');
+    }, 100);
   }, []);
 
-  const handleNavLeave = useCallback(() => {
-    clearTimeout(hoverTimerRef.current);
-    hoverTimerRef.current = setTimeout(() => setHoveredNav(null), 300);
+  const closeDropdown = useCallback((idx) => {
+    clearTimeout(hoverTimerRef.current[idx]);
+    hoverTimerRef.current[idx] = setTimeout(() => {
+      const el = document.querySelector(`[data-nav-dropdown="${idx}"]`);
+      if (el) el.classList.remove('nav-dropdown-open');
+    }, 250);
   }, []);
 
   const isNavActive = useCallback((baseType) => {
-    const sp = new URLSearchParams(location.search);
-    return sp.get('type') === baseType;
+    return new URLSearchParams(location.search).get('type') === baseType;
   }, [location.search]);
 
   const { data: notifData } = useQuery({
@@ -123,38 +141,59 @@ export default function Navbar() {
 
   return (
     <>
-      {/* ── Top Bar ──────────────────────────────────── */}
+      <style>{`
+        .nav-dropdown-menu {
+          opacity: 0;
+          visibility: hidden;
+          transform: translateY(-4px) scale(0.97);
+          transition: opacity 0.2s cubic-bezier(0.4,0,0.2,1), transform 0.2s cubic-bezier(0.4,0,0.2,1), visibility 0.2s;
+          pointer-events: none;
+        }
+        .nav-dropdown-open .nav-dropdown-menu {
+          opacity: 1;
+          visibility: visible;
+          transform: translateY(0) scale(1);
+          pointer-events: auto;
+        }
+        .nav-dropdown-open > a > .chevron-icon {
+          transform: rotate(180deg);
+        }
+        .chevron-icon {
+          transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+        }
+      `}</style>
+
+      {/* ── Top Bar ──────────────────────────────── */}
       <header
         className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
           scrolled
-            ? 'bg-white/95 backdrop-blur-xl shadow-soft border-b border-surface-100/50'
-            : 'bg-white/80 backdrop-blur-lg'
+            ? 'bg-white/95 backdrop-blur-xl shadow-md border-b border-surface-100/50'
+            : 'bg-white/80 backdrop-blur-md'
         }`}
       >
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
-          {/* Left: hamburger (mobile) */}
+          {/* Mobile hamburger */}
           <button
-            className="md:hidden p-2 -ml-2 rounded-xl hover:bg-surface-100 transition-colors"
-            onClick={() => setMobileOpen((v) => !v)}
-            aria-label="Menu"
+            className="md:hidden p-2 -ml-2 rounded-xl hover:bg-surface-100 active:bg-surface-200 transition-colors"
+            onClick={(e) => { createRipple(e); setMobileOpen((v) => !v); }}
           >
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
 
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 shrink-0">
-            <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 text-white shadow-sm">
-              <Home size={15} strokeWidth={2.5} />
+          <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
+            <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 text-white shadow-md group-hover:shadow-lg transition-shadow">
+              <Home size={16} strokeWidth={2.5} />
             </span>
-            <span className="font-display font-bold text-lg text-surface-900 hidden sm:block">Houziee</span>
+            <span className="font-display font-bold text-lg text-surface-900 hidden sm:block tracking-tight">Houziee</span>
           </Link>
 
-          {/* Desktop nav with hover dropdowns */}
-          <div className="hidden md:flex items-center gap-1 bg-surface-100/80 rounded-full px-1.5 py-1 relative">
+          {/* Desktop nav */}
+          <div className="hidden md:flex items-center gap-0.5 bg-surface-100/70 rounded-full px-1.5 py-1">
             <Link
               to="/"
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
-                location.pathname === '/' && !location.search ? 'bg-white text-primary-600 shadow-sm' : 'text-surface-500 hover:text-surface-800'
+              className={`ripple-container px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
+                location.pathname === '/' && !location.search ? 'bg-white text-primary-600 shadow-sm' : 'text-surface-500 hover:text-surface-800 hover:bg-white/50'
               }`}
             >
               Home
@@ -166,68 +205,65 @@ export default function Navbar() {
                 <div
                   key={item.baseType}
                   className="relative"
-                  onMouseEnter={() => handleNavEnter(idx)}
-                  onMouseLeave={handleNavLeave}
+                  data-nav-dropdown={idx}
+                  onMouseEnter={() => openDropdown(idx)}
+                  onMouseLeave={() => closeDropdown(idx)}
                 >
                   <Link
                     to={buildSearchURL({ type: item.baseType })}
-                    className={`flex items-center gap-1 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
-                      active ? 'bg-white text-primary-600 shadow-sm' : 'text-surface-500 hover:text-surface-800'
+                    onClick={createRipple}
+                    className={`ripple-container flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
+                      active ? 'bg-white text-primary-600 shadow-sm' : 'text-surface-500 hover:text-surface-800 hover:bg-white/50'
                     }`}
                   >
                     {item.label}
-                    <ChevronDown size={12} className={`transition-transform duration-200 ${hoveredNav === idx ? 'rotate-180' : ''}`} />
+                    <ChevronDown size={13} className="chevron-icon" />
                   </Link>
 
                   {/* Dropdown */}
-                  {hoveredNav === idx && (
-                    <div
-                      className="absolute left-1/2 -translate-x-1/2 top-full mt-1 w-48 bg-white rounded-2xl border border-surface-200/60 shadow-soft-lg py-1.5 z-50"
-                      onMouseEnter={() => handleNavEnter(idx)}
-                      onMouseLeave={handleNavLeave}
-                    >
-                      <div className="px-3 py-2 border-b border-surface-100 mb-1">
-                        <p className="text-xs font-semibold text-surface-400 uppercase tracking-wider">{item.label}</p>
+                  <div className="nav-dropdown-menu absolute left-1/2 -translate-x-1/2 top-full pt-2 w-52 z-50">
+                    <div className="bg-white rounded-2xl border border-surface-200/60 py-1.5" style={{ boxShadow: 'var(--md-sys-elevation-3)' }}>
+                      <div className="px-3.5 py-2 border-b border-surface-100 mb-1">
+                        <p className="text-[11px] font-semibold text-surface-400 uppercase tracking-wider">{item.label}</p>
                       </div>
-                      {item.children.map((child) => (
+                      {item.children.map((child, i) => (
                         <Link
                           key={child.label}
                           to={buildSearchURL(child.query)}
-                          onClick={() => setHoveredNav(null)}
-                          className="flex items-center gap-2.5 px-3 py-2 text-sm text-surface-600 hover:bg-primary-50 hover:text-primary-700 transition-colors"
+                          style={{ animationDelay: `${i * 30}ms` }}
+                          className="flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-surface-600 hover:bg-primary-50 hover:text-primary-700 transition-colors rounded-lg mx-1.5"
                         >
-                          <item.icon size={14} className="text-surface-400" />
+                          <item.icon size={14} className="text-surface-400 group-hover:text-primary-500" />
                           {child.label}
                         </Link>
                       ))}
                     </div>
-                  )}
+                  </div>
                 </div>
               );
             })}
           </div>
 
           {/* Right actions */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             {user ? (
               <>
                 {/* Notifications */}
                 <div className="relative" ref={notifRef}>
                   <button
-                    className="relative p-2 rounded-xl hover:bg-surface-100 transition-colors"
-                    onClick={() => setNotifOpen((v) => !v)}
-                    aria-label="Notifications"
+                    className="relative p-2.5 rounded-xl hover:bg-surface-100 active:bg-surface-200 transition-colors"
+                    onClick={(e) => { createRipple(e); setNotifOpen((v) => !v); }}
                   >
                     <Bell size={20} className="text-surface-600" />
                     {unreadCount > 0 && (
-                      <span className="absolute top-1 right-1 min-w-[16px] h-4 flex items-center justify-center rounded-full bg-danger-500 text-white text-[9px] font-bold px-1">
+                      <span className="absolute top-1.5 right-1.5 min-w-[16px] h-4 flex items-center justify-center rounded-full bg-danger-500 text-white text-[9px] font-bold px-1 animate-glow">
                         {unreadCount > 99 ? '99+' : unreadCount}
                       </span>
                     )}
                   </button>
 
                   {notifOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] sm:w-96 max-h-[70vh] rounded-2xl bg-white border border-surface-200/60 shadow-soft-lg py-0 z-50 overflow-hidden">
+                    <div className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] sm:w-96 max-h-[70vh] rounded-2xl bg-white border border-surface-200/60 py-0 z-50 overflow-hidden animate-scale-in" style={{ boxShadow: 'var(--md-sys-elevation-4)' }}>
                       <div className="flex items-center justify-between px-4 py-3 border-b border-surface-100">
                         <h3 className="font-semibold text-surface-900 text-sm">Notifications</h3>
                         {unreadCount > 0 && (
@@ -243,7 +279,7 @@ export default function Navbar() {
                             <p>No notifications yet</p>
                           </div>
                         ) : (
-                          notifData?.slice(0, 20).map((notif) => (
+                          notifData?.slice(0, 20).map((notif, i) => (
                             <button
                               key={notif.id}
                               onClick={() => {
@@ -253,7 +289,8 @@ export default function Navbar() {
                                 else if (notif.data?.listingId) navigate(`/listing/${notif.data.listingId}`);
                                 setNotifOpen(false);
                               }}
-                              className={`w-full text-left px-4 py-3 hover:bg-surface-50 transition-colors border-b border-surface-50 last:border-0 ${!notif.read ? 'bg-primary-50/30' : ''}`}
+                              className={`w-full text-left px-4 py-3 hover:bg-surface-50 active:bg-surface-100 transition-colors border-b border-surface-50 last:border-0 ${!notif.read ? 'bg-primary-50/30' : ''}`}
+                              style={{ animation: `slide-up 0.3s cubic-bezier(0.16,1,0.3,1) ${i * 30}ms both` }}
                             >
                               <div className="flex items-start gap-3">
                                 <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${!notif.read ? 'bg-primary-500' : 'bg-surface-300'}`} />
@@ -274,16 +311,16 @@ export default function Navbar() {
                 {/* Avatar */}
                 <div className="relative" ref={dropdownRef}>
                   <button
-                    onClick={() => setDropdownOpen((v) => !v)}
-                    className="flex items-center gap-2 p-1 pr-2 rounded-full hover:bg-surface-100 transition-colors"
+                    onClick={(e) => { createRipple(e); setDropdownOpen((v) => !v); }}
+                    className="flex items-center gap-2 p-1 pr-2 rounded-full hover:bg-surface-100 active:bg-surface-200 transition-colors"
                   >
                     <Avatar src={user.profileImage} name={user.name} size="sm" />
-                    <ChevronDown size={14} className={`text-surface-400 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown size={14} className={`text-surface-400 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
                   </button>
 
                   {dropdownOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl border border-surface-200/60 shadow-soft-lg py-1.5 z-50">
-                      <div className="px-4 py-2.5 border-b border-surface-100 mb-1">
+                    <div className="absolute right-0 top-full mt-2 w-60 bg-white rounded-2xl border border-surface-200/60 py-1.5 z-50 animate-scale-in" style={{ boxShadow: 'var(--md-sys-elevation-3)' }}>
+                      <div className="px-4 py-3 border-b border-surface-100 mb-1">
                         <p className="text-sm font-semibold text-surface-900 truncate">{user.name}</p>
                         <p className="text-xs text-surface-400 truncate">{user.email}</p>
                       </div>
@@ -291,14 +328,23 @@ export default function Navbar() {
                         { to: '/dashboard/profile', icon: User, label: 'My Profile' },
                         { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
                         ...(user.role === 'OWNER' ? [{ to: '/dashboard/listings', icon: ListPlus, label: 'My Listings' }] : []),
-                      ].map(({ to, icon: Icon, label }) => (
-                        <Link key={to} to={to} onClick={() => setDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-surface-700 hover:bg-surface-50 transition-colors">
+                      ].map(({ to, icon: Icon, label }, i) => (
+                        <Link
+                          key={to}
+                          to={to}
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-surface-700 hover:bg-surface-50 active:bg-surface-100 transition-colors"
+                          style={{ animation: `slide-up 0.25s cubic-bezier(0.16,1,0.3,1) ${i * 40}ms both` }}
+                        >
                           <Icon size={16} className="text-surface-400" />
                           {label}
                         </Link>
                       ))}
                       <div className="border-t border-surface-100 mt-1 pt-1">
-                        <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-danger-600 hover:bg-danger-50 transition-colors">
+                        <button
+                          onClick={handleLogout}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-danger-600 hover:bg-red-50 active:bg-red-100 transition-colors"
+                        >
                           <LogOut size={16} />
                           Logout
                         </button>
@@ -309,39 +355,41 @@ export default function Navbar() {
               </>
             ) : (
               <div className="flex items-center gap-2">
-                <Link to="/login" className="px-4 py-2 text-sm font-medium text-surface-600 hover:text-surface-900 transition-colors">Login</Link>
-                <Link to="/register" className="btn-primary btn-sm">Register</Link>
+                <Link to="/login" className="px-4 py-2 text-sm font-medium text-surface-600 hover:text-surface-900 transition-colors rounded-full hover:bg-surface-100">Login</Link>
+                <Link to="/register" className="btn-primary btn-sm ripple-container" onClick={createRipple}>Register</Link>
               </div>
             )}
           </div>
         </nav>
       </header>
 
-      {/* ── Mobile Drawer ─────────────────────────────────── */}
+      {/* ── Mobile Drawer ─────────────────────────── */}
       {mobileOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
-          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
-          <aside className="absolute top-14 left-0 right-0 bg-white border-b border-surface-100 shadow-soft-lg p-4 space-y-1 z-50">
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm animate-fade-in" onClick={() => setMobileOpen(false)} />
+          <aside className="absolute top-14 left-0 right-0 bg-white border-b border-surface-100 p-4 space-y-1 z-50 animate-slide-down" style={{ boxShadow: 'var(--md-sys-elevation-4)' }}>
             {[
               { to: '/', label: 'Home', icon: Home },
               { to: '/search?type=HOUSE_RENTAL', label: 'Houses', icon: Building2 },
               { to: '/search?type=ROOM_SHARING', label: 'Rooms', icon: Users },
               { to: '/search?type=HOSTEL', label: 'Hostels', icon: BedDouble },
               { to: '/search?type=LAND_SALE', label: 'Land', icon: LandPlot },
-            ].map(({ to, label, icon: Icon }) => (
-              <Link
-                key={to}
-                to={to}
-                onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
-                  activeType === new URLSearchParams(to.split('?')[1]).get('type')
-                    ? 'bg-primary-50 text-primary-700'
-                    : 'text-surface-700 hover:bg-surface-50'
-                }`}
-              >
-                <Icon size={18} /> {label}
-              </Link>
-            ))}
+            ].map(({ to, label, icon: Icon }, i) => {
+              const toType = new URLSearchParams(to.split('?')[1]).get('type');
+              return (
+                <Link
+                  key={to}
+                  to={to}
+                  onClick={() => setMobileOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                    activeType === toType ? 'bg-primary-50 text-primary-700' : 'text-surface-700 hover:bg-surface-50 active:bg-surface-100'
+                  }`}
+                  style={{ animation: `slide-up 0.3s cubic-bezier(0.16,1,0.3,1) ${i * 40}ms both` }}
+                >
+                  <Icon size={18} /> {label}
+                </Link>
+              );
+            })}
             {!user && (
               <div className="pt-3 border-t border-surface-100 flex flex-col gap-2">
                 <Link to="/login" onClick={() => setMobileOpen(false)} className="btn-outline btn-md w-full justify-center">Login</Link>
@@ -352,7 +400,7 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* ── Bottom Nav (mobile, logged in) ──────────────────── */}
+      {/* ── Bottom Nav (mobile, logged in) ──────────── */}
       {user && (
         <nav className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-xl border-t border-surface-100 md:hidden safe-area-bottom">
           <div className="flex items-center justify-around h-16 px-2">
@@ -368,8 +416,8 @@ export default function Navbar() {
                 <Link
                   key={to}
                   to={to}
-                  className={`flex flex-col items-center gap-0.5 py-1 px-3 transition-all duration-200 ${
-                    isActive ? 'text-primary-600' : 'text-surface-400'
+                  className={`flex flex-col items-center gap-0.5 py-1 px-3 transition-all duration-200 rounded-xl ${
+                    isActive ? 'text-primary-600' : 'text-surface-400 active:text-surface-600'
                   }`}
                 >
                   <Icon size={22} strokeWidth={isActive ? 2.5 : 1.8} />
