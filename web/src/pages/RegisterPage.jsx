@@ -175,26 +175,32 @@ const RegisterPage = () => {
     if (!validate()) return;
     setLoading(true);
     try {
-      // 1. Create user in our DB
+      // 1. Try Firebase first — if email already in Firebase, just tell user to check email
+      let userCred;
+      try {
+        userCred = await createUserWithEmailAndPassword(auth, form.email, form.password);
+        await sendEmailVerification(userCred.user, {
+          url: `${window.location.origin}/verify-email`,
+          handleCodeInApp: true,
+        });
+        const { signOut } = await import('../config/firebase');
+        await signOut(auth);
+      } catch (fbErr) {
+        if (fbErr.code === 'auth/email-already-in-use') {
+          toast.success('Email already registered. Check your email for the verification link.');
+          setStep('otp');
+          return;
+        }
+        throw fbErr;
+      }
+
+      // 2. Create user in our DB
       await register({ name: form.name, email: form.email, phone: form.phone, password: form.password, role: form.role });
-
-      // 2. Create Firebase user + send verification email
-      const userCred = await createUserWithEmailAndPassword(auth, form.email, form.password);
-      await sendEmailVerification(userCred.user, {
-        url: `${window.location.origin}/verify-email`,
-        handleCodeInApp: true,
-      });
-
-      // 3. Sign out from Firebase (we use our own JWT)
-      const { signOut } = await import('../config/firebase');
-      await signOut(auth);
 
       setStep('otp');
       toast.success('Account created! Check your email for verification link.');
     } catch (err) {
-      const msg = err.code === 'auth/email-already-in-use'
-        ? 'Email already registered'
-        : err.response?.data?.message || err.message || 'Registration failed';
+      const msg = err.response?.data?.message || err.message || 'Registration failed';
       toast.error(msg);
     } finally {
       setLoading(false);

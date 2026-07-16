@@ -57,7 +57,12 @@ const register = asyncHandler(async (req, res) => {
   const existing = await prisma.user.findFirst({
     where: { OR: [{ email }, ...(phone ? [{ phone }] : [])] },
   });
-  if (existing) throw new AppError('Email or phone already registered', 409);
+  if (existing) {
+    if (existing.isVerified) throw new AppError('Email or phone already registered', 409);
+    // Unverified user — return success so frontend can proceed with Firebase
+    res.status(201).json({ success: true, message: 'Account created. Please verify your email.', data: { userId: existing.id } });
+    return;
+  }
 
   const allowedRole = ['TENANT', 'OWNER'].includes(role) ? role : 'TENANT';
 
@@ -66,11 +71,7 @@ const register = asyncHandler(async (req, res) => {
     data: { name, email, phone, password: hashed, role: allowedRole, isVerified: false },
   });
 
-  res.status(201).json({
-    success: true,
-    message: 'Account created. Please verify your email.',
-    data: { userId: user.id },
-  });
+  res.status(201).json({ success: true, message: 'Account created. Please verify your email.', data: { userId: user.id } });
 });
 
 // ─── Login ────────────────────────────────────
