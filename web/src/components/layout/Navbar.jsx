@@ -192,7 +192,7 @@ export default function Navbar() {
           : 'bg-white/80 backdrop-blur-md'
           }`}
       >
-        <nav className="px-4 sm:px-6 h-14 flex items-center justify-between gap-4">          {/* Left: hamburger + logo */}
+        <nav className="px-4 sm:px-6 h-14 md:h-20 flex items-center justify-between gap-4">          {/* Left: hamburger + logo */}
           <div className="flex items-center gap-2 shrink-0">
             <button
               className="md:hidden p-2 -ml-2 rounded-xl hover:bg-surface-100 active:bg-surface-200 transition-colors"
@@ -202,7 +202,7 @@ export default function Navbar() {
             </button>
 
             <Link to="/" className="shrink-0 group">
-              <img src="https://res.cloudinary.com/dldgj84bm/image/upload/v1784198779/ChatGPT_Image_Jul_16_2026_04_15_03_PM_wtomms.png" alt="Quikden" className="w-12 h-12 rounded-xl object-cover shadow-md group-hover:shadow-lg transition-shadow" />
+              <img src="https://res.cloudinary.com/dldgj84bm/image/upload/v1784198779/ChatGPT_Image_Jul_16_2026_04_15_03_PM_wtomms.png" alt="Quikden" className="w-10 h-10 md:w-16 md:h-16 rounded-xl object-cover shadow-md group-hover:shadow-lg transition-shadow" />
             </Link>
           </div>
 
