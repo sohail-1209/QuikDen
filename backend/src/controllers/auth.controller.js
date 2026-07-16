@@ -12,6 +12,7 @@ const {
   generateVerificationToken,
   verifyEmailToken,
 } = require('../services/auth.service');
+const { sendVerificationEmail: sendEmail } = require('../services/email.service');
 
 // ─── Token helpers ────────────────────────────
 const signAccessToken = (id) =>
@@ -67,14 +68,17 @@ const register = asyncHandler(async (req, res) => {
 
   // Generate verification token — do NOT send tokens yet
   const { token } = await generateVerificationToken(user.id);
-  const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${token}`;
 
-  console.log(`📧 Email verification URL: ${verificationUrl}`);
+  // Send verification email
+  try {
+    await sendEmail(email, name, token);
+  } catch (err) {
+    console.error('Failed to send verification email:', err.message);
+  }
 
   res.status(201).json({
     success: true,
     message: 'Account created. Please verify your email.',
-    verificationUrl,
   });
 });
 
@@ -207,7 +211,7 @@ const completeProfile = asyncHandler(async (req, res) => {
 });
 
 // ─── Send email verification ───────────────────
-const sendVerificationEmail = asyncHandler(async (req, res) => {
+const sendVerificationEmailHandler = asyncHandler(async (req, res) => {
   const user = await prisma.user.findUnique({ where: { id: req.user.id } });
   if (!user) throw new AppError('User not found', 404);
 
@@ -217,17 +221,13 @@ const sendVerificationEmail = asyncHandler(async (req, res) => {
 
   const { token } = await generateVerificationToken(user.id);
 
-  // In production, send email here. For now, return the verification URL
-  const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${token}`;
+  try {
+    await sendEmail(user.email, user.name, token);
+  } catch (err) {
+    console.error('Failed to send verification email:', err.message);
+  }
 
-  console.log(`📧 Email verification URL: ${verificationUrl}`);
-
-  res.json({
-    success: true,
-    message: 'Verification email sent',
-    // Remove this in production — only for development
-    verificationUrl,
-  });
+  res.json({ success: true, message: 'Verification email sent' });
 });
 
 // ─── Verify email with token ───────────────────
@@ -248,6 +248,6 @@ module.exports = {
   updateFcmToken,
   googleAuth,
   completeProfile,
-  sendVerificationEmail,
+  sendVerificationEmail: sendVerificationEmailHandler,
   verifyEmail,
 };

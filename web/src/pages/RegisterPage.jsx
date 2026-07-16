@@ -94,7 +94,6 @@ const RegisterPage = () => {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [step, setStep] = useState('form'); // 'form' | 'verify-email'
-  const [verificationUrl, setVerificationUrl] = useState('');
 
   // Initialize Google Sign-In
   useEffect(() => {
@@ -171,12 +170,9 @@ const RegisterPage = () => {
     if (!validate()) return;
     setLoading(true);
     try {
-      const result = await register({ name: form.name, email: form.email, phone: form.phone, password: form.password, role: form.role });
-      if (result.verificationUrl) {
-        setVerificationUrl(result.verificationUrl);
-      }
+      await register({ name: form.name, email: form.email, phone: form.phone, password: form.password, role: form.role });
       setStep('verify-email');
-      toast.success('Account created! Please verify your email.');
+      toast.success('Account created! Please check your email.');
     } catch (err) {
       toast.error(err.response?.data?.message || err.message || 'Registration failed');
     } finally {
@@ -239,15 +235,9 @@ const RegisterPage = () => {
                 <span className="font-medium text-surface-700">{form.email}</span>
               </p>
 
-              {verificationUrl && (
-                <div className="bg-surface-50 rounded-lg p-3 mb-4">
-                  <p className="text-[10px] text-surface-400 mb-1">For development, click the link below:</p>
-                  <a href={verificationUrl} target="_blank" rel="noopener noreferrer"
-                    className="text-[10px] text-primary-600 hover:underline break-all">
-                    {verificationUrl}
-                  </a>
-                </div>
-              )}
+              <p className="text-[11px] text-surface-400 mb-4">
+                Click the link in the email to verify your account and sign in.
+              </p>
 
               <button onClick={() => setStep('form')}
                 className="text-xs text-primary-600 hover:underline font-medium">
