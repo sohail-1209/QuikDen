@@ -287,6 +287,47 @@
   transform: scale(1);
 }
 
+/* ─── Pill Nav ─────────────────────────────── */
+.pill-nav {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.6);
+}
+.pill-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #475569;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.pill-nav-item:hover {
+  color: #0d9488;
+  background: rgba(13, 148, 136, 0.06);
+}
+.pill-nav-active {
+  background: #0d9488 !important;
+  color: white !important;
+}
+.notification-dot {
+  width: 8px;
+  height: 8px;
+  background: #ef4444;
+  border-radius: 50%;
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+.avatar-ring {
+  border: 2px solid #0d9488;
+}
+
 /* ─── Leaflet map override ───────────────────── */
 .leaflet-container { border-radius: 1rem; z-index: 0; }
 .leaflet-control-attribution { display: none; }
