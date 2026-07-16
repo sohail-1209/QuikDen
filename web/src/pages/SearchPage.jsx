@@ -133,21 +133,19 @@ const SearchPage = () => {
             <div className="flex items-center gap-3 bg-surface-100 p-1 rounded-xl w-full md:w-auto">
               <button
                 onClick={() => setIsAiMode(false)}
-                className={`flex-1 md:flex-initial flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
-                  !isAiMode
-                    ? 'bg-surface-50/80 text-surface-900 shadow-sm'
-                    : 'text-surface-500 hover:text-surface-900'
-                }`}
+                className={`flex-1 md:flex-initial flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all ${!isAiMode
+                  ? 'bg-surface-50/80 text-surface-900 shadow-sm'
+                  : 'text-surface-500 hover:text-surface-900'
+                  }`}
               >
                 <Search size={16} /> Basic Search
               </button>
               <button
                 onClick={() => setIsAiMode(true)}
-                className={`flex-1 md:flex-initial flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
-                  isAiMode
-                    ? 'bg-gradient-to-r from-primary-600 to-indigo-600 text-white shadow-sm'
-                    : 'text-surface-500 hover:text-surface-900'
-                }`}
+                className={`flex-1 md:flex-initial flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all ${isAiMode
+                  ? 'bg-gradient-to-r from-primary-600 to-indigo-600 text-white shadow-sm'
+                  : 'text-surface-500 hover:text-surface-900'
+                  }`}
               >
                 <Sparkles size={16} /> AI Search
               </button>
@@ -162,12 +160,11 @@ const SearchPage = () => {
                       placeholder="Search by keywords, landmarks, or areas..."
                       value={filters.q}
                       onChange={(e) => updateFilters({ q: e.target.value })}
-                      className="pr-10"
+                      className=""
                     />
-                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-surface-400" size={18} />
                   </div>
                   <Button type="submit" variant="primary">
-                    Search
+                    <Search />
                   </Button>
                 </form>
               ) : (
@@ -281,11 +278,10 @@ const SearchPage = () => {
                   <button
                     key={idx}
                     onClick={() => updateFilters({ page: String(idx + 1) })}
-                    className={`w-9 h-9 rounded-xl text-sm font-semibold flex items-center justify-center border transition-all ${
-                      currentPage === idx + 1
-                        ? 'bg-primary-600 border-primary-600 text-white shadow-sm'
-                        : 'bg-surface-50/80 border-surface-200 text-surface-600 hover:bg-surface-50'
-                    }`}
+                    className={`w-9 h-9 rounded-xl text-sm font-semibold flex items-center justify-center border transition-all ${currentPage === idx + 1
+                      ? 'bg-primary-600 border-primary-600 text-white shadow-sm'
+                      : 'bg-surface-50/80 border-surface-200 text-surface-600 hover:bg-surface-50'
+                      }`}
                   >
                     {idx + 1}
                   </button>

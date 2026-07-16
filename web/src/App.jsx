@@ -33,6 +33,9 @@ const AnalyticsPage   = lazy(() => import('./pages/dashboard/AnalyticsPage'));
 // Admin
 const AdminDashboard  = lazy(() => import('./pages/admin/AdminDashboard'));
 
+// Xiayoki Chatbot
+import XiayokiChatbot from './components/xiayoki/XiayokiChatbot';
+
 // ─── Smart Dashboard redirect based on role ───────────
 import { useAuth } from './context/AuthContext';
 
@@ -101,7 +104,7 @@ export default function App() {
                     </ProtectedRoute>
                   } />
                   <Route path="/dashboard/saved" element={
-                    <ProtectedRoute allowedRoles={['TENANT']}>
+                    <ProtectedRoute allowedRoles={['TENANT', 'OWNER']}>
                       <SavedPage />
                     </ProtectedRoute>
                   } />
@@ -198,6 +201,9 @@ export default function App() {
                 },
               }}
             />
+
+            {/* Xiayoki AI Chatbot */}
+            <XiayokiChatbot />
 
           </BrowserRouter>
         </SocketProvider>

@@ -48,11 +48,11 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-5 sm:space-y-6">
       <h1 className="section-title">My Profile</h1>
 
       {/* Photo + basic info */}
-      <div className="card p-6 flex items-center gap-5">
+      <div className="card p-4 sm:p-6 flex items-center gap-4 sm:gap-5">
         <div className="relative flex-shrink-0">
           <Avatar src={user?.profileImage} name={user?.name} size="xl" />
           <label className="absolute bottom-0 right-0 bg-primary-600 text-white p-1.5 rounded-full cursor-pointer hover:bg-primary-700 transition-colors">
@@ -71,7 +71,7 @@ const ProfilePage = () => {
       </div>
 
       {/* Edit form */}
-      <div className="card p-6 space-y-4">
+      <div className="card p-4 sm:p-6 space-y-4">
         <h3 className="font-semibold text-surface-900">Edit Information</h3>
         <Input label="Full Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
         <Input label="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} type="tel" />

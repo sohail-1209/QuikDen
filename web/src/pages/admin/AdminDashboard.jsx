@@ -21,7 +21,7 @@ import { formatRent, timeAgo } from '../../utils/helpers';
 
 // Subcomponents for tabs
 const StatsView = ({ stats }) => (
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
     {[
       { label: 'Total Users', value: stats?.users, icon: Users, color: 'text-blue-600 bg-blue-50' },
       { label: 'Active Listings', value: stats?.listings, icon: Home, color: 'text-green-600 bg-green-50' },
@@ -282,10 +282,10 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-surface-50 font-sans">
       <Navbar />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="font-display font-bold text-3xl text-surface-900 tracking-tight">
+            <h1 className="font-display font-bold text-2xl sm:text-3xl text-surface-900 tracking-tight">
               Admin Moderation Center
             </h1>
             <p className="text-surface-500 text-sm mt-1">
@@ -295,7 +295,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Tab Selector */}
-        <div className="flex border-b border-surface-200 gap-6 mb-8 overflow-x-auto">
+        <div className="flex border-b border-surface-200 gap-4 sm:gap-6 mb-6 sm:mb-8 overflow-x-auto no-scrollbar">
           {[
             { key: 'stats', label: 'Overview', icon: BarChart3 },
             { key: 'users', label: 'Users', icon: Users },

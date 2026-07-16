@@ -92,23 +92,23 @@ export default function TenantDashboard() {
   const firstName = user?.name?.split(' ')[0] ?? 'there';
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto">
+    <div className="space-y-6 sm:space-y-8 max-w-4xl mx-auto">
 
       {/* ── Welcome header ──────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-4">
         <Avatar src={user?.profileImage} name={user?.name} size="lg" className="ring-2 ring-primary-100" />
         <div>
-          <h1 className="text-2xl font-bold text-surface-900 font-display">
+          <h1 className="text-xl sm:text-2xl font-bold text-surface-900 font-display">
             Welcome back, <span className="gradient-text">{firstName}!</span>
           </h1>
-          <p className="text-sm text-surface-400 mt-0.5">
+          <p className="text-xs sm:text-sm text-surface-400 mt-0.5">
             Here's what's happening with your rentals today.
           </p>
         </div>
       </div>
 
       {/* ── Stats row ───────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <StatCard
           icon={Bookmark}
           label="Saved Listings"
@@ -176,8 +176,8 @@ export default function TenantDashboard() {
 
       {/* ── Quick Links ─────────────────────────────────────────────────────── */}
       <section>
-        <h2 className="section-title mb-4">Quick Links</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <h2 className="section-title mb-3 sm:mb-4">Quick Links</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
           <QuickLink
             to="/search"
             icon={Search}

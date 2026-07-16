@@ -110,12 +110,12 @@ export default function RequestsPage() {
       </div>
 
       {/* ── Tabs ────────────────────────────────────────────────────────────── */}
-      <div className="flex gap-1 bg-surface-100 p-1 rounded-xl w-fit">
+      <div className="flex gap-1 bg-surface-100 p-1 rounded-xl w-fit overflow-x-auto no-scrollbar">
         {TABS.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 whitespace-nowrap ${
               activeTab === tab.key
                 ? 'bg-surface-50/80 text-surface-900 shadow-sm'
                 : 'text-surface-500 hover:text-surface-700'

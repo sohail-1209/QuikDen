@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 // ─── Per-role menu configs ─────────────────────────────────────────────────
-const MENUS = {
+export const MENUS = {
   TENANT: [
     { to: '/dashboard',               icon: LayoutDashboard, label: 'Dashboard'      },
     { to: '/dashboard/my-listings',   icon: ListChecks,      label: 'My Listings'    },
@@ -28,6 +28,7 @@ const MENUS = {
     { to: '/dashboard',               icon: LayoutDashboard, label: 'Dashboard'      },
     { to: '/dashboard/listings',      icon: ListChecks,      label: 'My Listings'    },
     { to: '/dashboard/listings/new',  icon: PlusSquare,      label: 'Add Listing'    },
+    { to: '/dashboard/saved',         icon: Heart,           label: 'Saved Listings' },
     { to: '/dashboard/requests',      icon: SendHorizontal,  label: 'Requests'       },
     { to: '/dashboard/chats',         icon: MessageSquare,   label: 'Chats'          },
     { to: '/dashboard/analytics',     icon: BarChart2,       label: 'Analytics'      },
@@ -83,7 +84,7 @@ export default function Sidebar({ role }) {
   const items = MENUS[role] ?? MENUS.TENANT;
 
   return (
-    <aside className="flex flex-col h-full bg-surface-50/80 backdrop-blur-xl border-r border-surface-100/60 px-3 py-6 gap-1">
+    <aside className="flex flex-col h-full bg-surface-50/80 backdrop-blur-xl border-r border-surface-100/60 px-3 py-4 sm:py-6 gap-1">
       {/* Section label */}
       <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-surface-400">
         {role === 'ADMIN' ? 'Admin Panel' : 'My Account'}

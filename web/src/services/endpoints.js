@@ -88,6 +88,11 @@ export const usersAPI = {
   updateProfile: (data) => api.patch('/users/me', data),
 };
 
+// ─── Xiayoki Chatbot ─────────────────────────────────
+export const xiayokiAPI = {
+  chat: (message, history = []) => api.post('/xiayoki/chat', { message, history }),
+};
+
 // ─── Admin ────────────────────────────────────────────
 export const adminAPI = {
   getAllUsers: () => api.get('/admin/users'),

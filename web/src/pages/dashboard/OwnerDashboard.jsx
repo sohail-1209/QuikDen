@@ -13,7 +13,7 @@ import Avatar from '../../components/ui/Avatar';
 
 // ── Analytics card ─────────────────────────────────────────────────────────────
 const AnalyticsCard = ({ icon: Icon, label, value, color, sub, isLoading }) => (
-  <div className="card p-5 flex flex-col gap-3">
+  <div className="card p-3 sm:p-5 flex flex-col gap-2 sm:gap-3">
     <div className="flex items-center justify-between">
       <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color}`}>
         <Icon size={18} className="text-white" />
@@ -127,17 +127,17 @@ export default function OwnerDashboard() {
   const firstName = user?.name?.split(' ')[0] ?? 'there';
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto">
+    <div className="space-y-6 sm:space-y-8 max-w-5xl mx-auto">
 
       {/* ── Welcome header ──────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           <Avatar src={user?.profileImage} name={user?.name} size="lg" className="ring-2 ring-primary-100" />
           <div>
-            <h1 className="text-2xl font-bold text-surface-900 font-display">
+            <h1 className="text-xl sm:text-2xl font-bold text-surface-900 font-display">
               Hello, <span className="gradient-text">{firstName}!</span>
             </h1>
-            <p className="text-sm text-surface-400 mt-0.5">
+            <p className="text-xs sm:text-sm text-surface-400 mt-0.5">
               Manage your listings and tenant requests.
             </p>
           </div>
@@ -146,7 +146,7 @@ export default function OwnerDashboard() {
         {/* CTA — Add New Listing */}
         <button
           onClick={() => navigate('/dashboard/listings/new')}
-          className="btn-primary btn-md flex items-center gap-2 flex-shrink-0"
+          className="btn-primary btn-md flex items-center gap-2 flex-shrink-0 self-start sm:self-auto"
         >
           <Plus size={18} />
           Add New Listing
@@ -154,7 +154,7 @@ export default function OwnerDashboard() {
       </div>
 
       {/* ── Analytics cards ─────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <AnalyticsCard
           icon={Building2}
           label="Total Listings"
@@ -185,7 +185,7 @@ export default function OwnerDashboard() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
 
         {/* ── Recent Pending Requests (3/5 width) ──────────────────────────── */}
         <section className="lg:col-span-3 space-y-4">

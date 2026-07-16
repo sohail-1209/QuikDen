@@ -1,80 +1,107 @@
+// RegisterPage — clean centered card design matching login page
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import {
-  User,
-  Mail,
-  Lock,
-  Phone,
-  Home,
-  Users,
-  Shield,
-  Star,
-  ArrowRight,
-} from 'lucide-react';
+import { User, Mail, Lock, Phone, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 import { useAuth } from '../context/AuthContext';
-import { Button, Input } from '../components/ui/index.js';
 import Navbar from '../components/layout/Navbar';
 
-// ─── Static features list ──────────────────────────────────────────────────
-const FEATURES = [
-  {
-    icon: Home,
-    title: 'Verified Listings',
-    desc: 'Every property is ID-verified and physically inspected.',
-  },
-  {
-    icon: Users,
-    title: 'Smart Roommate Match',
-    desc: 'AI-powered compatibility scoring based on lifestyle preferences.',
-  },
-  {
-    icon: Shield,
-    title: 'Secure Payments',
-    desc: 'Escrow-protected rent deposits with instant refunds.',
-  },
-];
+// ─── House Illustration SVG ──────────────────────────────────────────────────
+const HouseIllustration = () => (
+  <div className="relative w-16 h-16 sm:w-20 sm:h-20 shrink-0">
+    <div className="absolute inset-0 bg-gradient-to-br from-teal-50 to-emerald-50 rounded-full" />
+    <div className="absolute top-1 right-1 w-1 h-1 bg-teal-300 rounded-full opacity-60" />
+    <svg className="absolute top-1 right-2 w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 32 32" fill="none">
+      <circle cx="16" cy="16" r="6" fill="#FBBF24" />
+      <circle cx="16" cy="16" r="8" fill="#FBBF24" opacity="0.2" />
+    </svg>
+    <svg className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-14 h-12 sm:w-16 sm:h-14" viewBox="0 0 120 100" fill="none">
+      <rect x="55" y="20" width="35" height="58" rx="2" fill="#E2E8F0" />
+      <rect x="60" y="26" width="8" height="8" rx="1" fill="#94A3B8" />
+      <rect x="72" y="26" width="8" height="8" rx="1" fill="#94A3B8" />
+      <rect x="60" y="40" width="8" height="8" rx="1" fill="#94A3B8" />
+      <rect x="72" y="40" width="8" height="8" rx="1" fill="#94A3B8" />
+      <path d="M50 22 L72.5 5 L95 22" fill="#0D9488" />
+      <rect x="15" y="35" width="45" height="43" rx="2" fill="#F8FAFC" />
+      <rect x="21" y="41" width="10" height="10" rx="1" fill="#94A3B8" />
+      <rect x="37" y="41" width="10" height="10" rx="1" fill="#94A3B8" />
+      <rect x="30" y="58" width="14" height="20" rx="2" fill="#0D9488" />
+      <circle cx="41" cy="68" r="1.5" fill="#FBBF24" />
+      <path d="M10 37 L37.5 18 L65 37" fill="#0D9488" />
+      <rect x="8" y="55" width="3" height="23" rx="1" fill="#92400E" />
+      <circle cx="9.5" cy="50" r="8" fill="#10B981" />
+      <circle cx="9.5" cy="48" r="6" fill="#34D399" />
+      <ellipse cx="75" cy="80" rx="10" ry="5" fill="#10B981" />
+      <ellipse cx="85" cy="81" rx="7" ry="4" fill="#34D399" />
+    </svg>
+    <svg className="absolute top-2.5 left-4 w-4 h-2.5" viewBox="0 0 24 16" fill="none" stroke="#64748B" strokeWidth="1.2" strokeLinecap="round">
+      <path d="M2 8 Q6 2 12 8" />
+      <path d="M12 8 Q16 2 22 8" />
+    </svg>
+  </div>
+);
 
+// ─── Password Input ──────────────────────────────────────────────────────────
+function PasswordInput({ label, name, value, onChange, placeholder, error, id }) {
+  const [show, setShow] = useState(false);
+  return (
+    <div>
+      <label htmlFor={id} className="block text-[11px] font-medium text-surface-700 mb-0.5">
+        {label}
+      </label>
+      <div className="relative">
+        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-surface-400 pointer-events-none">
+          <Lock size={13} />
+        </span>
+        <input
+          id={id}
+          name={name}
+          type={show ? 'text' : 'password'}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          autoComplete={name === 'password' ? 'new-password' : 'new-password'}
+          className={`w-full pl-8 pr-8 py-1.5 rounded-lg border text-[13px] bg-surface-50/50 text-surface-900 placeholder:text-surface-400 transition-all focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 ${
+            error ? 'border-red-400' : 'border-surface-200'
+          }`}
+        />
+        <button
+          type="button"
+          onClick={() => setShow((v) => !v)}
+          tabIndex={-1}
+          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-surface-400 hover:text-surface-600 transition-colors"
+        >
+          {show ? <EyeOff size={13} /> : <Eye size={13} />}
+        </button>
+      </div>
+      {error && <p className="text-[10px] text-red-500 mt-0.5">{error}</p>}
+    </div>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 const RegisterPage = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    password: '',
-    confirmPassword: '',
-    role: 'TENANT',
-    terms: false,
+    name: '', email: '', phone: '', password: '', confirmPassword: '', role: 'TENANT', terms: false,
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
   const validate = () => {
-    const newErrors = {};
-    if (!form.name.trim()) newErrors.name = 'Full name is required';
-    if (!form.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(form.email)) {
-      newErrors.email = 'Invalid email address';
-    }
-    if (form.phone && !/^\d{10}$/.test(form.phone)) {
-      newErrors.phone = 'Phone number must be exactly 10 digits';
-    }
-    if (!form.password) {
-      newErrors.password = 'Password is required';
-    } else if (form.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-    if (form.password !== form.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-    if (!form.terms) {
-      newErrors.terms = 'You must agree to the Terms of Service';
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const e = {};
+    if (!form.name.trim()) e.name = 'Full name is required';
+    if (!form.email.trim()) e.email = 'Email is required';
+    else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = 'Invalid email address';
+    if (form.phone && !/^\d{10}$/.test(form.phone)) e.phone = 'Must be 10 digits';
+    if (!form.password) e.password = 'Password is required';
+    else if (form.password.length < 6) e.password = 'Min 6 characters';
+    if (form.password !== form.confirmPassword) e.confirmPassword = 'Passwords do not match';
+    if (!form.terms) e.terms = 'You must agree to the Terms';
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
   const handleSubmit = async (e) => {
@@ -82,13 +109,7 @@ const RegisterPage = () => {
     if (!validate()) return;
     setLoading(true);
     try {
-      await register({
-        name: form.name,
-        email: form.email,
-        phone: form.phone,
-        password: form.password,
-        role: form.role,
-      });
+      await register({ name: form.name, email: form.email, phone: form.phone, password: form.password, role: form.role });
       toast.success('Registration successful! Welcome to Quikden.');
       navigate('/dashboard');
     } catch (err) {
@@ -98,201 +119,138 @@ const RegisterPage = () => {
     }
   };
 
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: undefined }));
+  };
+
   return (
     <>
       <Navbar />
-      <div className="min-h-screen flex bg-surface-50 font-sans pt-16">
-      {/* Left panel - Branding (Visible on large screens) */}
-      <div className="hidden lg:flex flex-col justify-between w-1/2 bg-gradient-to-br from-primary-700 via-primary-800 to-primary-950 p-12 relative overflow-hidden">
-        {/* Blobs */}
-        <div className="absolute -top-24 -left-24 w-80 h-80 bg-primary-500/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent-500/10 rounded-full blur-3xl pointer-events-none" />
+      <style>{`
+        .reg-bg {
+          background-color: #f0fdfa;
+          background-image:
+            radial-gradient(circle at 20% 80%, rgba(13,148,136,0.04) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(13,148,136,0.04) 0%, transparent 50%);
+        }
+        .reg-dots { background-image: radial-gradient(circle, rgba(13,148,136,0.15) 1px, transparent 1px); background-size: 16px 16px; }
+      `}</style>
 
-        {/* Logo */}
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-1">
-            <img src="https://res.cloudinary.com/dldgj84bm/image/upload/v1784198779/ChatGPT_Image_Jul_16_2026_04_15_03_PM_wtomms.png" alt="Quikden" className="w-10 h-10 rounded-xl object-cover border border-white/20" />
-            <span className="text-white font-cinzel font-bold text-2xl tracking-tight">
-              Quikden
-            </span>
-          </div>
-          <p className="text-primary-200 text-sm font-medium mt-2">
-            India's most trusted rental platform
-          </p>
-        </div>
+      <div className="min-h-screen reg-bg flex items-center justify-center px-3 py-3 sm:py-6 relative overflow-hidden">
+        {/* Decorative dots */}
+        <div className="absolute left-0 top-1/3 w-20 h-32 reg-dots opacity-50 pointer-events-none" />
+        <div className="absolute right-0 bottom-1/4 w-16 h-24 reg-dots opacity-40 pointer-events-none" />
+        {/* Waves */}
+        <svg className="absolute bottom-0 right-0 w-48 h-24 opacity-[0.06] pointer-events-none" viewBox="0 0 256 128" fill="none">
+          <path d="M0 64 Q64 0 128 64 T256 64 V128 H0 Z" fill="#0D9488" />
+        </svg>
 
-        {/* Hero Content */}
-        <div className="relative z-10 my-6">
-          <h1 className="text-white font-display font-bold text-4xl leading-tight tracking-tight">
-            Join the community of
-            <br />
-            <span className="text-accent-300">smart home seekers</span>
-          </h1>
-          <p className="text-primary-200 mt-4 text-base leading-relaxed max-w-sm">
-            Whether you want to list your space as an Owner or find your next flat as a Tenant, Quikden has got you covered.
-          </p>
-
-          <div className="mt-8 space-y-5">
-            {FEATURES.map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="flex items-start gap-4">
-                <div className="w-9 h-9 shrink-0 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/10">
-                  <Icon size={16} className="text-accent-300" />
-                </div>
-                <div>
-                  <p className="text-white text-sm font-semibold leading-tight">{title}</p>
-                  <p className="text-primary-300 text-xs mt-0.5 leading-snug">{desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="relative z-10 text-primary-300 text-xs flex justify-between">
-          <span>&copy; {new Date().getFullYear()} Roomy.in</span>
-          <span>Made for India</span>
-        </div>
-      </div>
-
-      {/* Right panel - Registration Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-12 bg-surface-50/50">
-        <div className="max-w-md w-full space-y-6">
-          <div className="text-center lg:text-left">
-            <h2 className="font-display font-bold text-3xl text-surface-900 tracking-tight">
-              Create an account
-            </h2>
-            <p className="text-surface-500 text-sm mt-2">
-              Start searching for rooms and roommates today.
-            </p>
+        {/* Card */}
+        <div className="w-full max-w-[380px] bg-white/80 backdrop-blur-xl border border-white/60 rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.06)] px-4 py-4 sm:px-6 sm:py-6 relative z-10">
+          {/* Header: illustration + text side by side */}
+          <div className="flex items-center gap-2.5 mb-2 sm:mb-3">
+            <HouseIllustration />
+            <div className="text-left">
+              <h1 className="font-display font-bold text-xl sm:text-2xl text-surface-900 tracking-tight">
+                Create an account
+              </h1>
+              <p className="text-surface-500 text-xs sm:text-sm mt-0.5">
+                Start searching for rooms and roommates today.
+              </p>
+            </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              label="Full Name"
-              type="text"
-              placeholder="e.g. Rahul Kumar"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              error={errors.name}
-              icon={User}
-            />
-
-            <Input
-              label="Email Address"
-              type="email"
-              placeholder="e.g. rahul@example.com"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              error={errors.email}
-              icon={Mail}
-            />
-
-            <Input
-              label="Phone Number (10 digits)"
-              type="tel"
-              placeholder="e.g. 9876543210"
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              error={errors.phone}
-              icon={Phone}
-            />
-
-            {/* Role switch toggle container */}
+          <form onSubmit={handleSubmit} noValidate className="space-y-2 sm:space-y-2.5">
+            {/* Full Name */}
             <div>
-              <label className="label">I want to register as a:</label>
-              <div className="grid grid-cols-2 gap-2 bg-surface-100 p-1 rounded-xl">
-                <button
-                  type="button"
-                  onClick={() => setForm({ ...form, role: 'TENANT' })}
-                  className={`py-2 text-sm font-semibold rounded-lg transition-all ${
-                    form.role === 'TENANT'
-                      ? 'bg-white text-primary-600 shadow-sm'
-                      : 'text-surface-600 hover:text-surface-900'
-                  }`}
-                >
-                  Tenant
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setForm({ ...form, role: 'OWNER' })}
-                  className={`py-2 text-sm font-semibold rounded-lg transition-all ${
-                    form.role === 'OWNER'
-                      ? 'bg-white text-primary-600 shadow-sm'
-                      : 'text-surface-600 hover:text-surface-900'
-                  }`}
-                >
-                  Owner
-                </button>
+              <label htmlFor="reg-name" className="block text-[11px] font-medium text-surface-700 mb-0.5">Full Name</label>
+              <div className="relative">
+                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-surface-400 pointer-events-none"><User size={13} /></span>
+                <input id="reg-name" name="name" type="text" value={form.name} onChange={handleChange} placeholder="e.g. Rahul Kumar" autoFocus
+                  className={`w-full pl-8 pr-2.5 py-1.5 rounded-lg border text-[13px] bg-surface-50/50 text-surface-900 placeholder:text-surface-400 transition-all focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 ${errors.name ? 'border-red-400' : 'border-surface-200'}`} />
+              </div>
+              {errors.name && <p className="text-[10px] text-red-500 mt-0.5">{errors.name}</p>}
+            </div>
+
+            {/* Email */}
+            <div>
+              <label htmlFor="reg-email" className="block text-[11px] font-medium text-surface-700 mb-0.5">Email Address</label>
+              <div className="relative">
+                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-surface-400 pointer-events-none"><Mail size={13} /></span>
+                <input id="reg-email" name="email" type="email" value={form.email} onChange={handleChange} placeholder="e.g. rahul@example.com"
+                  className={`w-full pl-8 pr-2.5 py-1.5 rounded-lg border text-[13px] bg-surface-50/50 text-surface-900 placeholder:text-surface-400 transition-all focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 ${errors.email ? 'border-red-400' : 'border-surface-200'}`} />
+              </div>
+              {errors.email && <p className="text-[10px] text-red-500 mt-0.5">{errors.email}</p>}
+            </div>
+
+            {/* Phone */}
+            <div>
+              <label htmlFor="reg-phone" className="block text-[11px] font-medium text-surface-700 mb-0.5">Phone Number (10 digits)</label>
+              <div className="relative">
+                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-surface-400 pointer-events-none"><Phone size={13} /></span>
+                <input id="reg-phone" name="phone" type="tel" value={form.phone} onChange={handleChange} placeholder="e.g. 9876543210" inputMode="numeric" maxLength={10}
+                  className={`w-full pl-8 pr-2.5 py-1.5 rounded-lg border text-[13px] bg-surface-50/50 text-surface-900 placeholder:text-surface-400 transition-all focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 ${errors.phone ? 'border-red-400' : 'border-surface-200'}`} />
+              </div>
+              {errors.phone && <p className="text-[10px] text-red-500 mt-0.5">{errors.phone}</p>}
+            </div>
+
+            {/* Role toggle */}
+            <div>
+              <label className="block text-[11px] font-medium text-surface-700 mb-0.5">I want to register as a:</label>
+              <div className="grid grid-cols-2 gap-1 bg-surface-100 p-0.5 rounded-lg">
+                {[
+                  { value: 'TENANT', label: 'Tenant', icon: User },
+                  { value: 'OWNER', label: 'Owner', icon: Mail },
+                ].map(({ value, label, icon: Icon }) => (
+                  <button key={value} type="button" onClick={() => setForm((p) => ({ ...p, role: value }))}
+                    className={`flex items-center justify-center gap-1 py-1 text-[11px] font-semibold rounded-md transition-all ${
+                      form.role === value ? 'bg-white text-primary-600 shadow-sm' : 'text-surface-500 hover:text-surface-700'
+                    }`}>
+                    <Icon size={12} />
+                    {label}
+                  </button>
+                ))}
               </div>
             </div>
 
-            <Input
-              label="Password"
-              type="password"
-              placeholder="••••••••"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              error={errors.password}
-              icon={Lock}
-            />
+            {/* Password */}
+            <PasswordInput label="Password" name="password" id="reg-password" value={form.password} onChange={handleChange} placeholder="Enter password" error={errors.password} />
 
-            <Input
-              label="Confirm Password"
-              type="password"
-              placeholder="••••••••"
-              value={form.confirmPassword}
-              onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-              error={errors.confirmPassword}
-              icon={Lock}
-            />
+            {/* Confirm Password */}
+            <PasswordInput label="Confirm Password" name="confirmPassword" id="reg-confirm" value={form.confirmPassword} onChange={handleChange} placeholder="Confirm password" error={errors.confirmPassword} />
 
-            {/* Terms checkbox */}
-            <div className="flex flex-col">
-              <label className="inline-flex items-start gap-2.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={form.terms}
-                  onChange={(e) => setForm({ ...form, terms: e.target.checked })}
-                  className="mt-1 w-4 h-4 rounded text-primary-600 focus:ring-primary-500 accent-primary-600"
-                />
-                <span className="text-xs text-surface-500 leading-normal">
-                  I agree to the{' '}
-                  <a href="#" className="text-primary-600 hover:underline">
-                    Terms of Service
-                  </a>{' '}
-                  and{' '}
-                  <a href="#" className="text-primary-600 hover:underline">
-                    Privacy Policy
-                  </a>
-                  .
-                </span>
-              </label>
-              {errors.terms && <p className="error-text">{errors.terms}</p>}
+            {/* Terms */}
+            <div className="flex items-start gap-1.5">
+              <input type="checkbox" name="terms" checked={form.terms} onChange={handleChange}
+                className="mt-0.5 w-3 h-3 rounded border-surface-300 text-primary-600 focus:ring-primary-400 cursor-pointer" />
+              <span className="text-[10px] text-surface-500 leading-snug">
+                I agree to the{' '}
+                <a href="#" className="text-primary-600 hover:underline">Terms of Service</a>
+                {' '}and{' '}
+                <a href="#" className="text-primary-600 hover:underline">Privacy Policy</a>.
+              </span>
             </div>
+            {errors.terms && <p className="text-[10px] text-red-500">{errors.terms}</p>}
 
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              className="w-full mt-2"
-              loading={loading}
-            >
-              Sign Up <ArrowRight size={16} />
-            </Button>
+            {/* Submit */}
+            <button type="submit" disabled={loading}
+              className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-gradient-to-r from-primary-500 to-primary-600 text-white text-sm font-semibold shadow-lg shadow-primary-500/25 hover:shadow-xl hover:from-primary-600 hover:to-primary-700 active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed">
+              {loading ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>Sign Up <ArrowRight size={14} /></>
+              )}
+            </button>
           </form>
 
-          {/* Redirect */}
-          <div className="text-center">
-            <p className="text-sm text-surface-500">
-              Already have an account?{' '}
-              <Link to="/login" className="text-primary-600 hover:underline font-semibold">
-                Sign In
-              </Link>
-            </p>
-          </div>
+          <p className="text-center text-[11px] text-surface-500 mt-3">
+            Already have an account?{' '}
+            <Link to="/login" className="text-primary-600 hover:underline font-semibold">Sign In</Link>
+          </p>
         </div>
       </div>
-    </div>
     </>
   );
 };

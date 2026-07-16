@@ -57,7 +57,7 @@ const MyListingsPage = () => {
       />
 
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mt-5 sm:mt-6">
           {[1,2,3,4].map((i) => <div key={i} className="skeleton h-32 rounded-2xl" />)}
         </div>
       ) : !listings?.length ? (
@@ -68,7 +68,7 @@ const MyListingsPage = () => {
           action={<Link to="/dashboard/listings/new" className="btn-primary btn-md px-5 py-2.5 rounded-xl inline-flex items-center gap-2 mt-4"><Plus size={16} /> Add Listing</Link>}
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mt-5 sm:mt-6">
           {listings.map((listing) => {
             const photo = getPrimaryPhoto(listing);
             return (

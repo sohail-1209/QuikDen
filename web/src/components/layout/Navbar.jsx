@@ -1,12 +1,12 @@
-// Navbar — Google M3 style with smooth dropdown animations
+// Navbar — Google M3 style, simplified (icon sidebar handles dashboard nav)
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Home, Search, Bell, Menu, X, ChevronDown, User,
-  LayoutDashboard, ListPlus, LogOut, CheckCheck,
-  BedDouble, LandPlot, Users, MessageCircle,
-  PlusCircle, Building2, Download,
+  LayoutDashboard, LogOut, CheckCheck,
+  BedDouble, LandPlot, Users,
+  Download,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { notificationsAPI } from '../../services/endpoints';
@@ -49,6 +49,14 @@ const NAV_ITEMS = [
   },
 ];
 
+const BROWSE_ITEMS = [
+  { to: '/', label: 'Home', icon: Home },
+  { to: '/search?type=HOUSE_RENTAL', label: 'Houses', icon: Home },
+  { to: '/search?type=ROOM_SHARING', label: 'Rooms', icon: Users },
+  { to: '/search?type=HOSTEL', label: 'Hostels', icon: BedDouble },
+  { to: '/search?type=LAND_SALE', label: 'Land', icon: LandPlot },
+];
+
 function buildSearchURL(params) {
   const sp = new URLSearchParams();
   Object.entries(params).forEach(([k, v]) => { if (v) sp.set(k, v); });
@@ -82,7 +90,8 @@ export default function Navbar() {
 
   const dropdownRef = useRef(null);
   const notifRef = useRef(null);
-  const hoverTimerRef = useRef({});
+
+  const isDashboard = location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/admin');
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -105,22 +114,11 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const openDropdown = useCallback((idx) => {
-    clearTimeout(hoverTimerRef.current[idx]);
-    hoverTimerRef.current[idx] = setTimeout(() => {
-      document.querySelectorAll(`[data-nav-dropdown]`).forEach((el) => el.classList.remove('nav-dropdown-open'));
-      const el = document.querySelector(`[data-nav-dropdown="${idx}"]`);
-      if (el) el.classList.add('nav-dropdown-open');
-    }, 100);
-  }, []);
-
-  const closeDropdown = useCallback((idx) => {
-    clearTimeout(hoverTimerRef.current[idx]);
-    hoverTimerRef.current[idx] = setTimeout(() => {
-      const el = document.querySelector(`[data-nav-dropdown="${idx}"]`);
-      if (el) el.classList.remove('nav-dropdown-open');
-    }, 250);
-  }, []);
+  useEffect(() => {
+    setMobileOpen(false);
+    setDropdownOpen(false);
+    setNotifOpen(false);
+  }, [location.pathname]);
 
   const isNavActive = useCallback((baseType) => {
     return new URLSearchParams(location.search).get('type') === baseType;
@@ -164,6 +162,10 @@ export default function Navbar() {
   return (
     <>
       <style>{`
+        @keyframes dropdown-pop {
+          from { opacity: 0; transform: translateY(-4px) scale(0.97); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
         .nav-dropdown-menu {
           opacity: 0;
           visibility: hidden;
@@ -192,18 +194,33 @@ export default function Navbar() {
           : 'bg-white/80 backdrop-blur-md'
           }`}
       >
-        <nav className="px-4 sm:px-6 h-14 md:h-20 flex items-center justify-between gap-4">          {/* Left: hamburger + logo */}
+        <nav className="px-4 sm:px-6 h-14 md:h-20 flex items-center justify-between gap-4">
+          {/* Left: hamburger + logo + quick link */}
           <div className="flex items-center gap-2 shrink-0">
-            <button
-              className="md:hidden p-2 -ml-2 rounded-xl hover:bg-surface-100 active:bg-surface-200 transition-colors"
-              onClick={(e) => { createRipple(e); setMobileOpen((v) => !v); }}
-            >
-              {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
+            {/* Hamburger — hidden on dashboard pages (icon sidebar handles nav) */}
+            {!isDashboard && (
+              <button
+                className="md:hidden p-2 -ml-2 rounded-xl hover:bg-surface-100 active:bg-surface-100 transition-colors"
+                onClick={(e) => { createRipple(e); setMobileOpen((v) => !v); }}
+              >
+                {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+              </button>
+            )}
 
             <Link to="/" className="shrink-0 group">
               <img src="https://res.cloudinary.com/dldgj84bm/image/upload/v1784198779/ChatGPT_Image_Jul_16_2026_04_15_03_PM_wtomms.png" alt="Quikden" className="w-10 h-10 md:w-16 md:h-16 rounded-xl object-cover shadow-md group-hover:shadow-lg transition-shadow" />
             </Link>
+
+            {/* Quick link: Dashboard on public pages, Home on dashboard pages */}
+            {user && (
+              <Link
+                to={isDashboard ? '/' : '/dashboard'}
+                className="md:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-primary-50 text-primary-700 text-xs font-semibold transition-colors active:bg-primary-100"
+              >
+                {isDashboard ? <Home size={13} /> : <LayoutDashboard size={13} />}
+                {isDashboard ? 'Home' : 'Dashboard'}
+              </Link>
+            )}
           </div>
 
           {/* Desktop nav */}
@@ -223,8 +240,21 @@ export default function Navbar() {
                   key={item.baseType}
                   className="relative"
                   data-nav-dropdown={idx}
-                  onMouseEnter={() => openDropdown(idx)}
-                  onMouseLeave={() => closeDropdown(idx)}
+                  onMouseEnter={() => {
+                    clearTimeout(document._navTimers?.[idx]);
+                    document._navTimers = document._navTimers || {};
+                    document._navTimers[idx] = setTimeout(() => {
+                      document.querySelectorAll(`[data-nav-dropdown]`).forEach((el) => el.classList.remove('nav-dropdown-open'));
+                      document.querySelector(`[data-nav-dropdown="${idx}"]`)?.classList.add('nav-dropdown-open');
+                    }, 100);
+                  }}
+                  onMouseLeave={() => {
+                    clearTimeout(document._navTimers?.[idx]);
+                    document._navTimers = document._navTimers || {};
+                    document._navTimers[idx] = setTimeout(() => {
+                      document.querySelector(`[data-nav-dropdown="${idx}"]`)?.classList.remove('nav-dropdown-open');
+                    }, 250);
+                  }}
                 >
                   <Link
                     to={buildSearchURL({ type: item.baseType })}
@@ -236,7 +266,6 @@ export default function Navbar() {
                     <ChevronDown size={13} className="chevron-icon" />
                   </Link>
 
-                  {/* Dropdown */}
                   <div className="nav-dropdown-menu absolute left-1/2 -translate-x-1/2 top-full pt-2 w-52 z-50">
                     <div className="bg-white rounded-2xl border border-surface-200/60 py-1.5" style={{ boxShadow: 'var(--md-sys-elevation-3)' }}>
                       <div className="px-3.5 py-2 border-b border-surface-100 mb-1">
@@ -268,7 +297,7 @@ export default function Navbar() {
                 <div className="relative" ref={notifRef}>
                   <button
                     className="relative p-2.5 rounded-xl hover:bg-surface-100 active:bg-surface-200 transition-colors"
-                    onClick={(e) => { createRipple(e); setNotifOpen((v) => !v); }}
+                    onClick={() => setNotifOpen((v) => !v)}
                   >
                     <Bell size={20} className="text-surface-600" />
                     {unreadCount > 0 && (
@@ -279,7 +308,7 @@ export default function Navbar() {
                   </button>
 
                   {notifOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] sm:w-96 max-h-[70vh] rounded-2xl bg-white border border-surface-200/60 py-0 z-50 overflow-hidden animate-scale-in" style={{ boxShadow: 'var(--md-sys-elevation-4)' }}>
+                    <div className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] sm:w-96 max-h-[70vh] rounded-2xl bg-white border border-surface-200/60 py-0 z-50 overflow-hidden" style={{ boxShadow: 'var(--md-sys-elevation-4)' }}>
                       <div className="flex items-center justify-between px-4 py-3 border-b border-surface-100">
                         <h3 className="font-semibold text-surface-900 text-sm">Notifications</h3>
                         {unreadCount > 0 && (
@@ -327,7 +356,7 @@ export default function Navbar() {
                 {/* Avatar */}
                 <div className="relative" ref={dropdownRef}>
                   <button
-                    onClick={(e) => { createRipple(e); setDropdownOpen((v) => !v); }}
+                    onClick={() => setDropdownOpen((v) => !v)}
                     className="flex items-center gap-2 p-1 pr-2 rounded-full hover:bg-surface-100 active:bg-surface-200 transition-colors"
                   >
                     <Avatar src={user.profileImage} name={user.name} size="sm" />
@@ -335,7 +364,7 @@ export default function Navbar() {
                   </button>
 
                   {dropdownOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-60 bg-white rounded-2xl border border-surface-200/60 py-1.5 z-50 animate-scale-in" style={{ boxShadow: 'var(--md-sys-elevation-3)' }}>
+                    <div className="absolute right-0 top-full mt-2 w-60 bg-white rounded-2xl border border-surface-200/60 py-1.5 z-50" style={{ boxShadow: 'var(--md-sys-elevation-3)' }}>
                       <div className="px-4 py-3 border-b border-surface-100 mb-1">
                         <p className="text-sm font-semibold text-surface-900 truncate">{user.name}</p>
                         <p className="text-xs text-surface-400 truncate">{user.email}</p>
@@ -343,14 +372,12 @@ export default function Navbar() {
                       {[
                         { to: '/dashboard/profile', icon: User, label: 'My Profile' },
                         { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-                        ...(user.role === 'OWNER' ? [{ to: '/dashboard/listings', icon: ListPlus, label: 'My Listings' }] : []),
-                      ].map(({ to, icon: Icon, label }, i) => (
+                      ].map(({ to, icon: Icon, label }) => (
                         <Link
                           key={to}
                           to={to}
                           onClick={() => setDropdownOpen(false)}
                           className="flex items-center gap-3 px-4 py-2.5 text-sm text-surface-700 hover:bg-surface-50 active:bg-surface-100 transition-colors"
-                          style={{ animation: `slide-up 0.25s cubic-bezier(0.16,1,0.3,1) ${i * 40}ms both` }}
                         >
                           <Icon size={16} className="text-surface-400" />
                           {label}
@@ -379,68 +406,57 @@ export default function Navbar() {
         </nav>
       </header>
 
-      {/* ── Mobile Drawer ─────────────────────────── */}
-      {mobileOpen && (
+      {/* ── Mobile Drawer — Public pages only (browse items) ──── */}
+      {mobileOpen && !isDashboard && (
         <div className="fixed inset-0 z-40 md:hidden">
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm animate-fade-in" onClick={() => setMobileOpen(false)} />
-          <aside className="absolute top-14 left-0 right-0 bg-white border-b border-surface-100 p-4 space-y-1 z-50 animate-slide-down" style={{ boxShadow: 'var(--md-sys-elevation-4)' }}>
-            {[
-              { to: '/', label: 'Home', icon: Home },
-              { to: '/search?type=HOUSE_RENTAL', label: 'Houses', icon: Building2 },
-              { to: '/search?type=ROOM_SHARING', label: 'Rooms', icon: Users },
-              { to: '/search?type=HOSTEL', label: 'Hostels', icon: BedDouble },
-              { to: '/search?type=LAND_SALE', label: 'Land', icon: LandPlot },
-            ].map(({ to, label, icon: Icon }, i) => {
+          <aside className="absolute top-14 left-0 right-0 bg-white border-b border-surface-100 p-3 space-y-0.5 z-50 animate-slide-down max-h-[calc(100dvh-3.5rem)] overflow-y-auto" style={{ boxShadow: 'var(--md-sys-elevation-4)' }}>
+            <p className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-surface-400">
+              Explore
+            </p>
+
+            {BROWSE_ITEMS.map(({ to, label, icon: Icon }, i) => {
               const toType = new URLSearchParams(to.split('?')[1]).get('type');
+              const isActive = toType === activeType;
+
               return (
                 <Link
                   key={to}
                   to={to}
                   onClick={() => setMobileOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${activeType === toType ? 'bg-primary-50 text-primary-700' : 'text-surface-700 hover:bg-surface-50 active:bg-surface-100'
-                    }`}
-                  style={{ animation: `slide-up 0.3s cubic-bezier(0.16,1,0.3,1) ${i * 40}ms both` }}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-primary-50 text-primary-700'
+                      : 'text-surface-700 hover:bg-surface-50 active:bg-surface-100'
+                  }`}
+                  style={{ animation: `slide-up 0.3s cubic-bezier(0.16,1,0.3,1) ${i * 35}ms both` }}
                 >
-                  <Icon size={18} /> {label}
+                  <Icon size={18} className={isActive ? 'text-primary-600' : 'text-surface-400'} />
+                  {label}
                 </Link>
               );
             })}
+
             {!user && (
-              <div className="pt-3 border-t border-surface-100 flex flex-col gap-2">
+              <div className="pt-3 mt-1 border-t border-surface-100 flex flex-col gap-2">
                 <Link to="/login" onClick={() => setMobileOpen(false)} className="btn-outline btn-md w-full justify-center">Login</Link>
                 <Link to="/register" onClick={() => setMobileOpen(false)} className="btn-primary btn-md w-full justify-center">Register</Link>
               </div>
             )}
+
+            {user && (
+              <div className="pt-2 mt-1 border-t border-surface-100">
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-danger-600 hover:bg-red-50 active:bg-red-100 transition-colors"
+                >
+                  <LogOut size={18} />
+                  Logout
+                </button>
+              </div>
+            )}
           </aside>
         </div>
-      )}
-
-      {/* ── Bottom Nav (mobile, logged in) ──────────── */}
-      {user && (
-        <nav className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-xl border-t border-surface-100 md:hidden safe-area-bottom">
-          <div className="flex items-center justify-around h-16 px-1">
-            {[
-              { to: '/', icon: Home, label: 'Home' },
-              { to: '/search', icon: Search, label: 'Search' },
-              { to: '/dashboard/listings/new', icon: PlusCircle, label: 'List' },
-              { to: '/dashboard/chats', icon: MessageCircle, label: 'Chats' },
-              { to: '/dashboard', icon: LayoutDashboard, label: 'Account' },
-            ].map(({ to, icon: Icon, label }) => {
-              const isActive = location.pathname === to || (to !== '/' && location.pathname.startsWith(to));
-              return (
-                <Link
-                  key={to}
-                  to={to}
-                  className={`flex flex-col items-center gap-0.5 py-1 px-2 transition-all duration-200 rounded-xl ${isActive ? 'text-primary-600' : 'text-surface-400 active:text-surface-600'
-                    }`}
-                >
-                  <Icon size={20} strokeWidth={isActive ? 2.5 : 1.8} />
-                  <span className="text-[10px] font-medium">{label}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </nav>
       )}
 
       {/* ── Install FAB (mobile, not logged in or no install) ────── */}
@@ -453,9 +469,8 @@ export default function Navbar() {
         </button>
       )}
 
-      {/* Spacer */}
+      {/* Spacer for fixed top navbar */}
       <div className="h-14" />
-      {user && <div className="h-16 md:hidden" />}
     </>
   );
 }

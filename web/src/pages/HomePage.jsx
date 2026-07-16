@@ -231,12 +231,11 @@ export default function HomePage() {
                     value={searchCity}
                     onChange={(e) => setSearchCity(e.target.value)}
                     placeholder="Which city are you looking in?"
-                    className="w-full pl-11 pr-4 py-3.5 bg-white/80 border border-surface-200/60 rounded-2xl text-sm text-surface-900 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 focus:bg-white transition-all duration-200"
+                    className="w-full pl-11 pr-4 py-3.5 bg-white/80 border border-surface-200/60 rounded-2xl text-xs text-surface-900 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 focus:bg-white transition-all duration-200"
                   />
                 </div>
                 <button type="submit" className="btn-primary px-5 sm:px-7 py-3.5 rounded-2xl text-sm font-semibold shrink-0 ripple-container shadow-lg">
-                  <Search size={16} />
-                  Search
+                  <Search size={13} />
                 </button>
               </div>
             </div>
@@ -248,11 +247,10 @@ export default function HomePage() {
               <button
                 key={type}
                 onClick={() => navigate(type ? `/search?type=${type}` : '/search')}
-                className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 ${
-                  activeType === type
-                    ? 'bg-primary-600 text-white shadow-md'
-                    : 'bg-white text-surface-600 border border-surface-200 hover:border-primary-300 hover:text-primary-600 shadow-sm'
-                }`}
+                className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 ${activeType === type
+                  ? 'bg-primary-600 text-white shadow-md'
+                  : 'bg-white text-surface-600 border border-surface-200 hover:border-primary-300 hover:text-primary-600 shadow-sm'
+                  }`}
               >
                 <Icon size={14} />
                 {label}
@@ -303,10 +301,10 @@ export default function HomePage() {
           {isLoading
             ? Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} index={i} />)
             : listings.map((listing, i) => (
-                <div key={listing.id} className="h-full" style={{ animation: `slide-up 0.4s cubic-bezier(0.16,1,0.3,1) ${i * 50}ms both` }}>
-                  <ListingCard listing={listing} />
-                </div>
-              ))
+              <div key={listing.id} className="h-full" style={{ animation: `slide-up 0.4s cubic-bezier(0.16,1,0.3,1) ${i * 50}ms both` }}>
+                <ListingCard listing={listing} />
+              </div>
+            ))
           }
         </div>
 

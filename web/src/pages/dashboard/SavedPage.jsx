@@ -76,7 +76,7 @@ export default function SavedPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-5 sm:space-y-6">
 
       {/* ── Page header ─────────────────────────────────────────────────────── */}
       <div className="flex items-center gap-3">

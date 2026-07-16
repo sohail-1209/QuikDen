@@ -7,10 +7,10 @@ import { listingsAPI, requestsAPI } from '../../services/endpoints';
 import PageHeader from '../../components/layout/PageHeader';
 
 const StatCard = ({ label, value, description, icon: Icon, color }) => (
-  <div className="card p-5 flex items-center justify-between gap-4">
-    <div className="space-y-1">
-      <p className="text-sm font-medium text-surface-400">{label}</p>
-      <p className="text-2xl font-bold text-surface-900 font-display">{value}</p>
+  <div className="card p-3 sm:p-5 flex items-center justify-between gap-3 sm:gap-4">
+    <div className="space-y-0.5 sm:space-y-1">
+      <p className="text-xs sm:text-sm font-medium text-surface-400">{label}</p>
+      <p className="text-xl sm:text-2xl font-bold text-surface-900 font-display">{value}</p>
       {description && <p className="text-xs text-surface-400">{description}</p>}
     </div>
     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${color} text-white`}>
@@ -49,12 +49,12 @@ export default function AnalyticsPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-5xl mx-auto space-y-6">
+      <div className="max-w-5xl mx-auto space-y-5 sm:space-y-6">
         <PageHeader title="Analytics" subtitle="Performance stats for your listings" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {[1,2,3,4].map((i) => <div key={i} className="skeleton h-24 rounded-2xl" />)}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           <div className="lg:col-span-2 skeleton h-80 rounded-2xl" />
           <div className="skeleton h-80 rounded-2xl" />
         </div>
@@ -63,11 +63,11 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 animate-fade-in">
+    <div className="max-w-5xl mx-auto space-y-6 sm:space-y-8 animate-fade-in">
       <PageHeader title="Analytics" subtitle="Performance stats and trends for your listings" />
 
       {/* Stats Summary */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard
           label="Total Views"
           value={totalViews.toLocaleString('en-IN')}
@@ -98,9 +98,9 @@ export default function AnalyticsPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Views Bar Chart */}
-        <div className="card p-6 lg:col-span-2 space-y-6">
+        <div className="card p-4 sm:p-6 lg:col-span-2 space-y-5 sm:space-y-6">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-display font-semibold text-lg text-surface-900">Traffic Breakdown</h3>
@@ -138,7 +138,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Requests Funnel */}
-        <div className="card p-6 space-y-6">
+        <div className="card p-4 sm:p-6 space-y-5 sm:space-y-6">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-display font-semibold text-lg text-surface-900">Request Status</h3>
