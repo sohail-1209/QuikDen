@@ -2,6 +2,7 @@
 const { OAuth2Client } = require('google-auth-library');
 const crypto = require('crypto');
 const { PrismaClient } = require('@prisma/client');
+const AppError = require('../utils/AppError');
 
 const prisma = new PrismaClient();
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -75,7 +76,7 @@ async function completeGoogleProfile(userId, { name, phone, role }) {
   if (phone) {
     const existing = await prisma.user.findUnique({ where: { phone } });
     if (existing && existing.id !== userId) {
-      throw new Error('Phone number already in use');
+      throw new AppError('Phone number already in use', 409);
     }
     updateData.phone = phone;
   }
@@ -122,15 +123,15 @@ async function verifyEmailToken(token) {
   });
 
   if (!record) {
-    throw new Error('Invalid verification token');
+    throw new AppError('Invalid verification token', 400);
   }
 
   if (record.type !== 'EMAIL_VERIFICATION') {
-    throw new Error('Invalid token type');
+    throw new AppError('Invalid token type', 400);
   }
 
   if (record.expiresAt < new Date()) {
-    throw new Error('Token expired');
+    throw new AppError('Verification token expired', 400);
   }
 
   // Mark user as verified
