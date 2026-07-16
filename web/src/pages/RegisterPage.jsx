@@ -171,11 +171,9 @@ const RegisterPage = () => {
     if (!validate()) return;
     setLoading(true);
     try {
-      const user = await register({ name: form.name, email: form.email, phone: form.phone, password: form.password, role: form.role });
-      // Send verification email
-      const verData = await sendVerificationEmail();
-      if (verData.verificationUrl) {
-        setVerificationUrl(verData.verificationUrl);
+      const result = await register({ name: form.name, email: form.email, phone: form.phone, password: form.password, role: form.role });
+      if (result.verificationUrl) {
+        setVerificationUrl(result.verificationUrl);
       }
       setStep('verify-email');
       toast.success('Account created! Please verify your email.');

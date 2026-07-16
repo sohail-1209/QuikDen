@@ -19,6 +19,7 @@ const LandDetail     = lazy(() => import('./pages/LandDetail'));
 const LoginPage      = lazy(() => import('./pages/LoginPage'));
 const RegisterPage   = lazy(() => import('./pages/RegisterPage'));
 const CompleteProfilePage = lazy(() => import('./pages/CompleteProfilePage'));
+const VerifyEmailPage     = lazy(() => import('./pages/VerifyEmailPage'));
 const ChatPage       = lazy(() => import('./pages/ChatPage'));
 const ProfilePage    = lazy(() => import('./pages/ProfilePage'));
 
@@ -84,6 +85,7 @@ export default function App() {
                 <Route path="/land/:id"    element={<LandDetail />} />
                 <Route path="/login"    element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+                <Route path="/verify-email" element={<VerifyEmailPage />} />
                 <Route path="/complete-profile" element={
                   <ProtectedRoute allowedRoles={['TENANT', 'OWNER']}>
                     <CompleteProfilePage />

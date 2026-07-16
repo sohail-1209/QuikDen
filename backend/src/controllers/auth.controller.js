@@ -57,7 +57,6 @@ const register = asyncHandler(async (req, res) => {
   });
   if (existing) throw new AppError('Email or phone already registered', 409);
 
-  // Only allow TENANT or OWNER on self-registration
   const allowedRole = ['TENANT', 'OWNER'].includes(role) ? role : 'TENANT';
 
   const hashed = await bcrypt.hash(password, 12);
@@ -65,7 +64,17 @@ const register = asyncHandler(async (req, res) => {
     data: { name, email, phone, password: hashed, role: allowedRole },
   });
 
-  await sendTokens(user, res, 201);
+  // Generate verification token — do NOT send tokens yet
+  const { token } = await generateVerificationToken(user.id);
+  const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${token}`;
+
+  console.log(`📧 Email verification URL: ${verificationUrl}`);
+
+  res.status(201).json({
+    success: true,
+    message: 'Account created. Please verify your email.',
+    verificationUrl,
+  });
 });
 
 // ─── Login ────────────────────────────────────
@@ -75,10 +84,14 @@ const login = asyncHandler(async (req, res) => {
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) throw new AppError('Invalid credentials', 401);
 
+  if (!user.password) throw new AppError('This account uses Google Sign-In. Please login with Google.', 400);
+
   const match = await bcrypt.compare(password, user.password);
   if (!match) throw new AppError('Invalid credentials', 401);
 
   if (user.isBanned) throw new AppError('Account banned', 403);
+
+  if (!user.isVerified) throw new AppError('Please verify your email before logging in', 403);
 
   await sendTokens(user, res);
 });

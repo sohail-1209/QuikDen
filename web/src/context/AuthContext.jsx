@@ -33,12 +33,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (payload) => {
     const { data } = await authAPI.register(payload);
-    localStorage.setItem('accessToken', data.data.accessToken);
-    setUser(data.data.user);
-    subscribeToPush().then(() => {
-      localStorage.setItem('welcomeNotifSent', data.data.user.id);
-    }).catch(() => {});
-    return data.data.user;
+    return data;
   };
 
   const googleAuth = async (idToken) => {
