@@ -164,11 +164,12 @@ const googleAuth = asyncHandler(async (req, res) => {
 
 // ─── Complete Google user profile ──────────────
 const completeProfile = asyncHandler(async (req, res) => {
-  const { phone, role } = req.body;
+  const { name, phone, role } = req.body;
 
   const allowedRole = ['TENANT', 'OWNER'].includes(role) ? role : 'TENANT';
 
   const user = await completeGoogleProfile(req.user.id, {
+    name: name || undefined,
     phone: phone || undefined,
     role: allowedRole,
   });

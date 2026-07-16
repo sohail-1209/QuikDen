@@ -67,11 +67,12 @@ async function handleGoogleAuth({ googleId, email, name, profileImage }) {
 /**
  * Complete Google user profile (phone, role)
  */
-async function completeGoogleProfile(userId, { phone, role }) {
+async function completeGoogleProfile(userId, { name, phone, role }) {
   const updateData = { role };
 
+  if (name) updateData.name = name;
+
   if (phone) {
-    // Check if phone is already taken
     const existing = await prisma.user.findUnique({ where: { phone } });
     if (existing && existing.id !== userId) {
       throw new Error('Phone number already in use');
