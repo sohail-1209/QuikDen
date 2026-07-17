@@ -18,24 +18,45 @@ async function getVapidKey() {
   return res.data.publicKey;
 }
 
+// Check if push notifications are supported
+export function isPushSupported() {
+  return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+}
+
 // Subscribe to push notifications
 export async function subscribeToPush() {
-  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-    console.warn('Push notifications not supported');
+  if (!isPushSupported()) {
+    console.warn('Push notifications not supported on this device');
     return false;
   }
 
   try {
-    const permission = await Notification.requestPermission();
-    if (permission !== 'granted') return false;
+    // Check current permission state first
+    let permission = Notification.permission;
+
+    if (permission === 'default') {
+      // Request permission — must be triggered by user gesture on some mobile browsers
+      permission = await Notification.requestPermission();
+    }
+
+    if (permission !== 'granted') {
+      console.warn('Push notification permission denied');
+      return false;
+    }
 
     const vapidPublicKey = await getVapidKey();
     const registration = await navigator.serviceWorker.ready;
 
-    const subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
-    });
+    // Check if already subscribed
+    let subscription = await registration.pushManager.getSubscription();
+
+    if (!subscription) {
+      // Create new subscription
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+      });
+    }
 
     const { endpoint, keys } = subscription.toJSON();
     await api.post('/push/subscribe', { endpoint, p256dh: keys.p256dh, auth: keys.auth });
@@ -71,7 +92,7 @@ export async function unsubscribeFromPush() {
 
 // Check if user is subscribed
 export async function isPushSubscribed() {
-  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
+  if (!isPushSupported()) return false;
 
   try {
     const registration = await navigator.serviceWorker.ready;
@@ -80,4 +101,15 @@ export async function isPushSubscribed() {
   } catch {
     return false;
   }
+}
+
+// Request notification permission (call on user interaction)
+export async function requestNotificationPermission() {
+  if (!isPushSupported()) return false;
+
+  if (Notification.permission === 'granted') return true;
+  if (Notification.permission === 'denied') return false;
+
+  const result = await Notification.requestPermission();
+  return result === 'granted';
 }

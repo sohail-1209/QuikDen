@@ -3,15 +3,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Plus, Eye, Edit, Trash2, MapPin } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { listingsAPI } from '../../services/endpoints';
 import { formatRent, getPrimaryPhoto } from '../../utils/helpers';
 import PageHeader from '../../components/layout/PageHeader';
 import { Badge, EmptyState } from '../../components/ui';
 
 const STATUS_OPTIONS = [
-  { value: 'ACTIVE', label: 'Active', color: 'bg-success-50 text-success-600 border-success-200', activeColor: 'bg-success-500 text-white border-success-500' },
-  { value: 'PAUSED', label: 'Inactive', color: 'bg-amber-50 text-amber-600 border-amber-200', activeColor: 'bg-amber-500 text-white border-amber-500' },
-  { value: 'RENTED', label: 'Booked', color: 'bg-primary-50 text-primary-600 border-primary-200', activeColor: 'bg-primary-500 text-white border-primary-500' },
+  { value: 'ACTIVE', labelKey: 'active', color: 'bg-success-50 text-success-600 border-success-200', activeColor: 'bg-success-500 text-white border-success-500' },
+  { value: 'PAUSED', labelKey: 'inactive', color: 'bg-amber-50 text-amber-600 border-amber-200', activeColor: 'bg-amber-500 text-white border-amber-500' },
+  { value: 'RENTED', labelKey: 'booked', color: 'bg-primary-50 text-primary-600 border-primary-200', activeColor: 'bg-primary-500 text-white border-primary-500' },
 ];
 
 const getDetailPath = (listing) => {
@@ -23,6 +24,7 @@ const getDetailPath = (listing) => {
 
 const MyListingsPage = () => {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   const { data: listings, isLoading } = useQuery({
     queryKey: ['myListings'],
     queryFn: () => listingsAPI.getMyListings().then((r) => r.data.data),
@@ -47,11 +49,11 @@ const MyListingsPage = () => {
   return (
     <>
       <PageHeader
-        title="My Listings"
+        title={t('myListings')}
         subtitle={`${listings?.length || 0} total listings`}
         action={
           <Link to="/dashboard/listings/new" className="btn-primary btn-md px-4 py-2.5 text-sm rounded-xl inline-flex items-center gap-2">
-            <Plus size={16} /> Add Listing
+            <Plus size={16} /> {t('addListing')}
           </Link>
         }
       />
@@ -63,9 +65,9 @@ const MyListingsPage = () => {
       ) : !listings?.length ? (
         <EmptyState
           icon={<span className="text-4xl">🏠</span>}
-          title="No listings yet"
-          description="Create your first listing to start receiving requests"
-          action={<Link to="/dashboard/listings/new" className="btn-primary btn-md px-5 py-2.5 rounded-xl inline-flex items-center gap-2 mt-4"><Plus size={16} /> Add Listing</Link>}
+          title={t('noListings')}
+          description={t('createFirst')}
+          action={<Link to="/dashboard/listings/new" className="btn-primary btn-md px-5 py-2.5 rounded-xl inline-flex items-center gap-2 mt-4"><Plus size={16} /> {t('addListing')}</Link>}
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mt-5 sm:mt-6">
@@ -82,7 +84,7 @@ const MyListingsPage = () => {
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <h3 className="font-semibold text-surface-900 text-sm line-clamp-1">{listing.title}</h3>
                     <Badge variant={listing.status === 'ACTIVE' ? 'success' : listing.status === 'RENTED' ? 'primary' : 'warning'}>
-                      {listing.status === 'ACTIVE' ? 'Active' : listing.status === 'RENTED' ? 'Booked' : 'Inactive'}
+                      {listing.status === 'ACTIVE' ? t('active') : listing.status === 'RENTED' ? t('booked') : t('inactive')}
                     </Badge>
                   </div>
                   <div className="flex items-center gap-1 text-xs text-surface-400 mb-2">
@@ -91,9 +93,9 @@ const MyListingsPage = () => {
                     <span className="font-medium text-surface-700">{formatRent(listing.rent)}/mo</span>
                   </div>
                   <div className="flex items-center gap-1 text-xs text-surface-400 mb-3">
-                    <Eye size={11} /> {listing.views} views
+                    <Eye size={11} /> {listing.views} {t('views')}
                     <span className="mx-1">·</span>
-                    {listing._count?.requests} requests
+                    {listing._count?.requests} {t('requests')}
                   </div>
 
                   {/* Radio-style status toggle */}
@@ -111,23 +113,23 @@ const MyListingsPage = () => {
                         <span className={`inline-block w-2 h-2 rounded-full mr-1.5 ${
                           listing.status === opt.value ? 'bg-white' : 'bg-current opacity-40'
                         }`} />
-                        {opt.label}
+                        {t(opt.labelKey)}
                       </button>
                     ))}
                   </div>
 
                   <div className="flex items-center gap-2 flex-wrap">
                     <Link to={getDetailPath(listing)} className="btn btn-sm btn-ghost text-xs px-3 py-2 rounded-lg min-h-[40px]">
-                      <Eye size={14} /> View
+                      <Eye size={14} /> {t('view')}
                     </Link>
                     <Link to={`/dashboard/listings/${listing.id}/edit`} className="btn btn-sm btn-secondary text-xs px-3 py-2 rounded-lg min-h-[40px]">
-                      <Edit size={14} /> Edit
+                      <Edit size={14} /> {t('edit')}
                     </Link>
                     <button
                       onClick={() => { if (confirm('Delete this listing?')) deleteListing(listing.id); }}
                       className="btn btn-sm text-xs px-3 py-2 rounded-lg text-danger-500 hover:bg-danger-50 min-h-[40px]"
                     >
-                      <Trash2 size={14} /> Delete
+                      <Trash2 size={14} /> {t('delete')}
                     </button>
                   </div>
                 </div>

@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { MapPin, Heart, MessageCircle } from 'lucide-react';
 import { listingsAPI, requestsAPI, savedAPI } from '../services/endpoints';
 import { useAuth } from '../context/AuthContext';
@@ -16,18 +17,19 @@ import ImageGallery from '../components/ImageGallery';
 import Navbar from '../components/layout/Navbar';
 import { Modal, Button, Badge, Avatar, StarRating } from '../components/ui';
 
-const RuleTag = ({ label, allowed }) => (
-  <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium ${allowed ? 'bg-success-50 text-success-600' : 'bg-danger-50 text-danger-500'}`}>
-    <span>{allowed ? '✅' : '❌'}</span> {label} {allowed ? 'Allowed' : 'Not Allowed'}
-  </div>
-);
-
 const RoomDetail = () => {
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { t } = useTranslation();
   const [requestMsg, setRequestMsg] = useState('');
+
+  const RuleTag = ({ label, allowed }) => (
+    <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium ${allowed ? 'bg-success-50 text-success-600' : 'bg-danger-50 text-danger-500'}`}>
+      <span>{allowed ? '✅' : '❌'}</span> {label} {allowed ? t('allowed') : t('notAllowed')}
+    </div>
+  );
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
 
@@ -41,10 +43,10 @@ const RoomDetail = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['requests'] });
       qc.invalidateQueries({ queryKey: ['listings'] });
-      toast.success('Request sent!');
+      toast.success(t('requestSent'));
       setShowRequestModal(false);
     },
-    onError: (err) => toast.error(err?.response?.data?.message || 'Failed'),
+    onError: (err) => toast.error(err?.response?.data?.message || t('failedToSend')),
   });
 
   const { mutate: toggleSave } = useMutation({
@@ -52,7 +54,7 @@ const RoomDetail = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['listing', id] });
       qc.invalidateQueries({ queryKey: ['saved'] });
-      toast.success(data?.isSaved ? 'Removed' : '❤️ Saved!');
+      toast.success(data?.isSaved ? t('removedFromSaved') : t('saved'));
     },
   });
 
@@ -73,8 +75,8 @@ const RoomDetail = () => {
           <div className="lg:col-span-2 space-y-6">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <Badge variant="warning">🤝 Room Sharing</Badge>
-                {rs?.genderRequired !== 'ANY' && <Badge variant="primary">{rs?.genderRequired === 'FEMALE' ? '👩 Female Only' : '👨 Male Only'}</Badge>}
+                <Badge variant="warning">{t('roomSharing')}</Badge>
+                {rs?.genderRequired !== 'ANY' && <Badge variant="primary">{rs?.genderRequired === 'FEMALE' ? t('femaleOnly') : t('maleOnly')}</Badge>}
               </div>
               <h1 className="font-display font-bold text-3xl text-surface-900 mb-2">{data?.title}</h1>
               <div className="flex items-center gap-2 text-surface-500 text-sm">
@@ -85,30 +87,30 @@ const RoomDetail = () => {
             {/* Roommate preferences */}
             {rs && (
               <div className="card p-5">
-                <h2 className="font-display font-semibold text-lg mb-4">Roommate Preferences</h2>
+                <h2 className="font-display font-semibold text-lg mb-4">{t('roommatePreferences')}</h2>
                 <div className="grid grid-cols-2 gap-3 mb-4">
-                  {rs.minAge && <div className="text-sm"><span className="text-surface-400">Age:</span> <span className="font-medium">{rs.minAge}–{rs.maxAge || '∞'}</span></div>}
-                  {rs.occupationPref !== 'ANY' && <div className="text-sm"><span className="text-surface-400">Occupation:</span> <span className="font-medium">{rs.occupationPref}</span></div>}
-                  <div className="text-sm"><span className="text-surface-400">Current occupants:</span> <span className="font-medium">{rs.currentOccupants}/{rs.totalRooms}</span></div>
+                  {rs.minAge && <div className="text-sm"><span className="text-surface-400">{t('age')}</span> <span className="font-medium">{rs.minAge}–{rs.maxAge || '∞'}</span></div>}
+                  {rs.occupationPref !== 'ANY' && <div className="text-sm"><span className="text-surface-400">{t('occupation')}</span> <span className="font-medium">{rs.occupationPref}</span></div>}
+                  <div className="text-sm"><span className="text-surface-400">{t('currentOccupants')}</span> <span className="font-medium">{rs.currentOccupants}/{rs.totalRooms}</span></div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <RuleTag label="Smoking" allowed={rs.smoking} />
-                  <RuleTag label="Drinking" allowed={rs.drinking} />
-                  <RuleTag label="Veg Only" allowed={rs.vegOnly} />
-                  <RuleTag label="Pets" allowed={rs.petsAllowed} />
+                  <RuleTag label={t('smoking')} allowed={rs.smoking} />
+                  <RuleTag label={t('drinking')} allowed={rs.drinking} />
+                  <RuleTag label={t('vegOnly')} allowed={rs.vegOnly} />
+                  <RuleTag label={t('pets')} allowed={rs.petsAllowed} />
                 </div>
               </div>
             )}
 
             <div className="card p-5">
-              <h2 className="font-display font-semibold text-lg mb-3">Description</h2>
+              <h2 className="font-display font-semibold text-lg mb-3">{t('description')}</h2>
               <p className="text-surface-600 leading-relaxed">{data?.description}</p>
             </div>
 
             <div className="card p-5">
-              <h2 className="font-display font-semibold text-lg mb-4">Location</h2>
+              <h2 className="font-display font-semibold text-lg mb-4">{t('location')}</h2>
               <MapView lat={data?.latitude} lng={data?.longitude} title={data?.title} className="h-64" />
-              <p className="text-xs text-success-600 mt-2 text-center font-medium">📍 Exact location</p>
+              <p className="text-xs text-success-600 mt-2 text-center font-medium">{t('exactLocation')}</p>
             </div>
 
             <NearbyPlaces lat={data?.latitude} lng={data?.longitude} />
@@ -116,7 +118,7 @@ const RoomDetail = () => {
             {/* Reviews */}
             {data?.reviews?.length > 0 && (
               <div>
-                <h2 className="font-display font-semibold text-lg mb-4">Reviews</h2>
+                <h2 className="font-display font-semibold text-lg mb-4">{t('reviews')}</h2>
                 <div className="space-y-3">
                   {data.reviews.map((r) => <ReviewCard key={r.id} review={r} />)}
                 </div>
@@ -129,37 +131,37 @@ const RoomDetail = () => {
             <div className="card p-6 sticky top-24 space-y-4">
               <div>
                 <span className="font-display font-bold text-3xl text-surface-900">{formatRent(data?.rent)}</span>
-                <span className="text-surface-400 text-sm">/month</span>
+                <span className="text-surface-400 text-sm">{t('month')}</span>
               </div>
               <div className="text-sm text-surface-600 space-y-1">
-                <div className="flex justify-between"><span>Deposit</span><span className="font-medium">{formatRent(data?.deposit)}</span></div>
-                <div className="flex justify-between"><span>Available From</span><span className="font-medium">{new Date(data?.availableFrom).toLocaleDateString('en-IN')}</span></div>
+                <div className="flex justify-between"><span>{t('deposit')}</span><span className="font-medium">{formatRent(data?.deposit)}</span></div>
+                <div className="flex justify-between"><span>{t('availableFrom')}</span><span className="font-medium">{new Date(data?.availableFrom).toLocaleDateString('en-IN')}</span></div>
               </div>
 
               {user ? (
                 <div className="space-y-2">
                   {user.id === data?.ownerId ? (
                     <Button variant="primary" size="lg" className="w-full" onClick={() => navigate(`/dashboard/listings/${data?.id}/edit`)}>
-                      Edit Listing
+                      {t('editListing')}
                     </Button>
                   ) : data?.status !== 'ACTIVE' ? (
                     <div className={`w-full p-3 rounded-xl text-center text-sm font-medium ${
                       data?.status === 'RENTED' ? 'bg-primary-50 text-primary-700' : 'bg-amber-50 text-amber-700'
                     }`}>
-                      {data?.status === 'RENTED' ? '🏠 This listing is booked' : '⏸️ This listing is currently inactive'}
+                      {data?.status === 'RENTED' ? t('bookedMessage') : t('inactiveMessage')}
                     </div>
                   ) : (
                     <Button variant="primary" size="lg" className="w-full" onClick={() => setShowRequestModal(true)}>
-                      <MessageCircle size={18} /> Send Request
+                      <MessageCircle size={18} /> {t('sendRequest')}
                     </Button>
                   )}
                   <Button variant={data?.isSaved ? 'primary' : 'outline'} size="md" className="w-full" onClick={() => toggleSave()}>
                     <Heart size={16} className={data?.isSaved ? 'fill-white' : ''} />
-                    {data?.isSaved ? 'Saved' : 'Save Listing'}
+                    {data?.isSaved ? t('saved') : t('saveListing')}
                   </Button>
                 </div>
               ) : (
-                <Button variant="primary" size="lg" className="w-full" onClick={() => navigate('/login')}>Login to Request</Button>
+                <Button variant="primary" size="lg" className="w-full" onClick={() => navigate('/login')}>{t('loginToRequest')}</Button>
               )}
 
               <div className="flex items-center gap-3 pt-4 border-t border-surface-100">
@@ -168,7 +170,7 @@ const RoomDetail = () => {
                   <p className="font-semibold text-sm">{data?.owner?.name}</p>
                   <div className="flex items-center gap-1 text-xs text-surface-400">
                     <StarRating value={data?.owner?.avgRating || 0} size={12} />
-                    <span>{data?.owner?.avgRating?.toFixed(1) || 'New'}</span>
+                    <span>{data?.owner?.avgRating?.toFixed(1) || t('new')}</span>
                     <span>({data?.owner?.totalRatings || 0})</span>
                   </div>
                 </div>
@@ -176,7 +178,7 @@ const RoomDetail = () => {
 
               {user && user.id !== data?.ownerId && (
                 <Button variant="outline" size="md" className="w-full" onClick={() => setShowReviewForm(true)}>
-                  Write a Review
+                  {t('writeReview')}
                 </Button>
               )}
             </div>
@@ -184,12 +186,12 @@ const RoomDetail = () => {
         </div>
       </div>
 
-      <Modal isOpen={showRequestModal} onClose={() => setShowRequestModal(false)} title="Request to Share Room" size="sm">
+      <Modal isOpen={showRequestModal} onClose={() => setShowRequestModal(false)} title={t('requestToShareRoom')} size="sm">
         <div className="space-y-4">
-          <textarea value={requestMsg} onChange={(e) => setRequestMsg(e.target.value)} placeholder="Introduce yourself — occupation, lifestyle, move-in date..." rows={4} className="input resize-none" />
+          <textarea value={requestMsg} onChange={(e) => setRequestMsg(e.target.value)} placeholder={t('introduceShare')} rows={4} className="input resize-none" />
           <div className="flex gap-3">
-            <Button variant="secondary" size="md" className="flex-1" onClick={() => setShowRequestModal(false)}>Cancel</Button>
-            <Button variant="primary" size="md" className="flex-1" loading={requesting} onClick={() => sendRequest()}>Send Request</Button>
+            <Button variant="secondary" size="md" className="flex-1" onClick={() => setShowRequestModal(false)}>{t('cancel')}</Button>
+            <Button variant="primary" size="md" className="flex-1" loading={requesting} onClick={() => sendRequest()}>{t('sendRequest')}</Button>
           </div>
         </div>
       </Modal>

@@ -8,6 +8,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { requestsAPI, listingsAPI } from '../../services/endpoints';
 import RequestCard from '../../components/RequestCard';
+import { useTranslation } from 'react-i18next';
 import { formatRent, getPrimaryPhoto, requestStatusClass } from '../../utils/helpers';
 import Avatar from '../../components/ui/Avatar';
 
@@ -49,6 +50,7 @@ const RequestSkeleton = () => (
 const ListingRow = ({ listing }) => {
   const photo = getPrimaryPhoto(listing);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <div
@@ -72,10 +74,10 @@ const ListingRow = ({ listing }) => {
               listing.isActive ? 'badge-success' : 'badge-gray'
             }`}
           >
-            {listing.isActive ? 'Active' : 'Inactive'}
+            {listing.isActive ? t('active') : t('inactive')}
           </span>
           <span className="text-xs text-surface-400 flex items-center gap-0.5">
-            <Eye size={11} /> {listing.views ?? 0} views
+            <Eye size={11} /> {listing.views ?? 0} {t('views')}
           </span>
         </div>
       </div>
@@ -100,6 +102,7 @@ const ListingRowSkeleton = () => (
 export default function OwnerDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const { data: requestsData, isLoading: requestsLoading } = useQuery({
     queryKey: ['requests'],
@@ -135,10 +138,10 @@ export default function OwnerDashboard() {
           <Avatar src={user?.profileImage} name={user?.name} size="lg" className="ring-2 ring-primary-100" />
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-surface-900 font-display">
-              Hello, <span className="gradient-text">{firstName}!</span>
+              <span className="gradient-text">{t('hello', { name: firstName })}</span>
             </h1>
             <p className="text-xs sm:text-sm text-surface-400 mt-0.5">
-              Manage your listings and tenant requests.
+              {t('manageListings')}
             </p>
           </div>
         </div>
@@ -149,7 +152,7 @@ export default function OwnerDashboard() {
           className="btn-primary btn-md flex items-center gap-2 flex-shrink-0 self-start sm:self-auto"
         >
           <Plus size={18} />
-          Add New Listing
+          {t('addNewListing')}
         </button>
       </div>
 
@@ -157,28 +160,28 @@ export default function OwnerDashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <AnalyticsCard
           icon={Building2}
-          label="Total Listings"
+          label={t('totalListings')}
           value={totalListings}
           color="bg-primary-500"
           isLoading={listingsLoading}
         />
         <AnalyticsCard
           icon={Eye}
-          label="Total Views"
+          label={t('totalViews')}
           value={totalViews.toLocaleString('en-IN')}
           color="bg-violet-500"
           isLoading={listingsLoading}
         />
         <AnalyticsCard
           icon={Clock}
-          label="Pending Requests"
+          label={t('pendingRequests')}
           value={pendingRequests.length}
           color="bg-amber-500"
           isLoading={requestsLoading}
         />
         <AnalyticsCard
           icon={CheckCircle}
-          label="Accepted Requests"
+          label={t('acceptedRequests')}
           value={acceptedRequestsCount}
           color="bg-emerald-500"
           isLoading={requestsLoading}
@@ -191,15 +194,15 @@ export default function OwnerDashboard() {
         <section className="lg:col-span-3 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="section-title">Pending Requests</h2>
-              <p className="section-subtitle">Awaiting your response</p>
+              <h2 className="section-title">{t('pendingRequests')}</h2>
+              <p className="section-subtitle">{t('awaitingResponse')}</p>
             </div>
             {pendingRequests.length > 5 && (
               <Link
                 to="/dashboard/requests"
                 className="btn-outline btn-sm flex items-center gap-1.5"
               >
-                View all <ArrowRight size={14} />
+                {t('viewAll')} <ArrowRight size={14} />
               </Link>
             )}
           </div>
@@ -214,8 +217,8 @@ export default function OwnerDashboard() {
                 🎉
               </div>
               <div>
-                <p className="font-semibold text-surface-700">All caught up!</p>
-                <p className="text-sm text-surface-400 mt-1">No pending requests right now.</p>
+                <p className="font-semibold text-surface-700">{t('allCaughtUp')}</p>
+                <p className="text-sm text-surface-400 mt-1">{t('noPending')}</p>
               </div>
             </div>
           ) : (
@@ -231,14 +234,14 @@ export default function OwnerDashboard() {
         <section className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="section-title">My Listings</h2>
-              <p className="section-subtitle">Quick overview</p>
+              <h2 className="section-title">{t('myListings')}</h2>
+              <p className="section-subtitle">{t('quickOverview')}</p>
             </div>
             <Link
               to="/dashboard/listings"
               className="btn-outline btn-sm flex items-center gap-1.5"
             >
-              View all <ArrowRight size={14} />
+              {t('viewAll')} <ArrowRight size={14} />
             </Link>
           </div>
 
@@ -252,16 +255,16 @@ export default function OwnerDashboard() {
                 🏠
               </div>
               <div>
-                <p className="font-semibold text-surface-700">No listings yet</p>
+                <p className="font-semibold text-surface-700">{t('noListings')}</p>
                 <p className="text-sm text-surface-400 mt-1">
-                  Create your first listing to start receiving requests.
+                  {t('createFirst')}
                 </p>
               </div>
               <button
                 onClick={() => navigate('/dashboard/listings/new')}
                 className="btn-primary btn-sm flex items-center gap-1.5"
               >
-                <Plus size={14} /> Add Listing
+                <Plus size={14} /> {t('addListing')}
               </button>
             </div>
           ) : (

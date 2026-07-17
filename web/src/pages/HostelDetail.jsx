@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { MapPin, BedDouble, Heart, MessageCircle } from 'lucide-react';
 import { listingsAPI, requestsAPI, savedAPI } from '../services/endpoints';
 import { useAuth } from '../context/AuthContext';
@@ -15,18 +16,19 @@ import ImageGallery from '../components/ImageGallery';
 import Navbar from '../components/layout/Navbar';
 import { Modal, Button, Badge, Avatar, StarRating } from '../components/ui';
 
-const RuleTag = ({ label, allowed }) => (
-  <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium ${allowed ? 'bg-success-50 text-success-600' : 'bg-danger-50 text-danger-500'}`}>
-    <span>{allowed ? '✅' : '❌'}</span> {label} {allowed ? 'Allowed' : 'Not Allowed'}
-  </div>
-);
-
 const HostelDetail = () => {
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { t } = useTranslation();
   const [requestMsg, setRequestMsg] = useState('');
+
+  const RuleTag = ({ label, allowed }) => (
+    <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium ${allowed ? 'bg-success-50 text-success-600' : 'bg-danger-50 text-danger-500'}`}>
+      <span>{allowed ? '✅' : '❌'}</span> {label} {allowed ? t('allowed') : t('notAllowed')}
+    </div>
+  );
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [selectedTier, setSelectedTier] = useState(null);
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -41,10 +43,10 @@ const HostelDetail = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['requests'] });
       qc.invalidateQueries({ queryKey: ['listings'] });
-      toast.success('Request sent!');
+      toast.success(t('requestSent'));
       setShowRequestModal(false);
     },
-    onError: (err) => toast.error(err?.response?.data?.message || 'Failed'),
+    onError: (err) => toast.error(err?.response?.data?.message || t('failedToSend')),
   });
 
   const { mutate: toggleSave } = useMutation({
@@ -52,7 +54,7 @@ const HostelDetail = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['listing', id] });
       qc.invalidateQueries({ queryKey: ['saved'] });
-      toast.success(data?.isSaved ? 'Removed' : '❤️ Saved!');
+      toast.success(data?.isSaved ? t('removedFromSaved') : t('saved'));
     },
   });
 
@@ -75,8 +77,8 @@ const HostelDetail = () => {
           <div className="lg:col-span-2 space-y-6">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <Badge variant="success">🏨 Hostel / PG</Badge>
-                {hs?.genderRequired !== 'ANY' && <Badge variant="primary">{hs?.genderRequired === 'FEMALE' ? '👩 Female Only' : '👨 Male Only'}</Badge>}
+                <Badge variant="success">{t('hostelPc')}</Badge>
+                {hs?.genderRequired !== 'ANY' && <Badge variant="primary">{hs?.genderRequired === 'FEMALE' ? t('femaleOnly') : t('maleOnly')}</Badge>}
               </div>
               <h1 className="font-display font-bold text-3xl text-surface-900 mb-2">{data?.title}</h1>
               <div className="flex items-center gap-2 text-surface-500 text-sm">
@@ -87,7 +89,7 @@ const HostelDetail = () => {
             {/* Sharing Tiers */}
             {availableTiers.length > 0 && (
               <div className="card p-5">
-                <h2 className="font-display font-semibold text-lg mb-4">Sharing Options</h2>
+                <h2 className="font-display font-semibold text-lg mb-4">{t('sharingOptions')}</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {availableTiers.map((tier) => (
                     <div
@@ -103,7 +105,7 @@ const HostelDetail = () => {
                         <BedDouble size={16} className="text-primary-500" />
                         <span className="font-bold text-lg text-surface-900">{tier.sharingSize}</span>
                       </div>
-                      <p className="text-xs text-surface-500 mb-1">sharing</p>
+                      <p className="text-xs text-surface-500 mb-1">{t('sharing')}</p>
                       <p className="font-display font-bold text-primary-600">{formatRent(tier.price)}<span className="text-xs font-normal text-surface-400">/mo</span></p>
                     </div>
                   ))}
@@ -114,25 +116,25 @@ const HostelDetail = () => {
             {/* Rules */}
             {hs && (
               <div className="card p-5">
-                <h2 className="font-display font-semibold text-lg mb-4">House Rules</h2>
+                <h2 className="font-display font-semibold text-lg mb-4">{t('houseRules')}</h2>
                 <div className="grid grid-cols-2 gap-2">
-                  <RuleTag label="Smoking" allowed={hs.smoking} />
-                  <RuleTag label="Drinking" allowed={hs.drinking} />
-                  <RuleTag label="Veg Only" allowed={hs.vegOnly} />
-                  <RuleTag label="Pets" allowed={hs.petsAllowed} />
+                  <RuleTag label={t('smoking')} allowed={hs.smoking} />
+                  <RuleTag label={t('drinking')} allowed={hs.drinking} />
+                  <RuleTag label={t('vegOnly')} allowed={hs.vegOnly} />
+                  <RuleTag label={t('pets')} allowed={hs.petsAllowed} />
                 </div>
               </div>
             )}
 
             <div className="card p-5">
-              <h2 className="font-display font-semibold text-lg mb-3">Description</h2>
+              <h2 className="font-display font-semibold text-lg mb-3">{t('description')}</h2>
               <p className="text-surface-600 leading-relaxed">{data?.description}</p>
             </div>
 
             <div className="card p-5">
-              <h2 className="font-display font-semibold text-lg mb-4">Location</h2>
+              <h2 className="font-display font-semibold text-lg mb-4">{t('location')}</h2>
               <MapView lat={data?.latitude} lng={data?.longitude} title={data?.title} className="h-64" />
-              <p className="text-xs text-success-600 mt-2 text-center font-medium">📍 Exact location</p>
+              <p className="text-xs text-success-600 mt-2 text-center font-medium">{t('exactLocation')}</p>
             </div>
 
             <NearbyPlaces lat={data?.latitude} lng={data?.longitude} />
@@ -140,7 +142,7 @@ const HostelDetail = () => {
             {/* Reviews */}
             {data?.reviews?.length > 0 && (
               <div>
-                <h2 className="font-display font-semibold text-lg mb-4">Reviews</h2>
+                <h2 className="font-display font-semibold text-lg mb-4">{t('reviews')}</h2>
                 <div className="space-y-3">
                   {data.reviews.map((r) => <ReviewCard key={r.id} review={r} />)}
                 </div>
@@ -155,29 +157,29 @@ const HostelDetail = () => {
               <div>
                 {availableTiers.length > 0 ? (
                   <div>
-                    <span className="text-sm text-surface-400">Starting from</span>
+                    <span className="text-sm text-surface-400">{t('startingFrom')}</span>
                     <div className="flex items-baseline gap-1">
                       <span className="font-display font-bold text-3xl text-surface-900">
                         {formatRent(Math.min(...availableTiers.map((t) => t.price)))}
                       </span>
-                      <span className="text-surface-400 text-sm">/mo</span>
+                      <span className="text-surface-400 text-sm">{t('mo')}</span>
                     </div>
                   </div>
                 ) : (
                   <div>
                     <span className="font-display font-bold text-3xl text-surface-900">{formatRent(data?.rent)}</span>
-                    <span className="text-surface-400 text-sm">/month</span>
+                    <span className="text-surface-400 text-sm">{t('month')}</span>
                   </div>
                 )}
               </div>
 
               <div className="text-sm text-surface-600 space-y-1">
-                <div className="flex justify-between"><span>Deposit</span><span className="font-medium">{formatRent(data?.deposit)}</span></div>
-                <div className="flex justify-between"><span>Available From</span><span className="font-medium">{new Date(data?.availableFrom).toLocaleDateString('en-IN')}</span></div>
+                <div className="flex justify-between"><span>{t('deposit')}</span><span className="font-medium">{formatRent(data?.deposit)}</span></div>
+                <div className="flex justify-between"><span>{t('availableFrom')}</span><span className="font-medium">{new Date(data?.availableFrom).toLocaleDateString('en-IN')}</span></div>
                 {selectedTier && (
                   <div className="flex justify-between text-primary-600 font-medium pt-2 border-t border-surface-100">
-                    <span>Selected</span>
-                    <span>{selectedTier.sharingSize}-sharing · {formatRent(selectedTier.price)}/mo</span>
+                    <span>{t('selected')}</span>
+                    <span>{selectedTier.sharingSize}-sharing · {formatRent(selectedTier.price)}{t('mo')}</span>
                   </div>
                 )}
               </div>
@@ -186,26 +188,26 @@ const HostelDetail = () => {
                 <div className="space-y-2">
                   {user.id === data?.ownerId ? (
                     <Button variant="primary" size="lg" className="w-full" onClick={() => navigate(`/dashboard/listings/${data?.id}/edit`)}>
-                      Edit Listing
+                      {t('editListing')}
                     </Button>
                   ) : data?.status !== 'ACTIVE' ? (
                     <div className={`w-full p-3 rounded-xl text-center text-sm font-medium ${
                       data?.status === 'RENTED' ? 'bg-primary-50 text-primary-700' : 'bg-amber-50 text-amber-700'
                     }`}>
-                      {data?.status === 'RENTED' ? '🏠 This listing is fully booked' : '⏸️ This listing is currently inactive'}
+                      {data?.status === 'RENTED' ? t('fullyBooked') : t('inactiveMessage')}
                     </div>
                   ) : (
                     <Button variant="primary" size="lg" className="w-full" onClick={() => setShowRequestModal(true)}>
-                      <MessageCircle size={18} /> Send Request
+                      <MessageCircle size={18} /> {t('sendRequest')}
                     </Button>
                   )}
                   <Button variant={data?.isSaved ? 'primary' : 'outline'} size="md" className="w-full" onClick={() => toggleSave()}>
                     <Heart size={16} className={data?.isSaved ? 'fill-white' : ''} />
-                    {data?.isSaved ? 'Saved' : 'Save Listing'}
+                    {data?.isSaved ? t('saved') : t('saveListing')}
                   </Button>
                 </div>
               ) : (
-                <Button variant="primary" size="lg" className="w-full" onClick={() => navigate('/login')}>Login to Request</Button>
+                <Button variant="primary" size="lg" className="w-full" onClick={() => navigate('/login')}>{t('loginToRequest')}</Button>
               )}
 
               <div className="flex items-center gap-3 pt-4 border-t border-surface-100">
@@ -214,7 +216,7 @@ const HostelDetail = () => {
                   <p className="font-semibold text-sm">{data?.owner?.name}</p>
                   <div className="flex items-center gap-1 text-xs text-surface-400">
                     <StarRating value={data?.owner?.avgRating || 0} size={12} />
-                    <span>{data?.owner?.avgRating?.toFixed(1) || 'New'}</span>
+                    <span>{data?.owner?.avgRating?.toFixed(1) || t('new')}</span>
                     <span>({data?.owner?.totalRatings || 0})</span>
                   </div>
                 </div>
@@ -222,7 +224,7 @@ const HostelDetail = () => {
 
               {user && user.id !== data?.ownerId && (
                 <Button variant="outline" size="md" className="w-full" onClick={() => setShowReviewForm(true)}>
-                  Write a Review
+                  {t('writeReview')}
                 </Button>
               )}
             </div>
@@ -230,17 +232,17 @@ const HostelDetail = () => {
         </div>
       </div>
 
-      <Modal isOpen={showRequestModal} onClose={() => setShowRequestModal(false)} title="Request to Stay" size="sm">
+      <Modal isOpen={showRequestModal} onClose={() => setShowRequestModal(false)} title={t('requestToStay')} size="sm">
         <div className="space-y-4">
           {selectedTier && (
-            <div className="p-3 bg-primary-50 rounded-xl text-sm text-primary-700 font-medium">
-              Selected: {selectedTier.sharingSize}-sharing at {formatRent(selectedTier.price)}/mo
+              <div className="p-3 bg-primary-50 rounded-xl text-sm text-primary-700 font-medium">
+                {t('selectedPrefix')} {selectedTier.sharingSize}-sharing at {formatRent(selectedTier.price)}{t('mo')}
             </div>
           )}
-          <textarea value={requestMsg} onChange={(e) => setRequestMsg(e.target.value)} placeholder="Introduce yourself — occupation, lifestyle, move-in date..." rows={4} className="input resize-none" />
+          <textarea value={requestMsg} onChange={(e) => setRequestMsg(e.target.value)} placeholder={t('introduceShare')} rows={4} className="input resize-none" />
           <div className="flex gap-3">
-            <Button variant="secondary" size="md" className="flex-1" onClick={() => setShowRequestModal(false)}>Cancel</Button>
-            <Button variant="primary" size="md" className="flex-1" loading={requesting} onClick={() => sendRequest()}>Send Request</Button>
+            <Button variant="secondary" size="md" className="flex-1" onClick={() => setShowRequestModal(false)}>{t('cancel')}</Button>
+            <Button variant="primary" size="md" className="flex-1" loading={requesting} onClick={() => sendRequest()}>{t('sendRequest')}</Button>
           </div>
         </div>
       </Modal>

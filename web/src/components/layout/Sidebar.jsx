@@ -1,5 +1,6 @@
 // Sidebar — dashboard navigation, role-aware menu items
 import { NavLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
   Heart,
@@ -16,35 +17,36 @@ import {
 // ─── Per-role menu configs ─────────────────────────────────────────────────
 export const MENUS = {
   TENANT: [
-    { to: '/dashboard',               icon: LayoutDashboard, label: 'Dashboard'      },
-    { to: '/dashboard/my-listings',   icon: ListChecks,      label: 'My Listings'    },
-    { to: '/dashboard/listings/new',  icon: PlusSquare,      label: 'Add Listing'    },
-    { to: '/dashboard/saved',         icon: Heart,           label: 'Saved Listings' },
-    { to: '/dashboard/requests',      icon: SendHorizontal,  label: 'My Requests'    },
-    { to: '/dashboard/chats',         icon: MessageSquare,   label: 'Chats'          },
-    { to: '/dashboard/profile',       icon: User,            label: 'Profile'        },
+    { to: '/dashboard',               icon: LayoutDashboard, label: 'dashboardMenu' },
+    { to: '/dashboard/my-listings',   icon: ListChecks,      label: 'myListingsMenu' },
+    { to: '/dashboard/listings/new',  icon: PlusSquare,      label: 'addListingMenu' },
+    { to: '/dashboard/saved',         icon: Heart,           label: 'savedListingsMenu' },
+    { to: '/dashboard/requests',      icon: SendHorizontal,  label: 'myRequestsMenu' },
+    { to: '/dashboard/chats',         icon: MessageSquare,   label: 'chatsMenu' },
+    { to: '/dashboard/profile',       icon: User,            label: 'profileMenu' },
   ],
   OWNER: [
-    { to: '/dashboard',               icon: LayoutDashboard, label: 'Dashboard'      },
-    { to: '/dashboard/listings',      icon: ListChecks,      label: 'My Listings'    },
-    { to: '/dashboard/listings/new',  icon: PlusSquare,      label: 'Add Listing'    },
-    { to: '/dashboard/saved',         icon: Heart,           label: 'Saved Listings' },
-    { to: '/dashboard/requests',      icon: SendHorizontal,  label: 'Requests'       },
-    { to: '/dashboard/chats',         icon: MessageSquare,   label: 'Chats'          },
-    { to: '/dashboard/analytics',     icon: BarChart2,       label: 'Analytics'      },
-    { to: '/dashboard/profile',       icon: User,            label: 'Profile'        },
+    { to: '/dashboard',               icon: LayoutDashboard, label: 'dashboardMenu' },
+    { to: '/dashboard/listings',      icon: ListChecks,      label: 'myListingsMenu' },
+    { to: '/dashboard/listings/new',  icon: PlusSquare,      label: 'addListingMenu' },
+    { to: '/dashboard/saved',         icon: Heart,           label: 'savedListingsMenu' },
+    { to: '/dashboard/requests',      icon: SendHorizontal,  label: 'requestsMenu' },
+    { to: '/dashboard/chats',         icon: MessageSquare,   label: 'chatsMenu' },
+    { to: '/dashboard/analytics',     icon: BarChart2,       label: 'analyticsMenu' },
+    { to: '/dashboard/profile',       icon: User,            label: 'profileMenu' },
   ],
   ADMIN: [
-    { to: '/admin',                   icon: LayoutDashboard, label: 'Dashboard'      },
-    { to: '/admin',                   icon: Users,           label: 'Users'          },
-    { to: '/admin',                   icon: ListChecks,      label: 'Listings'       },
-    { to: '/admin',                   icon: Flag,            label: 'Reports'        },
-    { to: '/admin',                   icon: BarChart2,       label: 'Analytics'      },
+    { to: '/admin',                   icon: LayoutDashboard, label: 'dashboardMenu' },
+    { to: '/admin',                   icon: Users,           label: 'users' },
+    { to: '/admin',                   icon: ListChecks,      label: 'listingsTab' },
+    { to: '/admin',                   icon: Flag,            label: 'reports' },
+    { to: '/admin',                   icon: BarChart2,       label: 'analyticsMenu' },
   ],
 };
 
 // ─── Single nav item ───────────────────────────────────────────────────────
 function SidebarItem({ to, icon: Icon, label, end }) {
+  const { t } = useTranslation();
   return (
     <NavLink
       to={to}
@@ -65,7 +67,7 @@ function SidebarItem({ to, icon: Icon, label, end }) {
               isActive ? 'text-primary-600' : 'text-surface-400 group-hover:text-surface-600'
             }`}
           />
-          <span className="truncate">{label}</span>
+          <span className="truncate">{t(label)}</span>
           {/* Active indicator bar */}
           {isActive && (
             <span className="ml-auto w-1.5 h-1.5 rounded-full bg-primary-500" />
@@ -81,13 +83,14 @@ function SidebarItem({ to, icon: Icon, label, end }) {
  * @param {{ role: 'TENANT' | 'OWNER' | 'ADMIN' }} props
  */
 export default function Sidebar({ role }) {
+  const { t } = useTranslation();
   const items = MENUS[role] ?? MENUS.TENANT;
 
   return (
     <aside className="flex flex-col h-full bg-surface-50/80 backdrop-blur-xl border-r border-surface-100/60 px-3 py-4 sm:py-6 gap-1">
       {/* Section label */}
       <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-surface-400">
-        {role === 'ADMIN' ? 'Admin Panel' : 'My Account'}
+        {role === 'ADMIN' ? t('adminPanel') : t('myAccount')}
       </p>
 
       <nav className="flex flex-col gap-0.5">

@@ -3,6 +3,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus, Trash2, Camera, Upload, X, Home, DoorOpen, MapPin } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { listingsAPI, uploadAPI } from '../../services/endpoints';
 import { useAuth } from '../../context/AuthContext';
 import { compressImages, formatFileSize } from '../../utils/compressImage';
@@ -10,10 +11,10 @@ import PageHeader from '../../components/layout/PageHeader';
 import LocationPicker from '../../components/LocationPicker';
 import { Input, Select, Textarea, Button } from '../../components/ui';
 
-const STEPS = ['Basic Info', 'Location', 'Amenities', 'Room/Hostel Details', 'Photos'];
+const STEPS = ['basicInfo', 'locationStep', 'amenitiesStep', 'roomHostelDetails', 'photos'];
 
 const AMENITY_FIELDS = ['wifi','parking','washingMachine','ac','fridge','kitchen','lift','gym','security','powerBackup','waterSupply','cctv'];
-const AMENITY_LABELS = { wifi:'WiFi', parking:'Parking', washingMachine:'Washing Machine', ac:'AC', fridge:'Fridge', kitchen:'Kitchen', lift:'Lift', gym:'Gym', security:'Security', powerBackup:'Power Backup', waterSupply:'Water Supply', cctv:'CCTV' };
+const AMENITY_LABELS = { wifi:'wifi', parking:'parking', washingMachine:'washingMachine', ac:'ac', fridge:'fridge', kitchen:'kitchen', lift:'lift', gym:'gym', security:'security', powerBackup:'powerBackup', waterSupply:'waterSupply', cctv:'cctv' };
 
 const defaultForm = {
   title: '', description: '', type: 'HOUSE_RENTAL', rent: '', deposit: '', maintenance: '',
@@ -34,6 +35,7 @@ const CreateListing = () => {
   const { user } = useAuth();
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
     ...defaultForm,
@@ -257,7 +259,7 @@ const CreateListing = () => {
       return isEdit ? listingsAPI.update(id, payload) : listingsAPI.create(payload);
     },
     onSuccess: ({ data }) => {
-      toast.success(isEdit ? 'Listing saved!' : 'Listing created! Now add photos.');
+      toast.success(isEdit ? t('listingSaved') : t('listingCreated'));
       qc.invalidateQueries({ queryKey: ['myListings'] });
       qc.invalidateQueries({ queryKey: ['listings'] });
       qc.invalidateQueries({ queryKey: ['myBookings'] });
@@ -269,16 +271,16 @@ const CreateListing = () => {
         navigate('/dashboard/listings');
       }
     },
-    onError: (err) => toast.error(err?.response?.data?.message || 'Failed to save'),
+    onError: (err) => toast.error(err?.response?.data?.message || t('failedToSave')),
   });
 
   const { mutate: deletePhoto } = useMutation({
     mutationFn: (photoId) => uploadAPI.deletePhoto(photoId),
     onSuccess: () => {
-      toast.success('Photo deleted');
+      toast.success(t('photoDeleted'));
       qc.invalidateQueries({ queryKey: ['listing', id] });
     },
-    onError: () => toast.error('Failed to delete photo'),
+    onError: () => toast.error(t('failedToDeletePhoto')),
   });
 
   const handlePhotoUpload = async (e) => {
@@ -286,38 +288,38 @@ const CreateListing = () => {
     if (!files || files.length === 0) return;
 
     try {
-      toast.loading('Compressing photos...', { id: 'photo-upload' });
+      toast.loading(t('compressingPhotos'), { id: 'photo-upload' });
       const results = await compressImages(files, { maxWidth: 1200, maxHeight: 900, maxSizeKB: 50 });
 
       // Show compression results
       const summary = results.map((r) => `${formatFileSize(r.originalSize)} → ${formatFileSize(r.compressedSize)}`).join('\n');
-      toast.success(`Compressed ${results.length} photo(s):\n${summary}`, { id: 'photo-upload', duration: 4000 });
+      toast.success(`${t('compressedCount', { count: results.length })}\n${summary}`, { id: 'photo-upload', duration: 4000 });
 
       const fd = new FormData();
       results.forEach((r) => fd.append('photos', r.file));
 
-      toast.loading('Uploading photos...', { id: 'photo-upload' });
+      toast.loading(t('uploadingPhotos'), { id: 'photo-upload' });
       await uploadAPI.listingPhotos(id, fd);
-      toast.success('Photos uploaded!', { id: 'photo-upload' });
+      toast.success(t('photosUploaded'), { id: 'photo-upload' });
       qc.invalidateQueries({ queryKey: ['listing', id] });
     } catch {
-      toast.error('Failed to upload photos', { id: 'photo-upload' });
+      toast.error(t('failedToUploadPhotos'), { id: 'photo-upload' });
     }
   };
 
   const steps = [
     // Step 0 — Basic Info
     <div key="basic" className="space-y-4">
-      <Input label="Listing Title" value={form.title} onChange={(e) => set('title', e.target.value)} placeholder="e.g. Spacious 2BHK in Banjara Hills" />
-      <Textarea label="Description" value={form.description} onChange={(e) => set('description', e.target.value)} rows={4} placeholder="Describe the property..." />
+      <Input label={t('listingTitle')} value={form.title} onChange={(e) => set('title', e.target.value)} placeholder={t('titlePlaceholder')} />
+      <Textarea label={t('description')} value={form.description} onChange={(e) => set('description', e.target.value)} rows={4} placeholder={t('describeProperty')} />
       <Select
-        label="Listing Type"
+        label={t('listingType')}
         value={form.type}
         onChange={(e) => set('type', e.target.value)}
         options={
           user?.role === 'TENANT'
-            ? [{ value: 'ROOM_SHARING', label: 'Room Sharing' }]
-            : [{ value: 'HOUSE_RENTAL', label: 'House Rental' }, { value: 'ROOM_SHARING', label: 'Room Sharing' }, { value: 'HOSTEL', label: 'Hostel / PG' }, { value: 'LAND_SALE', label: 'Land Sale' }]
+            ? [{ value: 'ROOM_SHARING', label: t('roomSharingType') }]
+            : [{ value: 'HOUSE_RENTAL', label: t('houseRental') }, { value: 'ROOM_SHARING', label: t('roomSharingType') }, { value: 'HOSTEL', label: t('hostelPg') }, { value: 'LAND_SALE', label: t('landSaleType') }]
         }
         disabled={user?.role === 'TENANT'}
       />
@@ -326,23 +328,23 @@ const CreateListing = () => {
       {form.type === 'HOSTEL' && (
         <div className="border-t border-surface-100 pt-4">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-semibold text-surface-700">Sharing Options & Pricing</p>
+            <p className="text-sm font-semibold text-surface-700">{t('sharingPricing')}</p>
             <button type="button" onClick={addHSTier} className="text-xs text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1">
-              <Plus size={14} /> Add Tier
+              <Plus size={14} /> {t('addTier')}
             </button>
           </div>
           <div className="space-y-3">
             {form.hostelSharing.tiers.map((tier, idx) => (
               <div key={idx} className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 p-3 bg-surface-50 rounded-xl">
                 <div className="flex-1">
-                  <Input label="No. of Sharing" type="number" value={tier.sharingSize} onChange={(e) => setHSTier(idx, 'sharingSize', e.target.value)} placeholder="e.g. 2, 3, 4" />
+                  <Input label={t('noOfSharing')} type="number" value={tier.sharingSize} onChange={(e) => setHSTier(idx, 'sharingSize', e.target.value)} placeholder={t('sharingPlaceholder')} />
                 </div>
                 <div className="flex-1">
-                  <Input label="Price ₹/mo" type="number" value={tier.price} onChange={(e) => setHSTier(idx, 'price', e.target.value)} placeholder="e.g. 5000" />
+                  <Input label={t('pricePerMo')} type="number" value={tier.price} onChange={(e) => setHSTier(idx, 'price', e.target.value)} placeholder={t('pricePlaceholder')} />
                 </div>
                 <label className="flex items-center gap-2 cursor-pointer min-h-[44px] sm:pb-2">
                   <input type="checkbox" checked={tier.available} onChange={(e) => setHSTier(idx, 'available', e.target.checked)} className="w-5 h-5 accent-primary-600" />
-                  <span className="text-xs text-surface-600">Available</span>
+                  <span className="text-xs text-surface-600">{t('availableLabel')}</span>
                 </label>
                 {form.hostelSharing.tiers.length > 1 && (
                   <button type="button" onClick={() => removeHSTier(idx)} className="p-2 text-red-500 hover:text-red-600 pb-2">
@@ -352,51 +354,51 @@ const CreateListing = () => {
               </div>
             ))}
           </div>
-          <p className="text-xs text-surface-400 mt-2">Add different sharing options (e.g. 2-share, 3-share, 4-share) with their respective prices.</p>
+          <p className="text-xs text-surface-400 mt-2">{t('addDifferentSharing')}</p>
         </div>
       )}
 
       {form.type !== 'HOSTEL' && form.type !== 'LAND_SALE' && (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Input label="Rent (₹/mo)" type="number" value={form.rent} onChange={(e) => set('rent', e.target.value)} />
-            <Input label="Deposit (₹)" type="number" value={form.deposit} onChange={(e) => set('deposit', e.target.value)} />
-            <Input label="Maintenance (₹)" type="number" value={form.maintenance} onChange={(e) => set('maintenance', e.target.value)} />
+            <Input label={t('rentMo')} type="number" value={form.rent} onChange={(e) => set('rent', e.target.value)} />
+            <Input label={t('deposit₹')} type="number" value={form.deposit} onChange={(e) => set('deposit', e.target.value)} />
+            <Input label={t('maintenance₹')} type="number" value={form.maintenance} onChange={(e) => set('maintenance', e.target.value)} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label="Bedrooms" type="number" value={form.bedrooms} onChange={(e) => set('bedrooms', e.target.value)} />
-            <Input label="Bathrooms" type="number" value={form.bathrooms} onChange={(e) => set('bathrooms', e.target.value)} />
+            <Input label={t('bedroomsLabel')} type="number" value={form.bedrooms} onChange={(e) => set('bedrooms', e.target.value)} />
+            <Input label={t('bathroomsLabel')} type="number" value={form.bathrooms} onChange={(e) => set('bathrooms', e.target.value)} />
           </div>
         </>
       )}
 
       {form.type === 'HOSTEL' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Input label="Deposit (₹)" type="number" value={form.deposit} onChange={(e) => set('deposit', e.target.value)} />
-          <Input label="Available From" type="date" value={form.availableFrom} onChange={(e) => set('availableFrom', e.target.value)} />
+          <Input label={t('deposit₹')} type="number" value={form.deposit} onChange={(e) => set('deposit', e.target.value)} />
+          <Input label={t('availableFrom')} type="date" value={form.availableFrom} onChange={(e) => set('availableFrom', e.target.value)} />
         </div>
       )}
 
       {form.type === 'LAND_SALE' && (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label="Total Price (₹)" type="number" value={form.rent} onChange={(e) => set('rent', e.target.value)} placeholder="e.g. 2500000" />
-            <Input label="Area (sqft)" type="number" value={form.areaSqFt} onChange={(e) => set('areaSqFt', e.target.value)} placeholder="e.g. 1200" />
+            <Input label={t('totalPrice₹')} type="number" value={form.rent} onChange={(e) => set('rent', e.target.value)} placeholder={t('totalPricePlaceholder')} />
+            <Input label={t('areaSqft')} type="number" value={form.areaSqFt} onChange={(e) => set('areaSqFt', e.target.value)} placeholder={t('areaPlaceholder')} />
           </div>
-          <Input label="Available From" type="date" value={form.availableFrom} onChange={(e) => set('availableFrom', e.target.value)} />
+          <Input label={t('availableFrom')} type="date" value={form.availableFrom} onChange={(e) => set('availableFrom', e.target.value)} />
         </>
       )}
 
       {form.type !== 'HOSTEL' && form.type !== 'LAND_SALE' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Input label="Area (sqft)" type="number" value={form.areaSqFt} onChange={(e) => set('areaSqFt', e.target.value)} />
-          <Input label="Available From" type="date" value={form.availableFrom} onChange={(e) => set('availableFrom', e.target.value)} />
+          <Input label={t('areaSqft')} type="number" value={form.areaSqFt} onChange={(e) => set('areaSqFt', e.target.value)} />
+          <Input label={t('availableFrom')} type="date" value={form.availableFrom} onChange={(e) => set('availableFrom', e.target.value)} />
         </div>
       )}
 
       {form.type !== 'LAND_SALE' && (
         <div className="flex flex-wrap gap-4 sm:gap-6">
-          {[['furnished', 'Furnished'], ['balcony', 'Has Balcony'], ['parking', 'Parking Available']].map(([key, label]) => (
+          {[['furnished', t('furnished')], ['balcony', t('hasBalcony')], ['parking', t('parkingAvailable')]].map(([key, label]) => (
             <label key={key} className="flex items-center gap-2 cursor-pointer min-h-[44px]">
               <input type="checkbox" checked={form[key]} onChange={(e) => set(key, e.target.checked)} className="w-5 h-5 accent-primary-600" />
               <span className="text-sm text-surface-700">{label}</span>
@@ -410,14 +412,14 @@ const CreateListing = () => {
     <div key="location" className="space-y-4">
       <div className="relative">
         <Input
-          label="Search Full Address"
+          label={t('searchFullAddress')}
           value={addressInput}
           onChange={(e) => {
             setAddressInput(e.target.value);
             setShowSuggestions(true);
             set('address', e.target.value);
           }}
-          placeholder="Start typing your property address..."
+          placeholder={t('startTypingAddress')}
           className="w-full"
         />
         {showSuggestions && suggestions.length > 0 && (
@@ -451,13 +453,13 @@ const CreateListing = () => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Input label="City" value={form.city} onChange={(e) => set('city', e.target.value)} />
-        <Input label="State" value={form.state} onChange={(e) => set('state', e.target.value)} />
+        <Input label={t('city')} value={form.city} onChange={(e) => set('city', e.target.value)} />
+        <Input label={t('state')} value={form.state} onChange={(e) => set('state', e.target.value)} />
       </div>
-      <Input label="Pincode" value={form.pincode} onChange={(e) => set('pincode', e.target.value)} />
+      <Input label={t('pincode')} value={form.pincode} onChange={(e) => set('pincode', e.target.value)} />
 
       <div className="border-t border-surface-100 pt-4 mt-4">
-        <p className="text-sm font-semibold text-surface-700 mb-3">Exact Location</p>
+        <p className="text-sm font-semibold text-surface-700 mb-3">{t('exactLocationLabel')}</p>
         <LocationPicker
           latitude={form.latitude ? Number(form.latitude) : null}
           longitude={form.longitude ? Number(form.longitude) : null}
@@ -469,19 +471,19 @@ const CreateListing = () => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Input label="Latitude" type="number" step="any" value={form.latitude} onChange={(e) => set('latitude', e.target.value)} placeholder="e.g. 17.3850" />
-        <Input label="Longitude" type="number" step="any" value={form.longitude} onChange={(e) => set('longitude', e.target.value)} placeholder="e.g. 78.4867" />
+        <Input label={t('latitude')} type="number" step="any" value={form.latitude} onChange={(e) => set('latitude', e.target.value)} placeholder={t('latPlaceholder')} />
+        <Input label={t('longitude')} type="number" step="any" value={form.longitude} onChange={(e) => set('longitude', e.target.value)} placeholder={t('lngPlaceholder')} />
       </div>
     </div>,
 
     // Step 2 — Amenities
     <div key="amenities" className="space-y-3">
-      <p className="text-sm text-surface-500">Select all amenities available at this property</p>
+      <p className="text-sm text-surface-500">{t('selectAmenities')}</p>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {AMENITY_FIELDS.map((key) => (
           <label key={key} className={`flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all min-h-[48px] ${form.amenities[key] ? 'border-primary-500 bg-primary-50' : 'border-surface-200 hover:border-surface-300'}`}>
             <input type="checkbox" checked={form.amenities[key]} onChange={(e) => setAmenity(key, e.target.checked)} className="w-5 h-5 accent-primary-600" />
-            <span className="text-sm font-medium text-surface-700">{AMENITY_LABELS[key]}</span>
+            <span className="text-sm font-medium text-surface-700">{t(AMENITY_LABELS[key])}</span>
           </label>
         ))}
       </div>
@@ -491,18 +493,18 @@ const CreateListing = () => {
     <div key="room" className="space-y-4">
       {form.type === 'ROOM_SHARING' ? (
         <>
-          <Select label="Gender Preference" value={form.roomSharing.genderRequired} onChange={(e) => setRS('genderRequired', e.target.value)}
-            options={[{ value: 'ANY', label: 'Any' }, { value: 'MALE', label: 'Male Only' }, { value: 'FEMALE', label: 'Female Only' }]} />
+          <Select label={t('genderPreference')} value={form.roomSharing.genderRequired} onChange={(e) => setRS('genderRequired', e.target.value)}
+            options={[{ value: 'ANY', label: t('any') }, { value: 'MALE', label: t('maleOnlyBadge') }, { value: 'FEMALE', label: t('femaleOnlyBadge') }]} />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label="Min Age" type="number" value={form.roomSharing.minAge} onChange={(e) => setRS('minAge', e.target.value)} />
-            <Input label="Max Age" type="number" value={form.roomSharing.maxAge} onChange={(e) => setRS('maxAge', e.target.value)} />
+            <Input label={t('minAge')} type="number" value={form.roomSharing.minAge} onChange={(e) => setRS('minAge', e.target.value)} />
+            <Input label={t('maxAge')} type="number" value={form.roomSharing.maxAge} onChange={(e) => setRS('maxAge', e.target.value)} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label="Current Occupants" type="number" value={form.roomSharing.currentOccupants} onChange={(e) => setRS('currentOccupants', e.target.value)} />
-            <Input label="Total Rooms" type="number" value={form.roomSharing.totalRooms} onChange={(e) => setRS('totalRooms', e.target.value)} />
+            <Input label={t('currentOccupantsLabel')} type="number" value={form.roomSharing.currentOccupants} onChange={(e) => setRS('currentOccupants', e.target.value)} />
+            <Input label={t('totalRooms')} type="number" value={form.roomSharing.totalRooms} onChange={(e) => setRS('totalRooms', e.target.value)} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {[['smoking', 'Smoking Allowed'], ['drinking', 'Drinking Allowed'], ['vegOnly', 'Veg Only'], ['petsAllowed', 'Pets Allowed']].map(([key, label]) => (
+            {[['smoking', t('smokingAllowed')], ['drinking', t('drinkingAllowed')], ['vegOnly', t('vegOnlyLabel')], ['petsAllowed', t('petsAllowed')]].map(([key, label]) => (
               <label key={key} className="flex items-center gap-2 cursor-pointer min-h-[44px] p-3 border rounded-xl hover:bg-surface-50">
                 <input type="checkbox" checked={form.roomSharing[key]} onChange={(e) => setRS(key, e.target.checked)} className="w-5 h-5 accent-primary-600" />
                 <span className="text-sm text-surface-700">{label}</span>
@@ -512,27 +514,27 @@ const CreateListing = () => {
         </>
       ) : form.type === 'HOSTEL' ? (
         <>
-          <Select label="Gender Preference" value={form.hostelSharing.genderRequired} onChange={(e) => setHS('genderRequired', e.target.value)}
-            options={[{ value: 'ANY', label: 'Any' }, { value: 'MALE', label: 'Male Only' }, { value: 'FEMALE', label: 'Female Only' }]} />
+          <Select label={t('genderPreference')} value={form.hostelSharing.genderRequired} onChange={(e) => setHS('genderRequired', e.target.value)}
+            options={[{ value: 'ANY', label: t('any') }, { value: 'MALE', label: t('maleOnlyBadge') }, { value: 'FEMALE', label: t('femaleOnlyBadge') }]} />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label="Min Age" type="number" value={form.hostelSharing.minAge} onChange={(e) => setHS('minAge', e.target.value)} />
-            <Input label="Max Age" type="number" value={form.hostelSharing.maxAge} onChange={(e) => setHS('maxAge', e.target.value)} />
+            <Input label={t('minAge')} type="number" value={form.hostelSharing.minAge} onChange={(e) => setHS('minAge', e.target.value)} />
+            <Input label={t('maxAge')} type="number" value={form.hostelSharing.maxAge} onChange={(e) => setHS('maxAge', e.target.value)} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {[['smoking', 'Smoking Allowed'], ['drinking', 'Drinking Allowed'], ['vegOnly', 'Veg Only'], ['petsAllowed', 'Pets Allowed']].map(([key, label]) => (
+            {[['smoking', t('smokingAllowed')], ['drinking', t('drinkingAllowed')], ['vegOnly', t('vegOnlyLabel')], ['petsAllowed', t('petsAllowed')]].map(([key, label]) => (
               <label key={key} className="flex items-center gap-2 cursor-pointer min-h-[44px] p-3 border rounded-xl hover:bg-surface-50">
                 <input type="checkbox" checked={form.hostelSharing[key]} onChange={(e) => setHS(key, e.target.checked)} className="w-5 h-5 accent-primary-600" />
                 <span className="text-sm text-surface-700">{label}</span>
               </label>
             ))}
           </div>
-          <p className="text-xs text-surface-400 text-center pt-2">Sharing tiers & pricing are set in Basic Info step</p>
+          <p className="text-xs text-surface-400 text-center pt-2">{t('sharingPricingSet')}</p>
         </>
       ) : (
         <div className="text-center py-12 text-surface-400">
           <p className="text-4xl mb-3">🏠</p>
-          <p className="font-medium">No room sharing details needed</p>
-          <p className="text-sm">This is a house rental listing</p>
+          <p className="font-medium">{t('noRoomSharingDetails')}</p>
+          <p className="text-sm">{t('thisIsHouseRental')}</p>
         </div>
       )}
     </div>,
@@ -541,7 +543,7 @@ const CreateListing = () => {
   if (isEdit) {
     steps.push(
       <div key="photos" className="space-y-4">
-        <p className="text-sm text-surface-500">Add up to 10 photos of your property. First photo will be the cover.</p>
+        <p className="text-sm text-surface-500">{t('addPhotosInstruction')}</p>
 
         {/* Existing photos */}
         {listingData?.photos?.length > 0 && (
@@ -550,7 +552,7 @@ const CreateListing = () => {
               <div key={photo.id} className="relative aspect-square rounded-2xl overflow-hidden group border border-surface-100">
                 <img src={photo.url} alt="" className="w-full h-full object-cover" />
                 {idx === 0 && (
-                  <span className="absolute top-2 left-2 bg-primary-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">Cover</span>
+                  <span className="absolute top-2 left-2 bg-primary-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{t('cover')}</span>
                 )}
                 <button
                   onClick={() => deletePhoto(photo.id)}
@@ -569,8 +571,8 @@ const CreateListing = () => {
             <Upload size={24} className="text-surface-500" />
           </div>
           <div className="text-center">
-            <p className="text-sm font-semibold text-surface-700">Click to upload photos</p>
-            <p className="text-xs text-surface-400 mt-1">Images compressed to max 50KB before upload • Max 10 photos</p>
+            <p className="text-sm font-semibold text-surface-700">{t('clickToUpload')}</p>
+            <p className="text-xs text-surface-400 mt-1">{t('imagesCompressed')}</p>
           </div>
           <input
             type="file"
@@ -589,8 +591,8 @@ const CreateListing = () => {
           <div className="p-4 bg-surface-100 rounded-2xl inline-block mb-4">
             <Camera size={32} className="text-surface-300" />
           </div>
-          <p className="font-medium text-surface-600">Add photos after creating your listing</p>
-          <p className="text-sm mt-1">You can upload up to 10 photos once the listing is saved</p>
+          <p className="font-medium text-surface-600">{t('addPhotosAfter')}</p>
+          <p className="text-sm mt-1">{t('uploadOnceSaved')}</p>
         </div>
       </div>
     );
@@ -602,7 +604,7 @@ const CreateListing = () => {
     return (
       <div className="max-w-2xl mx-auto py-12 text-center text-surface-400">
         <div className="w-10 h-10 border-3 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-        <p className="text-sm font-medium">Loading listing details…</p>
+        <p className="text-sm font-medium">{t('loadingListing')}</p>
       </div>
     );
   }
@@ -613,11 +615,11 @@ const CreateListing = () => {
   if (showBookingSelector) {
     return (
       <div className="max-w-2xl mx-auto">
-        <PageHeader title="Create Room Sharing" subtitle="Choose a booked house or list a different room" />
+        <PageHeader title={t('createRoomSharingTitle')} subtitle={t('chooseBookedHouse')} />
         <div className="card p-6 mt-6 space-y-4">
           {acceptedBookings.length > 0 && (
             <>
-              <p className="text-sm font-semibold text-surface-700">Your Booked Houses</p>
+              <p className="text-sm font-semibold text-surface-700">{t('yourBookedHouses')}</p>
               <div className="space-y-3">
                 {acceptedBookings.map((booking) => (
                   <button
@@ -652,13 +654,13 @@ const CreateListing = () => {
                         {[booking.listing?.address, booking.listing?.city].filter(Boolean).join(', ')}
                       </div>
                     </div>
-                    <span className="text-xs font-medium text-primary-600 shrink-0">Select →</span>
+                    <span className="text-xs font-medium text-primary-600 shrink-0">{t('selectArrow')}</span>
                   </button>
                 ))}
               </div>
               <div className="relative my-4">
                 <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-surface-200" /></div>
-                <div className="relative flex justify-center"><span className="bg-surface-50/80 px-3 text-xs text-surface-400">OR</span></div>
+                <div className="relative flex justify-center"><span className="bg-surface-50/80 px-3 text-xs text-surface-400">{t('or')}</span></div>
               </div>
             </>
           )}
@@ -674,8 +676,8 @@ const CreateListing = () => {
               <DoorOpen size={20} className="text-surface-500" />
             </div>
             <div>
-              <p className="font-semibold text-surface-900 text-sm">Other Room</p>
-              <p className="text-xs text-surface-400 mt-0.5">List a room that isn't in Quikden yet</p>
+              <p className="font-semibold text-surface-900 text-sm">{t('otherRoom')}</p>
+              <p className="text-xs text-surface-400 mt-0.5">{t('listRoomNotIn')}</p>
             </div>
           </button>
         </div>
@@ -686,7 +688,7 @@ const CreateListing = () => {
   return (
     <>
       <div className="max-w-2xl mx-auto">
-        <PageHeader title={isEdit ? "Edit Listing" : isFromBooking ? "Create Room Sharing from Booking" : "Add New Listing"} subtitle={isEdit ? "Update your property details" : isFromBooking ? "Share a room in your booked property" : "Fill in the details to list your property"} />
+        <PageHeader title={isEdit ? t('editListing') : isFromBooking ? t('createFromBooking') : t('addNewListingBtn')} subtitle={isEdit ? t('updateDetails') : isFromBooking ? t('shareBookedProperty') : t('fillDetails')} />
 
         {/* Progress */}
         <div className="flex items-center gap-2 my-6">
@@ -701,19 +703,19 @@ const CreateListing = () => {
         </div>
 
         <div className="card p-6">
-          <h2 className="font-display font-semibold text-lg text-surface-900 mb-5">{activeStepsList[step]}</h2>
+          <h2 className="font-display font-semibold text-lg text-surface-900 mb-5">{t(activeStepsList[step])}</h2>
           {steps[step]}
         </div>
 
         <div className="flex flex-col sm:flex-row justify-between gap-3 mt-4">
           <Button variant="secondary" size="lg" onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0} className="w-full sm:w-auto min-h-[48px]">
-            Previous
+            {t('previous')}
           </Button>
           {step < activeStepsList.length - 1 ? (
-            <Button variant="primary" size="lg" onClick={() => setStep((s) => s + 1)} className="w-full sm:w-auto min-h-[48px]">Next</Button>
+            <Button variant="primary" size="lg" onClick={() => setStep((s) => s + 1)} className="w-full sm:w-auto min-h-[48px]">{t('next')}</Button>
           ) : (
             <Button variant="primary" size="lg" loading={isPending} onClick={() => save()} className="w-full sm:w-auto min-h-[48px]">
-              {isEdit ? 'Save Listing' : 'Create Listing'}
+              {isEdit ? t('saveListing') : t('createListing')}
             </Button>
           )}
         </div>

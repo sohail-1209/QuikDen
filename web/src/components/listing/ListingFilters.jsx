@@ -1,6 +1,7 @@
 // ListingFilters — sidebar filter panel.
 // Collapsible on mobile. Calls onChange whenever any filter changes.
 import React, { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   SlidersHorizontal, X, ChevronDown, ChevronUp,
   Wifi, Wind, Car, Refrigerator, UtensilsCrossed, Dumbbell,
@@ -8,28 +9,28 @@ import {
 
 /* ── Constants ─────────────────────────────────────────────── */
 const LISTING_TYPES = [
-  { value: 'ALL', label: 'All' },
-  { value: 'HOUSE_RENTAL', label: 'House Rental' },
-  { value: 'ROOM_SHARING', label: 'Room Sharing' },
-  { value: 'HOSTEL', label: 'Hostel' },
-  { value: 'LAND_SALE', label: 'Land Sale' },
+  { value: 'ALL', labelKey: 'all' },
+  { value: 'HOUSE_RENTAL', labelKey: 'houseRentalBadge' },
+  { value: 'ROOM_SHARING', labelKey: 'roomSharingBadge' },
+  { value: 'HOSTEL', labelKey: 'hostelPgBadge' },
+  { value: 'LAND_SALE', labelKey: 'landSaleBadge' },
 ];
 
 const BEDROOM_OPTIONS = ['1', '2', '3', '4+'];
 
 const GENDER_OPTIONS = [
-  { value: 'ANY', label: 'Any' },
-  { value: 'MALE', label: 'Male' },
-  { value: 'FEMALE', label: 'Female' },
+  { value: 'ANY', labelKey: 'any' },
+  { value: 'MALE', labelKey: 'male' },
+  { value: 'FEMALE', labelKey: 'female' },
 ];
 
 const AMENITY_OPTIONS = [
-  { key: 'wifi',    label: 'WiFi',    Icon: Wifi },
-  { key: 'ac',      label: 'AC',      Icon: Wind },
-  { key: 'parking', label: 'Parking', Icon: Car },
-  { key: 'fridge',  label: 'Fridge',  Icon: Refrigerator },
-  { key: 'kitchen', label: 'Kitchen', Icon: UtensilsCrossed },
-  { key: 'gym',     label: 'Gym',     Icon: Dumbbell },
+  { key: 'wifi',    labelKey: 'wifi',    Icon: Wifi },
+  { key: 'ac',      labelKey: 'ac',      Icon: Wind },
+  { key: 'parking', labelKey: 'parking', Icon: Car },
+  { key: 'fridge',  labelKey: 'fridge',  Icon: Refrigerator },
+  { key: 'kitchen', labelKey: 'kitchen', Icon: UtensilsCrossed },
+  { key: 'gym',     labelKey: 'gym',     Icon: Dumbbell },
 ];
 
 const DEFAULT_FILTERS = {
@@ -75,6 +76,7 @@ const ToggleButton = ({ active, onClick, children }) => (
  * @param {Function} onChange   - Called with (newFilters) whenever a filter changes
  */
 const ListingFilters = ({ filters = DEFAULT_FILTERS, onChange }) => {
+  const { t } = useTranslation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sections, setSections] = useState({
     city: true,
@@ -123,7 +125,7 @@ const ListingFilters = ({ filters = DEFAULT_FILTERS, onChange }) => {
             onClick={resetAll}
             className="btn-ghost btn-sm gap-1 text-danger-500 hover:bg-danger-50 hover:text-danger-600"
           >
-            <X size={13} /> Reset All
+            <X size={13} /> {t('resetAll')}
           </button>
         </div>
       )}
@@ -131,7 +133,7 @@ const ListingFilters = ({ filters = DEFAULT_FILTERS, onChange }) => {
       {/* City */}
       <div className="py-3">
         <SectionHeader
-          title="City"
+          title={t('city')}
           open={sections.city}
           onToggle={() => toggleSection('city')}
         />
@@ -139,7 +141,7 @@ const ListingFilters = ({ filters = DEFAULT_FILTERS, onChange }) => {
           <input
             type="text"
             className="input text-sm mt-2"
-            placeholder="e.g. Bangalore, Mumbai…"
+            placeholder={t('cityPlaceholder')}
             value={filters.city ?? ''}
             onChange={(e) => update({ city: e.target.value })}
           />
@@ -149,19 +151,19 @@ const ListingFilters = ({ filters = DEFAULT_FILTERS, onChange }) => {
       {/* Listing type */}
       <div className="py-3">
         <SectionHeader
-          title="Listing Type"
+          title={t('listingTypeFilter')}
           open={sections.type}
           onToggle={() => toggleSection('type')}
         />
         {sections.type && (
           <div className="grid grid-cols-3 gap-1.5 mt-2">
-            {LISTING_TYPES.map(({ value, label }) => (
+            {LISTING_TYPES.map(({ value, labelKey }) => (
               <ToggleButton
                 key={value}
                 active={filters.type === value}
                 onClick={() => update({ type: value, gender: 'ANY' })}
               >
-                {label}
+                {t(labelKey)}
               </ToggleButton>
             ))}
           </div>
@@ -171,7 +173,7 @@ const ListingFilters = ({ filters = DEFAULT_FILTERS, onChange }) => {
       {/* Budget */}
       <div className="py-3">
         <SectionHeader
-          title="Budget (₹/month)"
+          title={t('budgetMonth')}
           open={sections.budget}
           onToggle={() => toggleSection('budget')}
         />
@@ -180,7 +182,7 @@ const ListingFilters = ({ filters = DEFAULT_FILTERS, onChange }) => {
             <input
               type="number"
               className="input text-sm"
-              placeholder="Min"
+              placeholder={t('min')}
               min={0}
               value={filters.minRent ?? ''}
               onChange={(e) => update({ minRent: e.target.value })}
@@ -188,7 +190,7 @@ const ListingFilters = ({ filters = DEFAULT_FILTERS, onChange }) => {
             <input
               type="number"
               className="input text-sm"
-              placeholder="Max"
+              placeholder={t('max')}
               min={0}
               value={filters.maxRent ?? ''}
               onChange={(e) => update({ maxRent: e.target.value })}
@@ -201,7 +203,7 @@ const ListingFilters = ({ filters = DEFAULT_FILTERS, onChange }) => {
       {!isRoomSharing && !isHostel && (
         <div className="py-3">
           <SectionHeader
-            title="Bedrooms"
+            title={t('bedrooms')}
             open={sections.bedrooms}
             onToggle={() => toggleSection('bedrooms')}
           />
@@ -229,7 +231,7 @@ const ListingFilters = ({ filters = DEFAULT_FILTERS, onChange }) => {
       {/* Furnished */}
       <div className="py-3">
         <SectionHeader
-          title="Furnished"
+          title={t('furnished')}
           open={sections.furnished}
           onToggle={() => toggleSection('furnished')}
         />
@@ -253,7 +255,7 @@ const ListingFilters = ({ filters = DEFAULT_FILTERS, onChange }) => {
                 }`}
               />
             </div>
-            <span className="text-sm text-surface-700">Fully Furnished</span>
+            <span className="text-sm text-surface-700">{t('fullyFurnished')}</span>
           </label>
         )}
       </div>
@@ -262,19 +264,19 @@ const ListingFilters = ({ filters = DEFAULT_FILTERS, onChange }) => {
       {showGenderFilter && (
         <div className="py-3">
           <SectionHeader
-            title="Gender Preference"
+            title={t('genderPreference')}
             open={sections.gender}
             onToggle={() => toggleSection('gender')}
           />
           {sections.gender && (
             <div className="flex gap-2 mt-2">
-              {GENDER_OPTIONS.map(({ value, label }) => (
+              {GENDER_OPTIONS.map(({ value, labelKey }) => (
                 <ToggleButton
                   key={value}
                   active={filters.gender === value}
                   onClick={() => update({ gender: value })}
                 >
-                  {label}
+                  {t(labelKey)}
                 </ToggleButton>
               ))}
             </div>
@@ -285,13 +287,13 @@ const ListingFilters = ({ filters = DEFAULT_FILTERS, onChange }) => {
       {/* Amenities */}
       <div className="py-3">
         <SectionHeader
-          title="Amenities"
+          title={t('amenities')}
           open={sections.amenities}
           onToggle={() => toggleSection('amenities')}
         />
         {sections.amenities && (
           <div className="grid grid-cols-2 gap-y-2 gap-x-3 mt-2">
-            {AMENITY_OPTIONS.map(({ key, label, Icon }) => {
+            {AMENITY_OPTIONS.map(({ key, labelKey, Icon }) => {
               const checked = !!(filters.amenities?.[key]);
               return (
                 <label
@@ -313,7 +315,7 @@ const ListingFilters = ({ filters = DEFAULT_FILTERS, onChange }) => {
                   />
                   <Icon size={13} className="text-primary-500 flex-shrink-0" />
                   <span className="text-xs text-surface-700 group-hover:text-surface-900">
-                    {label}
+                    {t(labelKey)}
                   </span>
                 </label>
               );
@@ -334,9 +336,9 @@ const ListingFilters = ({ filters = DEFAULT_FILTERS, onChange }) => {
           className="btn-outline btn-md gap-2 w-full"
         >
           <SlidersHorizontal size={16} />
-          {mobileOpen ? 'Hide Filters' : 'Show Filters'}
+          {mobileOpen ? t('hideFilters') : t('showFilters')}
           {hasActiveFilters && (
-            <span className="badge badge-primary text-xs">Active</span>
+            <span className="badge badge-primary text-xs">{t('active')}</span>
           )}
         </button>
 
@@ -358,7 +360,7 @@ const ListingFilters = ({ filters = DEFAULT_FILTERS, onChange }) => {
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display font-semibold text-base text-surface-800 flex items-center gap-2">
               <SlidersHorizontal size={16} className="text-primary-500" />
-              Filters
+              {t('filters')}
             </h2>
             {hasActiveFilters && (
               <button
@@ -366,7 +368,7 @@ const ListingFilters = ({ filters = DEFAULT_FILTERS, onChange }) => {
                 onClick={resetAll}
                 className="text-xs text-danger-500 hover:text-danger-600 font-medium flex items-center gap-1"
               >
-                <X size={12} /> Reset
+                <X size={12} /> {t('reset')}
               </button>
             )}
           </div>

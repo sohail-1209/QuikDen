@@ -1,6 +1,7 @@
 // ListingGrid — responsive grid of ListingCards with skeleton loading and empty state.
 // Used on Home, Search, Saved, and Dashboard pages.
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import ListingCard from './ListingCard';
 
 /* ── Skeleton card (mirrors the ListingCard structure) ── */
@@ -27,19 +28,22 @@ const SkeletonCard = () => (
 );
 
 /* ── Empty state ── */
-const EmptyState = ({ message }) => (
-  <div className="col-span-full flex flex-col items-center justify-center py-20 gap-4 text-center">
-    <div className="w-20 h-20 rounded-full bg-surface-100 flex items-center justify-center text-4xl select-none">
-      🏠
+const EmptyState = ({ message }) => {
+  const { t } = useTranslation();
+  return (
+    <div className="col-span-full flex flex-col items-center justify-center py-20 gap-4 text-center">
+      <div className="w-20 h-20 rounded-full bg-surface-100 flex items-center justify-center text-4xl select-none">
+        🏠
+      </div>
+      <div>
+        <p className="font-semibold text-surface-700 text-lg">{t('noListingsFound')}</p>
+        <p className="text-surface-400 text-sm mt-1 max-w-xs">
+          {message || t('tryAdjusting')}
+        </p>
+      </div>
     </div>
-    <div>
-      <p className="font-semibold text-surface-700 text-lg">No listings found</p>
-      <p className="text-surface-400 text-sm mt-1 max-w-xs">
-        {message || 'Try adjusting your filters or search in a different area.'}
-      </p>
-    </div>
-  </div>
-);
+  );
+};
 
 /**
  * @param {object[]}  listings     - Array of listing objects

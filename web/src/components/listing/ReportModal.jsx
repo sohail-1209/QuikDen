@@ -1,20 +1,21 @@
 // ReportModal — modal for reporting a listing with reason + details.
 // Calls reportsAPI.create on submit. Closes on success or cancel.
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Flag, AlertTriangle } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { reportsAPI } from '../../services/endpoints';
 import { getErrorMessage } from '../../utils/helpers';
 
 const REPORT_REASONS = [
-  { value: '', label: 'Select a reason…' },
-  { value: 'FAKE_LISTING', label: 'Fake listing / Doesn\'t exist' },
-  { value: 'WRONG_PRICE', label: 'Wrong / misleading price' },
-  { value: 'SCAM', label: 'Scam or fraud attempt' },
-  { value: 'ALREADY_RENTED', label: 'Already rented out' },
-  { value: 'INAPPROPRIATE_CONTENT', label: 'Inappropriate content' },
-  { value: 'WRONG_LOCATION', label: 'Wrong location / address' },
-  { value: 'OTHER', label: 'Other' },
+  { value: '', labelKey: 'reportReasonPlaceholder' },
+  { value: 'FAKE_LISTING', labelKey: 'fakeListingReason' },
+  { value: 'WRONG_PRICE', labelKey: 'wrongPriceReason' },
+  { value: 'SCAM', labelKey: 'scamReason' },
+  { value: 'ALREADY_RENTED', labelKey: 'alreadyRentedReason' },
+  { value: 'INAPPROPRIATE_CONTENT', labelKey: 'inappropriateContent' },
+  { value: 'WRONG_LOCATION', labelKey: 'wrongLocationReason' },
+  { value: 'OTHER', labelKey: 'other' },
 ];
 
 /**
@@ -23,6 +24,7 @@ const REPORT_REASONS = [
  * @param {string|number} listingId - ID of the listing being reported
  */
 const ReportModal = ({ isOpen, onClose, listingId }) => {
+  const { t } = useTranslation();
   const [reason, setReason] = useState('');
   const [details, setDetails] = useState('');
   const [submitted, setSubmitted] = useState(false);
@@ -90,7 +92,7 @@ const ReportModal = ({ isOpen, onClose, listingId }) => {
               id="report-modal-title"
               className="font-display font-semibold text-surface-800 text-base"
             >
-              Report Listing
+              {t('reportListing')}
             </h2>
           </div>
           <button
@@ -110,9 +112,9 @@ const ReportModal = ({ isOpen, onClose, listingId }) => {
               <span className="text-3xl">✅</span>
             </div>
             <div>
-              <p className="font-semibold text-surface-800">Report Submitted</p>
+              <p className="font-semibold text-surface-800">{t('reportSubmittedTitle')}</p>
               <p className="text-sm text-surface-500 mt-1">
-                Thank you. Our team will review this listing shortly.
+                {t('reportSubmittedText')}
               </p>
             </div>
             <button
@@ -120,7 +122,7 @@ const ReportModal = ({ isOpen, onClose, listingId }) => {
               onClick={onClose}
               className="btn-primary btn-md mt-2 w-full"
             >
-              Done
+              {t('done')}
             </button>
           </div>
         ) : (
@@ -128,7 +130,7 @@ const ReportModal = ({ isOpen, onClose, listingId }) => {
             {/* Reason */}
             <div className="mb-4">
               <label htmlFor="report-reason" className="label">
-                Reason <span className="text-danger-500">*</span>
+                {t('reason')} <span className="text-danger-500">*</span>
               </label>
               <select
                 id="report-reason"
@@ -137,9 +139,9 @@ const ReportModal = ({ isOpen, onClose, listingId }) => {
                 onChange={(e) => setReason(e.target.value)}
                 required
               >
-                {REPORT_REASONS.map(({ value, label }) => (
+                {REPORT_REASONS.map(({ value, labelKey }) => (
                   <option key={value} value={value} disabled={value === ''}>
-                    {label}
+                    {t(labelKey)}
                   </option>
                 ))}
               </select>
@@ -148,13 +150,13 @@ const ReportModal = ({ isOpen, onClose, listingId }) => {
             {/* Details */}
             <div className="mb-5">
               <label htmlFor="report-details" className="label">
-                Additional Details{' '}
-                <span className="text-surface-400 font-normal">(optional)</span>
+                {t('additionalDetailsLabel')}{' '}
+                <span className="text-surface-400 font-normal">{t('optional')}</span>
               </label>
               <textarea
                 id="report-details"
                 className="input text-sm resize-none h-24"
-                placeholder="Describe the issue in more detail…"
+                placeholder={t('describeIssue')}
                 value={details}
                 onChange={(e) => setDetails(e.target.value)}
                 maxLength={500}
@@ -179,7 +181,7 @@ const ReportModal = ({ isOpen, onClose, listingId }) => {
                 onClick={onClose}
                 className="btn-secondary btn-md flex-1"
               >
-                Cancel
+                {t('cancel')}
               </button>
               <button
                 type="submit"
@@ -189,10 +191,10 @@ const ReportModal = ({ isOpen, onClose, listingId }) => {
                 {isPending ? (
                   <span className="flex items-center gap-2">
                     <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                    Submitting…
+                    {t('submitting')}
                   </span>
                 ) : (
-                  'Submit Report'
+                  t('submitReport')
                 )}
               </button>
             </div>

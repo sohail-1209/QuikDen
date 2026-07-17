@@ -4,23 +4,16 @@ import { useNavigate } from 'react-router-dom';
 import { MapPin, BedDouble, Bath, Maximize2, Users, Star, CalendarDays, LandPlot, ChevronDown } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { formatRent, getPrimaryPhoto, timeAgo, truncate } from '../../utils/helpers';
+import { useTranslation } from 'react-i18next';
 import SaveButton from './SaveButton';
 import Avatar from '../ui/Avatar';
 
 const PLACEHOLDER = '/images/listing-placeholder.svg';
 
-const GENDER_LABEL = { MALE: 'Male Only', FEMALE: 'Female Only', ANY: 'Any Gender' };
 const GENDER_COLOR = {
   MALE: 'bg-primary-50 text-primary-700',
   FEMALE: 'bg-pink-50 text-pink-600',
   ANY: 'badge-gray',
-};
-
-const TYPE_CONFIG = {
-  HOUSE_RENTAL: { label: 'House Rental', color: 'bg-primary-600/90 text-white' },
-  ROOM_SHARING: { label: 'Room Sharing', color: 'bg-accent-600/90 text-white' },
-  HOSTEL: { label: 'Hostel / PG', color: 'bg-emerald-500/90 text-white' },
-  LAND_SALE: { label: 'Land Sale', color: 'bg-amber-500/90 text-white' },
 };
 
 function createRipple(e) {
@@ -37,9 +30,18 @@ function createRipple(e) {
   ripple.addEventListener('animationend', () => ripple.remove());
 }
 
+const GENDER_LABEL_KEYS = { MALE: 'maleOnlyBadge', FEMALE: 'femaleOnlyBadge', ANY: 'anyGender' };
+const TYPE_CONFIG_KEYS = {
+  HOUSE_RENTAL: { labelKey: 'houseRentalBadge', color: 'bg-primary-600/90 text-white' },
+  ROOM_SHARING: { labelKey: 'roomSharingBadge', color: 'bg-accent-600/90 text-white' },
+  HOSTEL: { labelKey: 'hostelPgBadge', color: 'bg-emerald-500/90 text-white' },
+  LAND_SALE: { labelKey: 'landSaleBadge', color: 'bg-amber-500/90 text-white' },
+};
+
 const ListingCard = ({ listing, onSave, isSaved = false }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
 
   if (!listing) return null;
@@ -49,7 +51,8 @@ const ListingCard = ({ listing, onSave, isSaved = false }) => {
   const isLand = listing.type === 'LAND_SALE';
   const detailPath = isLand ? `/land/${listing.id}` : isHouse ? `/listing/${listing.id}` : isHostel ? `/hostel/${listing.id}` : `/room/${listing.id}`;
   const photoUrl = getPrimaryPhoto(listing) || PLACEHOLDER;
-  const typeConfig = TYPE_CONFIG[listing.type] || TYPE_CONFIG.HOUSE_RENTAL;
+  const typeConfigRaw = TYPE_CONFIG_KEYS[listing.type] || TYPE_CONFIG_KEYS.HOUSE_RENTAL;
+  const typeConfig = { label: t(typeConfigRaw.labelKey), color: typeConfigRaw.color };
 
   const handleCardClick = (e) => {
     createRipple(e);
@@ -86,7 +89,7 @@ const ListingCard = ({ listing, onSave, isSaved = false }) => {
         {/* Booked */}
         {listing.status === 'RENTED' && (
           <span className="absolute top-3 left-1/2 -translate-x-1/2 bg-surface-900/80 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full">
-            Booked
+            {t('booked')}
           </span>
         )}
 
@@ -108,7 +111,7 @@ const ListingCard = ({ listing, onSave, isSaved = false }) => {
           <span className="text-xl font-bold text-surface-900 font-display">
             {formatRent(listing.rent)}
           </span>
-          <span className="text-xs text-surface-400 font-medium">/mo</span>
+          <span className="text-xs text-surface-400 font-medium">{t('mo')}</span>
         </div>
 
         {/* Title */}
@@ -133,12 +136,12 @@ const ListingCard = ({ listing, onSave, isSaved = false }) => {
                 {listing.areaSqFt != null && (
                   <span className="flex items-center gap-1">
                     <Maximize2 size={12} className="text-amber-500" />
-                    {listing.areaSqFt} sq.ft
+                    {listing.areaSqFt} {t('sqftUnit')}
                   </span>
                 )}
                 <span className="flex items-center gap-1">
                   <LandPlot size={12} className="text-amber-500" />
-                  For Sale
+                  {t('forSale')}
                 </span>
               </>
             ) : isHouse ? (
@@ -146,19 +149,19 @@ const ListingCard = ({ listing, onSave, isSaved = false }) => {
                 {listing.bedrooms != null && (
                   <span className="flex items-center gap-1">
                     <BedDouble size={12} className="text-primary-400" />
-                    {listing.bedrooms} {listing.bedrooms === 1 ? 'Bed' : 'Beds'}
+                    {listing.bedrooms} {listing.bedrooms === 1 ? t('bed') : t('beds')}
                   </span>
                 )}
                 {listing.bathrooms != null && (
                   <span className="flex items-center gap-1">
                     <Bath size={12} className="text-primary-400" />
-                    {listing.bathrooms} {listing.bathrooms === 1 ? 'Bath' : 'Baths'}
+                    {listing.bathrooms} {listing.bathrooms === 1 ? t('bath') : t('baths')}
                   </span>
                 )}
                 {listing.areaSqFt != null && (
                   <span className="flex items-center gap-1">
                     <Maximize2 size={12} className="text-primary-400" />
-                    {listing.areaSqFt} sq.ft
+                    {listing.areaSqFt} {t('sqftUnit')}
                   </span>
                 )}
               </>
@@ -174,7 +177,7 @@ const ListingCard = ({ listing, onSave, isSaved = false }) => {
               listing.genderPreference && (
                 <span className={`badge text-[11px] ${GENDER_COLOR[listing.genderPreference] || 'badge-gray'}`}>
                   <Users size={11} />
-                  {GENDER_LABEL[listing.genderPreference] ?? listing.genderPreference}
+                  {t(GENDER_LABEL_KEYS[listing.genderPreference]) ?? listing.genderPreference}
                 </span>
               )
             )}
@@ -184,7 +187,7 @@ const ListingCard = ({ listing, onSave, isSaved = false }) => {
           {listing.availableFrom && (
             <div className="flex items-center gap-1 text-xs text-surface-500 mt-1.5">
               <CalendarDays size={11} className="text-primary-400" />
-              Available from{' '}
+              {t('availableFromLabel')}{' '}
               {new Date(listing.availableFrom).toLocaleDateString('en-IN', {
                 day: 'numeric', month: 'short', year: 'numeric',
               })}
@@ -210,7 +213,7 @@ const ListingCard = ({ listing, onSave, isSaved = false }) => {
           <div className="flex items-center gap-2">
             <Avatar src={listing.owner?.profileImage} name={listing.owner?.name} size="sm" />
             <span className="text-xs font-medium text-surface-700 truncate max-w-[100px]">
-              {listing.owner?.name ?? 'Owner'}
+              {listing.owner?.name ?? t('owner')}
             </span>
           </div>
 

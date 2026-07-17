@@ -1,4 +1,5 @@
 // RequestCard — reused in both Owner Dashboard and Tenant Dashboard
+import { useTranslation } from 'react-i18next';
 import { formatRent, timeAgo, requestStatusClass } from '../utils/helpers';
 import { MapPin, Calendar, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -7,14 +8,15 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 
 const RequestCard = ({ request, userRole }) => {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const { mutate: updateStatus, isPending } = useMutation({
     mutationFn: (status) => requestsAPI.update(request.id, status),
     onSuccess: (_, status) => {
-      toast.success(status === 'ACCEPTED' ? '✅ Request accepted!' : '❌ Request rejected');
+      toast.success(status === 'ACCEPTED' ? `✅ ${t('requestAccepted')}` : `❌ ${t('requestRejected')}`);
       qc.invalidateQueries({ queryKey: ['requests'] });
     },
-    onError: () => toast.error('Failed to update request'),
+    onError: () => toast.error(t('failedToUpdate')),
   });
 
   const photo = request.listing?.photos?.[0]?.url;
@@ -76,14 +78,14 @@ const RequestCard = ({ request, userRole }) => {
                 disabled={isPending}
                 className="btn btn-sm px-3 py-1 border border-danger-300 text-danger-500 hover:bg-danger-50 rounded-lg text-xs"
               >
-                Reject
+                {t('reject')}
               </button>
               <button
                 onClick={() => updateStatus('ACCEPTED')}
                 disabled={isPending}
                 className="btn-primary btn-sm px-3 py-1 text-xs rounded-lg"
               >
-                Accept
+                {t('accept')}
               </button>
             </div>
           )}
@@ -91,7 +93,7 @@ const RequestCard = ({ request, userRole }) => {
           {/* Tenant: go to chat if accepted */}
           {userRole === 'TENANT' && request.status === 'ACCEPTED' && request.chat?.id && (
             <Link to={`/dashboard/chats/${request.chat.id}`} className="ml-auto btn-primary btn-sm px-3 py-1 text-xs rounded-lg">
-              Open Chat
+              {t('openChat')}
             </Link>
           )}
         </div>

@@ -3,35 +3,40 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Heart, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { savedAPI } from '../../services/endpoints';
 import ListingGrid from '../../components/listing/ListingGrid';
 
 // ── Empty state ────────────────────────────────────────────────────────────────
-const EmptyState = ({ onSearch }) => (
-  <div className="flex flex-col items-center justify-center py-24 gap-5 text-center">
-    <div className="w-20 h-20 rounded-full bg-primary-50 flex items-center justify-center">
-      <Heart size={36} className="text-primary-300" />
+const EmptyState = ({ onSearch }) => {
+  const { t } = useTranslation();
+  return (
+    <div className="flex flex-col items-center justify-center py-24 gap-5 text-center">
+      <div className="w-20 h-20 rounded-full bg-primary-50 flex items-center justify-center">
+        <Heart size={36} className="text-primary-300" />
+      </div>
+      <div>
+        <p className="font-semibold text-surface-700 text-lg">{t('noSaved')}</p>
+        <p className="text-sm text-surface-400 mt-1 max-w-xs">
+          {t('tapHeart')}
+        </p>
+      </div>
+      <button
+        onClick={onSearch}
+        className="btn-primary btn-md flex items-center gap-2"
+      >
+        <Search size={16} />
+        {t('browseListings')}
+      </button>
     </div>
-    <div>
-      <p className="font-semibold text-surface-700 text-lg">No saved listings yet</p>
-      <p className="text-sm text-surface-400 mt-1 max-w-xs">
-        Tap the heart icon on any listing to save it here for later.
-      </p>
-    </div>
-    <button
-      onClick={onSearch}
-      className="btn-primary btn-md flex items-center gap-2"
-    >
-      <Search size={16} />
-      Browse Listings
-    </button>
-  </div>
-);
+  );
+};
 
 // ── Main component ─────────────────────────────────────────────────────────────
 export default function SavedPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { t } = useTranslation();
 
   // Fetch all saved listings
   const { data, isLoading, isError } = useQuery({
@@ -53,10 +58,10 @@ export default function SavedPage() {
     },
     onError: (_err, _id, ctx) => {
       qc.setQueryData(['saved'], ctx.previous);
-      toast.error('Failed to remove saved listing');
+      toast.error(t('failedToRemove'));
     },
     onSuccess: () => {
-      toast.success('Removed from saved');
+      toast.success(t('removedFromSaved'));
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ['saved'] });
@@ -84,11 +89,11 @@ export default function SavedPage() {
           <Heart size={20} className="text-primary-600" />
         </div>
         <div>
-          <h1 className="section-title">Saved Listings</h1>
+          <h1 className="section-title">{t('savedListings')}</h1>
           <p className="section-subtitle">
             {isLoading
-              ? 'Loading your saved listings…'
-              : `${listings.length} listing${listings.length !== 1 ? 's' : ''} saved`}
+              ? t('savedLoading')
+              : t('savedCountLabel', { count: listings.length })}
           </p>
         </div>
       </div>
@@ -97,8 +102,8 @@ export default function SavedPage() {
       {isError && (
         <div className="card p-10 flex flex-col items-center gap-3 text-center">
           <span className="text-3xl">⚠️</span>
-          <p className="font-semibold text-surface-700">Failed to load saved listings</p>
-          <p className="text-sm text-surface-400">Please refresh the page and try again.</p>
+          <p className="font-semibold text-surface-700">{t('failedToLoadSaved')}</p>
+          <p className="text-sm text-surface-400">{t('refreshTryAgain')}</p>
         </div>
       )}
 
@@ -113,7 +118,7 @@ export default function SavedPage() {
               isLoading={isLoading}
               savedIds={savedIds}
               onSave={handleToggleSave}
-              emptyMessage="You haven't saved any listings yet."
+              emptyMessage={t('notSavedAny')}
             />
           )}
         </>

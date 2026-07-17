@@ -1,6 +1,7 @@
 // ChatWindow — real-time chat via Socket.io
 // Used in both the Chat page and as an overlay
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Send, Image as ImageIcon, Check, CheckCheck } from 'lucide-react';
 import { useSocket } from '../../context/SocketContext';
 import { useAuth } from '../../context/AuthContext';
@@ -37,20 +38,24 @@ const Message = ({ msg, isOwn }) => (
   </div>
 );
 
-const TypingIndicator = () => (
-  <div className="flex items-center gap-2 px-4 py-2">
-    <div className="flex gap-1">
-      {[0,1,2].map((i) => (
-        <div key={i} className="w-2 h-2 bg-surface-400 rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
-      ))}
+const TypingIndicator = () => {
+  const { t } = useTranslation();
+  return (
+    <div className="flex items-center gap-2 px-4 py-2">
+      <div className="flex gap-1">
+        {[0,1,2].map((i) => (
+          <div key={i} className="w-2 h-2 bg-surface-400 rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+        ))}
+      </div>
+      <span className="text-xs text-surface-400">{t('typing')}</span>
     </div>
-    <span className="text-xs text-surface-400">typing…</span>
-  </div>
-);
+  );
+};
 
 const ChatWindow = ({ chatId, otherUser, hideHeader = false }) => {
   const { user } = useAuth();
   const { socket } = useSocket();
+  const { t } = useTranslation();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
@@ -134,7 +139,7 @@ const ChatWindow = ({ chatId, otherUser, hideHeader = false }) => {
         />
         <div>
           <p className="font-semibold text-surface-900">{otherUser?.name}</p>
-          <p className="text-xs text-success-500">● Online</p>
+          <p className="text-xs text-success-500">{t('online')}</p>
         </div>
       </div>
       )}
@@ -142,7 +147,7 @@ const ChatWindow = ({ chatId, otherUser, hideHeader = false }) => {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-5 py-4 space-y-1">
         {messages.length === 0 && (
-          <p className="text-center text-surface-400 text-sm mt-10">Send the first message 👋</p>
+          <p className="text-center text-surface-400 text-sm mt-10">{t('sendFirst')}</p>
         )}
         {messages.map((msg) => (
           <Message key={msg.id} msg={msg} isOwn={msg.senderId === user?.id} />
@@ -158,7 +163,7 @@ const ChatWindow = ({ chatId, otherUser, hideHeader = false }) => {
             value={input}
             onChange={(e) => { setInput(e.target.value); handleTyping(); }}
             onKeyDown={handleKeyDown}
-            placeholder="Type a message…"
+            placeholder={t('typeMessage')}
             rows={1}
             className="flex-1 resize-none text-sm text-surface-900 placeholder-surface-400 outline-none bg-transparent"
           />

@@ -21,6 +21,8 @@ const parseAIQuery = async (query) => {
   }
 
   const systemPrompt = `You are a search query parser for a rental housing platform in India called Quikden.
+The user may write in English, Hindi (हिन्दी), Telugu (తెలుగు), or Urdu (اردو). Understand queries in ANY of these languages and parse them into structured search filters.
+
 Parse the user's natural language query into structured search filters AND extract keywords for text matching.
 
 Respond ONLY with a valid JSON object. No explanation, no markdown.
@@ -46,6 +48,21 @@ JSON fields (all optional — only include what the user mentioned):
 - cctv: boolean
 - balcony: boolean
 - keywords: string[] — important nouns/phrases from the query for text matching (e.g. ["near university", "bus stop", "grocery", "quiet area"])
+
+Language rules:
+- Hindi: "कमरा" = room, "घर" = house, "छात्रावास" = hostel, "किराया" = rent, "महिला" = female, "पुरुष" = male
+- Telugu: "గది" = room, "ఇల్లు" = house, "హాస్టల్" = hostel, "అద్దె" = rent, "మహిళ" = female, "పురుషుడు" = male
+- Urdu: "کمرہ" = room, "گھر" = house, "ہاسٹل" = hostel, "کرایہ" = rent, "خاتون" = female, "مرد" = male
+
+Rules:
+- "pg", "hostel", "paying guest", "छात्रावास", "హాస్టల్", "ہاسٹل" → type: "HOSTEL"
+- "room", "sharing", "flatmate", "roommate", "कमरा", "గది", "کمرہ" → type: "ROOM_SHARING"
+- "flat", "house", "apartment", "bhk", "villa", "घर", "ఇల్లు", "گھر" → type: "HOUSE_RENTAL"
+- "ladies", "female", "girls", "women", "महिला", "మహిళ", "خاتون" → gender: "FEMALE"
+- "gents", "male", "boys", "bachelor", "पुरुष", "పురుషుడు", "مرد" → gender: "MALE"
+- "unmarried", "couple" → type: "ROOM_SHARING"
+- "under 6000", "6000 లోపు", "6000 سے کم" → maxRent: 6000
+- "near", "పక్కన", "قریب" → extract the location name after these words as area/keyword
 
 Rules:
 - "pg", "hostel", "paying guest" → type: "HOSTEL"
@@ -182,7 +199,7 @@ const simpleParse = (query) => {
   }
 
   // ── Budget extraction ──
-  const budgetMatch = lower.match(/(?:under|below|less than|upto|up to|max|budget|around|approximately|₹|rs\.?)\s*(\d+(?:,\d+)*(?:k)?)/i);
+  const budgetMatch = lower.match(/(?:under|below|less than|upto|up to|max|budget|around|approximately|₹|rs\.?|से कम|లోప�|سے کم)\s*(\d+(?:,\d+)*(?:k)?)/i);
   if (budgetMatch) {
     let amount = budgetMatch[1].replace(/,/g, '');
     if (amount.endsWith('k')) amount = parseInt(amount) * 1000;
@@ -190,7 +207,7 @@ const simpleParse = (query) => {
   }
 
   // Min rent
-  const minRentMatch = lower.match(/(?:above|over|more than|min|minimum|from|starting)\s*(\d+(?:,\d+)*(?:k)?)/i);
+  const minRentMatch = lower.match(/(?:above|over|more than|min|minimum|from|starting|से अधिक|నుండి|سے زیادہ)\s*(\d+(?:,\d+)*(?:k)?)/i);
   if (minRentMatch) {
     let amount = minRentMatch[1].replace(/,/g, '');
     if (amount.endsWith('k')) amount = parseInt(amount) * 1000;
@@ -198,19 +215,19 @@ const simpleParse = (query) => {
   }
 
   // ── Gender ──
-  if (lower.includes('female') || lower.includes('ladies') || lower.includes('girl') || lower.includes('women')) {
+  if (lower.includes('female') || lower.includes('ladies') || lower.includes('girl') || lower.includes('women') || lower.includes('महिला') || lower.includes('మహిళ') || lower.includes('خاتون')) {
     filters.gender = 'FEMALE';
   }
-  if (lower.includes('male') || lower.includes('gents') || lower.includes('bachelor') || lower.includes('boy')) {
+  if (lower.includes('male') || lower.includes('gents') || lower.includes('bachelor') || lower.includes('boy') || lower.includes('पुरुष') || lower.includes('పురుషుడు') || lower.includes('مرد')) {
     filters.gender = 'MALE';
   }
 
   // ── Type ──
-  if (lower.includes('hostel') || lower.includes('pg') || lower.includes('paying guest')) {
+  if (lower.includes('hostel') || lower.includes('pg') || lower.includes('paying guest') || lower.includes('छात्रावास') || lower.includes('హాస్టల్') || lower.includes('ہاسٹل')) {
     filters.type = 'HOSTEL';
-  } else if (lower.includes('room') || lower.includes('sharing') || lower.includes('flatmate') || lower.includes('roommate')) {
+  } else if (lower.includes('room') || lower.includes('sharing') || lower.includes('flatmate') || lower.includes('roommate') || lower.includes('कमरा') || lower.includes('గది') || lower.includes('کمرہ')) {
     filters.type = 'ROOM_SHARING';
-  } else if (lower.includes('flat') || lower.includes('house') || lower.includes('apartment') || lower.includes('bhk') || lower.includes('villa')) {
+  } else if (lower.includes('flat') || lower.includes('house') || lower.includes('apartment') || lower.includes('bhk') || lower.includes('villa') || lower.includes('घर') || lower.includes('ఇల్లు') || lower.includes('گھر')) {
     filters.type = 'HOUSE_RENTAL';
   }
 
@@ -221,17 +238,17 @@ const simpleParse = (query) => {
   if (rkMatch) filters.bedrooms = parseInt(rkMatch[1]);
 
   // ── Amenities ──
-  if (lower.includes('furnished')) filters.furnished = true;
-  if (lower.includes('parking')) filters.parking = true;
-  if (lower.includes('wifi') || lower.includes('wi-fi') || lower.includes('internet')) filters.wifi = true;
-  if (lower.includes('ac') || lower.includes('air condition') || lower.includes('air conditioner')) filters.ac = true;
-  if (lower.includes('pet')) filters.petFriendly = true;
-  if (lower.includes('lift') || lower.includes('elevator')) filters.lift = true;
-  if (lower.includes('security') || lower.includes('cctv') || lower.includes('guarded')) filters.security = true;
-  if (lower.includes('power backup') || lower.includes('generator') || lower.includes('inverter')) filters.powerBackup = true;
-  if (lower.includes('water supply') || lower.includes('24.*water') || lower.includes('bore')) filters.waterSupply = true;
-  if (lower.includes('kitchen') || lower.includes('cooking')) filters.kitchen = true;
-  if (lower.includes('balcony') || lower.includes('terrace')) filters.balcony = true;
+  if (lower.includes('furnished') || lower.includes('फ़र्निश्ड') || lower.includes('ఫర్నిష్డ్') || lower.includes('فرنیشڈ')) filters.furnished = true;
+  if (lower.includes('parking') || lower.includes('पार्किंग') || lower.includes('పార్కింగ్') || lower.includes('پارکنگ')) filters.parking = true;
+  if (lower.includes('wifi') || lower.includes('wi-fi') || lower.includes('internet') || lower.includes('वाईफाई') || lower.includes('వైఫై') || lower.includes('وائی فائی')) filters.wifi = true;
+  if (lower.includes('ac') || lower.includes('air condition') || lower.includes('air conditioner') || lower.includes('एसी') || lower.includes('ఎసి') || lower.includes('ای سی')) filters.ac = true;
+  if (lower.includes('pet') || lower.includes('पालतू') || lower.includes('పెంపుడు') || lower.includes('پالتو')) filters.petFriendly = true;
+  if (lower.includes('lift') || lower.includes('elevator') || lower.includes('लिफ्ट') || lower.includes('లిఫ్ట్') || lower.includes('لفٹ')) filters.lift = true;
+  if (lower.includes('security') || lower.includes('cctv') || lower.includes('guarded') || lower.includes('सुरक्षा') || lower.includes('భద్రత') || lower.includes('سیکیورٹی')) filters.security = true;
+  if (lower.includes('power backup') || lower.includes('generator') || lower.includes('inverter') || lower.includes('पावर बैकअप') || lower.includes('పవర్ బ్యాకప్') || lower.includes('پاور بیک اپ')) filters.powerBackup = true;
+  if (lower.includes('water supply') || lower.includes('24.*water') || lower.includes('bore') || lower.includes('पानी') || lower.includes('నీరు') || lower.includes('پانی')) filters.waterSupply = true;
+  if (lower.includes('kitchen') || lower.includes('cooking') || lower.includes('रसोई') || lower.includes('వంటగది') || lower.includes('باورچی خانہ')) filters.kitchen = true;
+  if (lower.includes('balcony') || lower.includes('terrace') || lower.includes('बालकनी') || lower.includes('బాల్కనీ') || lower.includes('بالکنی')) filters.balcony = true;
 
   // ── Extract keywords for text matching ──
   const keywordPatterns = [
@@ -240,6 +257,10 @@ const simpleParse = (query) => {
     /beside\s+([\w\s]+?)(?:\s+(?:with|under|below|and|,|\.|$))/i,
     /opposite\s+([\w\s]+?)(?:\s+(?:with|under|below|and|,|\.|$))/i,
     /behind\s+([\w\s]+?)(?:\s+(?:with|under|below|and|,|\.|$))/i,
+    /के पास\s+([\w\s]+?)(?:\s+(?:with|under|below|and|,|\.|$))/i,
+    /दग्गर\s+([\w\s]+?)(?:\s+(?:with|under|below|and|,|\.|$))/i,
+    /పక్కన\s+([\w\s]+?)(?:\s+(?:with|under|below|and|,|\.|$))/i,
+    /قریب\s+([\w\s]+?)(?:\s+(?:with|under|below|and|,|\.|$))/i,
   ];
   for (const pattern of keywordPatterns) {
     const match = lower.match(pattern);

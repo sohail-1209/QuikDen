@@ -2,6 +2,7 @@
 // Uses savedAPI for mutations, shows toast feedback, redirects unauthenticated users.
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Heart } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { savedAPI } from '../../services/endpoints';
@@ -15,6 +16,7 @@ import { useAuth } from '../../context/AuthContext';
 const SaveButton = ({ listingId, isSaved, onToggle }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [localSaved, setLocalSaved] = useState(isSaved);
   const [animating, setAnimating] = useState(false);
@@ -42,7 +44,7 @@ const SaveButton = ({ listingId, isSaved, onToggle }) => {
       window.dispatchEvent(
         new CustomEvent('quikden:toast', {
           detail: {
-            message: localSaved ? 'Removed from saved' : 'Saved!',
+            message: localSaved ? t('saveRemoved') : t('saved'),
             type: 'success',
           },
         })
@@ -53,7 +55,7 @@ const SaveButton = ({ listingId, isSaved, onToggle }) => {
       setLocalSaved((prev) => !prev);
       window.dispatchEvent(
         new CustomEvent('quikden:toast', {
-          detail: { message: 'Something went wrong', type: 'error' },
+          detail: { message: t('somethingWrong'), type: 'error' },
         })
       );
     },
@@ -76,7 +78,7 @@ const SaveButton = ({ listingId, isSaved, onToggle }) => {
       type="button"
       onClick={handleClick}
       disabled={isSaving}
-      aria-label={localSaved ? 'Remove from saved' : 'Save listing'}
+      aria-label={localSaved ? t('removeSaved') : t('saveListingBtn')}
       className={`
         group flex items-center justify-center w-9 h-9 rounded-full
         transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-1

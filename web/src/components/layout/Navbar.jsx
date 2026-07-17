@@ -1,6 +1,7 @@
 // Navbar — Google M3 style, simplified (icon sidebar handles dashboard nav)
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Home, Search, Bell, Menu, X, ChevronDown, User,
@@ -12,49 +13,50 @@ import { useAuth } from '../../context/AuthContext';
 import { notificationsAPI } from '../../services/endpoints';
 import { timeAgo } from '../../utils/helpers';
 import Avatar from '../ui/Avatar';
+import LanguageSwitcher from '../ui/LanguageSwitcher';
 
 const NAV_ITEMS = [
   {
-    label: 'Houses', baseType: 'HOUSE_RENTAL', icon: Home, children: [
-      { label: '1 BHK', query: { type: 'HOUSE_RENTAL', bhk: '1' } },
-      { label: '2 BHK', query: { type: 'HOUSE_RENTAL', bhk: '2' } },
-      { label: '3 BHK', query: { type: 'HOUSE_RENTAL', bhk: '3' } },
-      { label: '4+ BHK', query: { type: 'HOUSE_RENTAL', bhk: '4' } },
-      { label: 'All Houses', query: { type: 'HOUSE_RENTAL' } },
+    label: 'houses', baseType: 'HOUSE_RENTAL', icon: Home, children: [
+      { label: 'bhk1', query: { type: 'HOUSE_RENTAL', bhk: '1' } },
+      { label: 'bhk2', query: { type: 'HOUSE_RENTAL', bhk: '2' } },
+      { label: 'bhk3', query: { type: 'HOUSE_RENTAL', bhk: '3' } },
+      { label: 'bhk4', query: { type: 'HOUSE_RENTAL', bhk: '4' } },
+      { label: 'allHouses', query: { type: 'HOUSE_RENTAL' } },
     ]
   },
   {
-    label: 'Rooms', baseType: 'ROOM_SHARING', icon: Users, children: [
-      { label: '1 Person', query: { type: 'ROOM_SHARING', sharing: '1' } },
-      { label: '2 Person', query: { type: 'ROOM_SHARING', sharing: '2' } },
-      { label: '3+ Person', query: { type: 'ROOM_SHARING', sharing: '3' } },
-      { label: 'All Rooms', query: { type: 'ROOM_SHARING' } },
+    label: 'rooms', baseType: 'ROOM_SHARING', icon: Users, children: [
+      { label: 'person1', query: { type: 'ROOM_SHARING', sharing: '1' } },
+      { label: 'person2', query: { type: 'ROOM_SHARING', sharing: '2' } },
+      { label: 'person3', query: { type: 'ROOM_SHARING', sharing: '3' } },
+      { label: 'allRooms', query: { type: 'ROOM_SHARING' } },
     ]
   },
   {
-    label: 'Hostels', baseType: 'HOSTEL', icon: BedDouble, children: [
-      { label: '1 Sharing', query: { type: 'HOSTEL', sharing: '1' } },
-      { label: '2 Sharing', query: { type: 'HOSTEL', sharing: '2' } },
-      { label: '3+ Sharing', query: { type: 'HOSTEL', sharing: '3' } },
-      { label: 'All Hostels', query: { type: 'HOSTEL' } },
+    label: 'hostels', baseType: 'HOSTEL', icon: BedDouble, children: [
+      { label: 'sharing1', query: { type: 'HOSTEL', sharing: '1' } },
+      { label: 'sharing2', query: { type: 'HOSTEL', sharing: '2' } },
+      { label: 'sharing3', query: { type: 'HOSTEL', sharing: '3' } },
+      { label: 'allHostels', query: { type: 'HOSTEL' } },
     ]
   },
   {
-    label: 'Land', baseType: 'LAND_SALE', icon: LandPlot, children: [
-      { label: 'Residential Plot', query: { type: 'LAND_SALE', category: 'residential' } },
-      { label: 'Commercial Plot', query: { type: 'LAND_SALE', category: 'commercial' } },
-      { label: 'Farm Land', query: { type: 'LAND_SALE', category: 'farm' } },
-      { label: 'All Land', query: { type: 'LAND_SALE' } },
+    label: 'land', baseType: 'LAND_SALE', icon: LandPlot, children: [
+      { label: 'residentialPlot', query: { type: 'LAND_SALE', category: 'residential' } },
+      { label: 'commercialPlot', query: { type: 'LAND_SALE', category: 'commercial' } },
+      { label: 'farmLand', query: { type: 'LAND_SALE', category: 'farm' } },
+      { label: 'allLand', query: { type: 'LAND_SALE' } },
     ]
   },
 ];
 
 const BROWSE_ITEMS = [
-  { to: '/', label: 'Home', icon: Home },
-  { to: '/search?type=HOUSE_RENTAL', label: 'Houses', icon: Home },
-  { to: '/search?type=ROOM_SHARING', label: 'Rooms', icon: Users },
-  { to: '/search?type=HOSTEL', label: 'Hostels', icon: BedDouble },
-  { to: '/search?type=LAND_SALE', label: 'Land', icon: LandPlot },
+  { to: '/', label: 'home', icon: Home },
+  { to: '/search?type=HOUSE_RENTAL', label: 'houses', icon: Home },
+  { to: '/search?type=ROOM_SHARING', label: 'rooms', icon: Users },
+  { to: '/search?type=HOSTEL', label: 'hostels', icon: BedDouble },
+  { to: '/search?type=LAND_SALE', label: 'land', icon: LandPlot },
 ];
 
 function buildSearchURL(params) {
@@ -77,6 +79,7 @@ function createRipple(e) {
 }
 
 export default function Navbar() {
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -218,7 +221,7 @@ export default function Navbar() {
                 className="md:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-primary-50 text-primary-700 text-xs font-semibold transition-colors active:bg-primary-100"
               >
                 {isDashboard ? <Home size={13} /> : <LayoutDashboard size={13} />}
-                {isDashboard ? 'Home' : 'Dashboard'}
+                {isDashboard ? t('home') : t('dashboard')}
               </Link>
             )}
           </div>
@@ -228,9 +231,9 @@ export default function Navbar() {
             <Link
               to="/"
               className={`ripple-container px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${location.pathname === '/' && !location.search ? 'bg-white text-primary-600 shadow-sm' : 'text-surface-500 hover:text-surface-800 hover:bg-white/50'
-                }`}
+                }`              }
             >
-              Home
+              {t('home')}
             </Link>
 
             {NAV_ITEMS.map((item, idx) => {
@@ -262,14 +265,14 @@ export default function Navbar() {
                     className={`ripple-container flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${active ? 'bg-white text-primary-600 shadow-sm' : 'text-surface-500 hover:text-surface-800 hover:bg-white/50'
                       }`}
                   >
-                    {item.label}
+                    {t(item.label)}
                     <ChevronDown size={13} className="chevron-icon" />
                   </Link>
 
                   <div className="nav-dropdown-menu absolute left-1/2 -translate-x-1/2 top-full pt-2 w-52 z-50">
                     <div className="bg-white rounded-2xl border border-surface-200/60 py-1.5" style={{ boxShadow: 'var(--md-sys-elevation-3)' }}>
                       <div className="px-3.5 py-2 border-b border-surface-100 mb-1">
-                        <p className="text-[11px] font-semibold text-surface-400 uppercase tracking-wider">{item.label}</p>
+                        <p className="text-[11px] font-semibold text-surface-400 uppercase tracking-wider">{t(item.label)}</p>
                       </div>
                       {item.children.map((child, i) => (
                         <Link
@@ -279,7 +282,7 @@ export default function Navbar() {
                           className="flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-surface-600 hover:bg-primary-50 hover:text-primary-700 transition-colors rounded-lg mx-1.5"
                         >
                           <item.icon size={14} className="text-surface-400 group-hover:text-primary-500" />
-                          {child.label}
+                          {t(child.label)}
                         </Link>
                       ))}
                     </div>
@@ -310,10 +313,10 @@ export default function Navbar() {
                   {notifOpen && (
                     <div className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] sm:w-96 max-h-[70vh] rounded-2xl bg-white border border-surface-200/60 py-0 z-50 overflow-hidden" style={{ boxShadow: 'var(--md-sys-elevation-4)' }}>
                       <div className="flex items-center justify-between px-4 py-3 border-b border-surface-100">
-                        <h3 className="font-semibold text-surface-900 text-sm">Notifications</h3>
+                        <h3 className="font-semibold text-surface-900 text-sm">{t('notifications')}</h3>
                         {unreadCount > 0 && (
                           <button onClick={() => markAllAsRead.mutate()} className="text-xs text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1">
-                            <CheckCheck size={14} /> Mark all read
+                            <CheckCheck size={14} /> {t('markAllRead')}
                           </button>
                         )}
                       </div>
@@ -321,7 +324,7 @@ export default function Navbar() {
                         {notifData?.length === 0 ? (
                           <div className="px-4 py-10 text-center text-surface-400 text-sm">
                             <Bell size={32} className="mx-auto mb-2 opacity-30" />
-                            <p>No notifications yet</p>
+                            <p>{t('noNotifications')}</p>
                           </div>
                         ) : (
                           notifData?.slice(0, 20).map((notif, i) => (
@@ -369,9 +372,12 @@ export default function Navbar() {
                         <p className="text-sm font-semibold text-surface-900 truncate">{user.name}</p>
                         <p className="text-xs text-surface-400 truncate">{user.email}</p>
                       </div>
+                      <div className="px-4 py-2 border-b border-surface-100">
+                        <LanguageSwitcher />
+                      </div>
                       {[
-                        { to: '/dashboard/profile', icon: User, label: 'My Profile' },
-                        { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+                        { to: '/dashboard/profile', icon: User, label: t('myProfile') },
+                        { to: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
                       ].map(({ to, icon: Icon, label }) => (
                         <Link
                           key={to}
@@ -389,7 +395,7 @@ export default function Navbar() {
                           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-danger-600 hover:bg-red-50 active:bg-red-100 transition-colors"
                         >
                           <LogOut size={16} />
-                          Logout
+                          {t('logout')}
                         </button>
                       </div>
                     </div>
@@ -398,8 +404,9 @@ export default function Navbar() {
               </>
             ) : (
               <div className="flex items-center gap-2">
-                <Link to="/login" className="px-4 py-2 text-sm font-medium text-surface-600 hover:text-surface-900 transition-colors rounded-full hover:bg-surface-100">Login</Link>
-                <Link to="/register" className="btn-primary btn-sm ripple-container" onClick={createRipple}>Register</Link>
+                <LanguageSwitcher />
+                <Link to="/login" className="px-4 py-2 text-sm font-medium text-surface-600 hover:text-surface-900 transition-colors rounded-full hover:bg-surface-100">{t('login')}</Link>
+                <Link to="/register" className="btn-primary btn-sm ripple-container" onClick={createRipple}>{t('signup')}</Link>
               </div>
             )}
           </div>
@@ -412,7 +419,7 @@ export default function Navbar() {
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm animate-fade-in" onClick={() => setMobileOpen(false)} />
           <aside className="absolute top-14 left-0 right-0 bg-white border-b border-surface-100 p-3 space-y-0.5 z-50 animate-slide-down max-h-[calc(100dvh-3.5rem)] overflow-y-auto" style={{ boxShadow: 'var(--md-sys-elevation-4)' }}>
             <p className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-surface-400">
-              Explore
+              {t('explore')}
             </p>
 
             {BROWSE_ITEMS.map(({ to, label, icon: Icon }, i) => {
@@ -432,15 +439,18 @@ export default function Navbar() {
                   style={{ animation: `slide-up 0.3s cubic-bezier(0.16,1,0.3,1) ${i * 35}ms both` }}
                 >
                   <Icon size={18} className={isActive ? 'text-primary-600' : 'text-surface-400'} />
-                  {label}
+                  {t(label)}
                 </Link>
               );
             })}
 
             {!user && (
               <div className="pt-3 mt-1 border-t border-surface-100 flex flex-col gap-2">
-                <Link to="/login" onClick={() => setMobileOpen(false)} className="btn-outline btn-md w-full justify-center">Login</Link>
-                <Link to="/register" onClick={() => setMobileOpen(false)} className="btn-primary btn-md w-full justify-center">Register</Link>
+                <div className="flex justify-center mb-2">
+                  <LanguageSwitcher />
+                </div>
+                <Link to="/login" onClick={() => setMobileOpen(false)} className="btn-outline btn-md w-full justify-center">{t('login')}</Link>
+                <Link to="/register" onClick={() => setMobileOpen(false)} className="btn-primary btn-md w-full justify-center">{t('signup')}</Link>
               </div>
             )}
 
@@ -451,7 +461,7 @@ export default function Navbar() {
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-danger-600 hover:bg-red-50 active:bg-red-100 transition-colors"
                 >
                   <LogOut size={18} />
-                  Logout
+                  {t('logout')}
                 </button>
               </div>
             )}

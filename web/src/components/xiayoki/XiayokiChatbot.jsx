@@ -1,35 +1,41 @@
 // XiayokiChatbot — Floating AI assistant for Roomiee
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { MessageCircle, X, Send, Sparkles, ArrowUpRight } from 'lucide-react';
 import { xiayokiAPI } from '../../services/endpoints';
 import './XiayokiChatbot.css';
 
-const QUICK_ACTIONS = [
-  'What is QuikDen?',
-  'How do I search?',
-  'How to list a property?',
-  'How does chat work?',
+const QUICK_ACTION_KEYS = [
+  'whatIsQuikden',
+  'howToSearch',
+  'howToList',
+  'howChatWork',
 ];
 
-const GREETING = {
-  role: 'bot',
-  content: "Hey! 👋 I'm Xiayoki, your QuikDen assistant. Ask me anything about finding rentals, listing properties, or using the app!",
-  actions: [
-    { label: 'Search Listings', to: '/search' },
-    { label: 'Add Listing', to: '/dashboard/listings/new' },
-  ],
-};
+const GREETING_KEY = 'xiayokiGreeting';
 
 export default function XiayokiChatbot() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([GREETING]);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  useEffect(() => {
+    setMessages([{
+      role: 'bot',
+      content: t(GREETING_KEY),
+      actions: [
+        { label: t('searchListings'), to: '/search' },
+        { label: t('addListing'), to: '/dashboard/listings/new' },
+      ],
+    }]);
+  }, [t]);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -85,7 +91,7 @@ export default function XiayokiChatbot() {
         ...prev,
         {
           role: 'bot',
-          content: "Sorry, I'm having trouble connecting right now. Please try again in a moment!",
+          content: t('xiayokiError'),
           actions: [],
         },
       ]);
@@ -120,10 +126,10 @@ export default function XiayokiChatbot() {
               <Sparkles size={18} />
             </div>
             <div className="xiayoki-header-info">
-              <div className="xiayoki-header-name">Xiayoki</div>
+              <div className="xiayoki-header-name">{t('xiayoki')}</div>
               <div className="xiayoki-header-status">
                 <span className="xiayoki-online-dot" />
-                Online
+                {t('online')}
               </div>
             </div>
             <div className="xiayoki-header-actions">
@@ -145,7 +151,7 @@ export default function XiayokiChatbot() {
                 className={`xiayoki-msg xiayoki-msg-${msg.role === 'bot' ? 'bot' : 'user'}`}
               >
                 <div className="xiayoki-msg-avatar">
-                  {msg.role === 'bot' ? <Sparkles size={14} /> : 'You'}
+                  {msg.role === 'bot' ? <Sparkles size={14} /> : t('you')}
                 </div>
                 <div>
                   <div className="xiayoki-msg-bubble">{msg.content}</div>
@@ -186,13 +192,13 @@ export default function XiayokiChatbot() {
           {/* Quick Actions — show only if few messages */}
           {messages.length <= 2 && (
             <div className="xiayoki-chips">
-              {QUICK_ACTIONS.map((action) => (
+              {QUICK_ACTION_KEYS.map((actionKey) => (
                 <button
-                  key={action}
+                  key={actionKey}
                   className="xiayoki-chip"
-                  onClick={() => handleSend(action)}
+                  onClick={() => handleSend(t(actionKey))}
                 >
-                  {action}
+                  {t(actionKey)}
                 </button>
               ))}
             </div>
@@ -204,7 +210,7 @@ export default function XiayokiChatbot() {
               ref={inputRef}
               type="text"
               className="xiayoki-input"
-              placeholder="Ask Xiayoki..."
+              placeholder={t('askXiayoki')}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -224,7 +230,7 @@ export default function XiayokiChatbot() {
 
       {/* Tooltip */}
       {showTooltip && !isOpen && (
-        <div className="xiayoki-tooltip">Ask me anything about QuikDen !</div>
+        <div className="xiayoki-tooltip">{t('askAnything')}</div>
       )}
 
       {/* FAB */}

@@ -10,23 +10,24 @@ import { listingsAPI } from '../services/endpoints';
 import ListingCard from '../components/listing/ListingCard';
 import Navbar from '../components/layout/Navbar';
 import InstallBanner from '../components/ui/InstallBanner';
+import { useTranslation } from 'react-i18next';
 
 const CATEGORIES = [
-  { type: '', label: 'All', icon: SlidersHorizontal, color: 'from-surface-500 to-surface-600' },
-  { type: 'HOUSE_RENTAL', label: 'Houses', icon: Home, color: 'from-primary-500 to-primary-600' },
-  { type: 'ROOM_SHARING', label: 'Rooms', icon: Users, color: 'from-accent-500 to-accent-600' },
-  { type: 'HOSTEL', label: 'Hostels', icon: BedDouble, color: 'from-emerald-500 to-emerald-600' },
-  { type: 'LAND_SALE', label: 'Land', icon: LandPlot, color: 'from-amber-500 to-amber-600' },
+  { type: '', label: 'All', tKey: 'all', icon: SlidersHorizontal, color: 'from-surface-500 to-surface-600' },
+  { type: 'HOUSE_RENTAL', label: 'Houses', tKey: 'houses', icon: Home, color: 'from-primary-500 to-primary-600' },
+  { type: 'ROOM_SHARING', label: 'Rooms', tKey: 'rooms', icon: Users, color: 'from-accent-500 to-accent-600' },
+  { type: 'HOSTEL', label: 'Hostels', tKey: 'hostels', icon: BedDouble, color: 'from-emerald-500 to-emerald-600' },
+  { type: 'LAND_SALE', label: 'Land', tKey: 'land', icon: LandPlot, color: 'from-amber-500 to-amber-600' },
 ];
 
 const CITIES = ['Hyderabad', 'Bangalore', 'Mumbai', 'Pune', 'Delhi', 'Chennai'];
 
-const HERO_QUOTES = [
-  'room in your city',
-  'home without brokers',
-  'perfect flatmate',
-  'cozy PG or hostel',
-  'dream rental home',
+const HERO_QUOTE_KEYS = [
+  'roomInCity',
+  'homeWithoutBrokers',
+  'perfectFlatmate',
+  'cozyPg',
+  'dreamRental',
 ];
 
 function AnimatedCounter({ target, duration = 1500, suffix = '' }) {
@@ -122,6 +123,7 @@ function SkeletonCard({ index }) {
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [searchCity, setSearchCity] = useState('');
   const [activeType, setActiveType] = useState('');
   const [page, setPage] = useState(1);
@@ -138,14 +140,14 @@ export default function HomePage() {
 
   // Typing animation
   useEffect(() => {
-    const currentQuote = HERO_QUOTES[quoteIdx];
+    const currentQuote = t(HERO_QUOTE_KEYS[quoteIdx]);
     let timeout;
 
     if (!isDeleting && typedText === currentQuote) {
       timeout = setTimeout(() => setIsDeleting(true), 2000);
     } else if (isDeleting && typedText === '') {
       setIsDeleting(false);
-      setQuoteIdx((p) => (p + 1) % HERO_QUOTES.length);
+      setQuoteIdx((p) => (p + 1) % HERO_QUOTE_KEYS.length);
     } else {
       timeout = setTimeout(() => {
         setTypedText(
@@ -206,17 +208,17 @@ export default function HomePage() {
           <div className="text-center mb-6 sm:mb-8">
             <div className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-primary-50 text-primary-600 text-[11px] sm:text-xs font-medium mb-4 border border-primary-100">
               <Sparkles size={12} />
-              India&#39;s Fastest Growing Room Finder
+              {t('heroBadge')}
             </div>
             <h1 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight text-surface-900 mb-1">
-              Find your next
+              {t('heroFind')}
             </h1>
             <h2 className="font-caveat text-4xl sm:text-5xl lg:text-6xl font-bold text-primary-600 h-[1.2em] mb-3">
               {typedText}
               <span className="inline-block w-[3px] h-[0.8em] bg-primary-500 ml-0.5 align-middle animate-pulse" />
             </h2>
             <p className="text-surface-500 text-sm sm:text-base max-w-md mx-auto">
-              Verified rentals, shared rooms, and hostels across India. No brokers.
+              {t('heroSubtitle')}
             </p>
           </div>
 
@@ -230,7 +232,7 @@ export default function HomePage() {
                     type="text"
                     value={searchCity}
                     onChange={(e) => setSearchCity(e.target.value)}
-                    placeholder="Which city are you looking in?"
+                    placeholder={t('searchByCity')}
                     className="w-full pl-11 pr-4 py-3.5 bg-white/80 border border-surface-200/60 rounded-2xl text-xs text-surface-900 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 focus:bg-white transition-all duration-200"
                   />
                 </div>
@@ -243,7 +245,7 @@ export default function HomePage() {
 
           {/* Category chips */}
           <div className="flex items-center justify-center gap-2 mt-5 flex-wrap">
-            {CATEGORIES.map(({ type, label, icon: Icon }) => (
+            {CATEGORIES.map(({ type, tKey, icon: Icon }) => (
               <button
                 key={type}
                 onClick={() => navigate(type ? `/search?type=${type}` : '/search')}
@@ -253,7 +255,7 @@ export default function HomePage() {
                   }`}
               >
                 <Icon size={14} />
-                {label}
+                {t(tKey)}
               </button>
             ))}
           </div>
@@ -263,7 +265,7 @@ export default function HomePage() {
       {/* CATEGORY CARDS — Below hero, no overlap */}
       <section className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 py-6">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 stagger-children">
-          {CATEGORIES.filter((c) => c.type).map(({ type, label, icon: Icon, color }) => (
+          {CATEGORIES.filter((c) => c.type).map(({ type, tKey, icon: Icon, color }) => (
             <Link
               key={type}
               to={`/search?type=${type}`}
@@ -273,8 +275,8 @@ export default function HomePage() {
                 <Icon size={22} />
               </div>
               <div>
-                <p className="text-sm font-semibold text-surface-800">{label}</p>
-                <p className="text-xs text-surface-400 mt-0.5">Browse all</p>
+                <p className="text-sm font-semibold text-surface-800">{t(tKey)}</p>
+                <p className="text-xs text-surface-400 mt-0.5">{t('viewAll')}</p>
               </div>
             </Link>
           ))}
@@ -286,14 +288,14 @@ export default function HomePage() {
         <div className="flex items-center justify-between mb-5">
           <div>
             <h2 className="font-display font-bold text-lg text-surface-900">
-              {activeType ? CATEGORIES.find((c) => c.type === activeType)?.label : 'Latest Listings'}
+              {activeType ? t(CATEGORIES.find((c) => c.type === activeType)?.tKey || 'all') : 'Latest Listings'}
             </h2>
             <p className="text-xs text-surface-400 mt-0.5">
-              {isLoading ? <span className="inline-block h-3 w-16 skeleton rounded" /> : `${listings.length} listings found`}
+              {isLoading ? <span className="inline-block h-3 w-16 skeleton rounded" /> : `${listings.length} ${t('listingsFound')}`}
             </p>
           </div>
           <Link to="/search" className="flex items-center gap-1 text-xs font-medium text-primary-600 hover:text-primary-700 transition-colors">
-            View all <ArrowRight size={12} />
+            {t('viewAll')} <ArrowRight size={12} />
           </Link>
         </div>
 
@@ -311,8 +313,8 @@ export default function HomePage() {
         {!isLoading && listings.length === 0 && (
           <div className="text-center py-20 animate-fade-in">
             <Building2 size={48} className="mx-auto mb-4 text-surface-200" />
-            <p className="text-surface-500 font-medium">No listings found</p>
-            <p className="text-surface-400 text-sm mt-1">Try a different category or city</p>
+            <p className="text-surface-500 font-medium">{t('noListingsFound')}</p>
+            <p className="text-surface-400 text-sm mt-1">{t('tryDifferentCategory')}</p>
           </div>
         )}
 
@@ -320,7 +322,7 @@ export default function HomePage() {
           {isFetching && !isLoading && (
             <div className="flex items-center gap-3 text-sm text-surface-400 animate-fade-in">
               <div className="w-5 h-5 border-2 border-primary-400 border-t-transparent rounded-full animate-spin-slow" />
-              Loading more...
+              {t('loadingMore')}
             </div>
           )}
         </div>
@@ -330,16 +332,16 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-6">
         <div className="glass-tinted rounded-3xl p-6 sm:p-8">
           <div className="grid grid-cols-3 gap-2 sm:gap-4">
-            <TrustStat Icon={Shield} value="100%" label="Verified Owners" delay={0} />
-            <TrustStat Icon={Star} value="0%" label="Brokerage Fee" delay={150} />
-            <TrustStat Icon={TrendingUp} value="500+" label="Active Listings" delay={300} />
+            <TrustStat Icon={Shield} value="100%" label={t('verifiedOwners')} delay={0} />
+            <TrustStat Icon={Star} value="0%" label={t('brokerageFee')} delay={150} />
+            <TrustStat Icon={TrendingUp} value="500+" label={t('activeListings')} delay={300} />
           </div>
         </div>
       </section>
 
       {/* CITIES */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-6">
-        <h3 className="font-display font-bold text-sm text-surface-900 mb-3">Explore by City</h3>
+        <h3 className="font-display font-bold text-sm text-surface-900 mb-3">{t('exploreByCity')}</h3>
         <div className="flex flex-wrap gap-2 stagger-children">
           {CITIES.map((city) => (
             <button
@@ -357,17 +359,17 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
         <div className="glass-dark rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-white">
           <div className="text-center sm:text-left">
-            <h3 className="font-display font-bold text-lg">Own a property?</h3>
-            <p className="text-white/60 text-sm">List it for free. Reach verified tenants.</p>
+            <h3 className="font-display font-bold text-lg">{t('ownProperty')}</h3>
+            <p className="text-white/60 text-sm">{t('listForFree')}</p>
           </div>
           <Link to="/register" className="btn bg-white/90 text-surface-900 hover:bg-white px-6 py-2.5 rounded-2xl text-sm font-semibold shrink-0 ripple-container shadow-lg w-full sm:w-auto text-center">
-            Post Free Listing
+            {t('postFreeListing')}
           </Link>
         </div>
       </section>
 
       <footer className="border-t border-surface-100 py-6 px-4 text-center text-xs text-surface-400 bg-white">
-        <p>&copy; {new Date().getFullYear()} Quikden &middot; Made with care in India</p>
+        <p>&copy; {new Date().getFullYear()} Quikden &middot; {t('madeInIndia')}</p>
       </footer>
 
       <InstallBanner />

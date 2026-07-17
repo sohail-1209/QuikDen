@@ -1,9 +1,11 @@
 // InstallBanner — PWA install prompt + welcome message
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Download, Smartphone, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function InstallBanner() {
+  const { t } = useTranslation();
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showBanner, setShowBanner] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
@@ -15,7 +17,7 @@ export default function InstallBanner() {
     if (!welcomed && ('standalone' in window.navigator || window.matchMedia('(display-mode: standalone)').matches)) {
       localStorage.setItem('quikden-welcomed', '1');
       setTimeout(() => {
-        toast.success('Welcome to Quikden! Find your perfect home.', {
+        toast.success(t('installWelcome'), {
           duration: 5000,
           icon: <Sparkles size={18} className="text-primary-500" />,
         });
@@ -42,7 +44,7 @@ export default function InstallBanner() {
     window.addEventListener('appinstalled', () => {
       setShowBanner(false);
       localStorage.setItem('quikden-welcomed', '1');
-      toast.success('Quikden installed! Welcome aboard.', {
+      toast.success(t('quikdenInstalled'), {
         duration: 5000,
         icon: <Sparkles size={18} className="text-primary-500" />,
       });
@@ -81,11 +83,11 @@ export default function InstallBanner() {
             {isIOS ? <Smartphone size={18} className="text-white" /> : <Download size={18} className="text-white" />}
           </div>
           <div className="flex-1 min-w-0 pr-6">
-            <p className="text-sm font-semibold text-surface-900">Install Quikden</p>
+            <p className="text-sm font-semibold text-surface-900">{t('installQuikden')}</p>
             <p className="text-xs text-surface-500 mt-0.5">
               {isIOS
-                ? 'Tap the share button then "Add to Home Screen"'
-                : 'Add to your home screen for quick access'}
+                ? t('iosInstruction')
+                : t('androidInstruction')}
             </p>
           </div>
         </div>
@@ -95,7 +97,7 @@ export default function InstallBanner() {
             onClick={handleInstall}
             className="btn-primary btn-sm w-full mt-3 justify-center"
           >
-            Install App
+            {t('installApp')}
           </button>
         )}
       </div>

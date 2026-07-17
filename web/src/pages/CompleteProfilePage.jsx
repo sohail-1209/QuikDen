@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { User, Phone, Mail, ArrowRight, AtSign } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/layout/Navbar';
 
 const CompleteProfilePage = () => {
+  const { t } = useTranslation();
   const { completeProfile } = useAuth();
   const navigate = useNavigate();
   const [googleInfo, setGoogleInfo] = useState(null);
@@ -23,9 +25,9 @@ const CompleteProfilePage = () => {
 
   const validate = () => {
     const e = {};
-    if (!form.name.trim()) e.name = 'Full name is required';
-    if (!form.phone) e.phone = 'Phone number is required';
-    else if (!/^\d{10}$/.test(form.phone)) e.phone = 'Must be 10 digits';
+    if (!form.name.trim()) e.name = t('fullNameRequired');
+    if (!form.phone) e.phone = t('phoneRequired');
+    else if (!/^\d{10}$/.test(form.phone)) e.phone = t('mustBe10Digits');
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -36,10 +38,10 @@ const CompleteProfilePage = () => {
     setLoading(true);
     try {
       await completeProfile({ name: form.name.trim(), phone: form.phone, role: form.role });
-      toast.success('Profile completed! Welcome to Quikden.');
+      toast.success(t('profileCompleted'));
       navigate('/dashboard', { replace: true });
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to complete profile');
+      toast.error(err.response?.data?.message || t('failedToCompleteProfile'));
     } finally {
       setLoading(false);
     }
@@ -73,20 +75,20 @@ const CompleteProfilePage = () => {
             <div className="w-14 h-14 mx-auto mb-2 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center overflow-hidden">
               <User size={24} className="text-white" />
             </div>
-            <h1 className="font-display font-bold text-lg text-surface-900">Complete your profile</h1>
+            <h1 className="font-display font-bold text-lg text-surface-900">{t('completeProfile')}</h1>
             <p className="text-surface-500 text-[11px] mt-0.5">
-              Just a few more details to get started.
+              {t('fewMoreDetails')}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} noValidate className="space-y-2.5">
             {/* Full Name */}
             <div>
-              <label htmlFor="cp-name" className="block text-[11px] font-medium text-surface-700 mb-0.5">Full Name</label>
+              <label htmlFor="cp-name" className="block text-[11px] font-medium text-surface-700 mb-0.5">{t('fullName')}</label>
               <div className="relative">
                 <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-surface-400 pointer-events-none"><AtSign size={13} /></span>
                 <input id="cp-name" name="name" type="text" value={form.name} onChange={handleChange}
-                  placeholder="e.g. Rahul Kumar" autoFocus
+                  placeholder={t('namePlaceholder')} autoFocus
                   className={`w-full pl-8 pr-2.5 py-1.5 rounded-lg border text-[13px] bg-surface-50/50 text-surface-900 placeholder:text-surface-400 transition-all focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 ${errors.name ? 'border-red-400' : 'border-surface-200'}`} />
               </div>
               {errors.name && <p className="text-[10px] text-red-500 mt-0.5">{errors.name}</p>}
@@ -94,11 +96,11 @@ const CompleteProfilePage = () => {
 
             {/* Phone */}
             <div>
-              <label htmlFor="cp-phone" className="block text-[11px] font-medium text-surface-700 mb-0.5">Phone Number</label>
+              <label htmlFor="cp-phone" className="block text-[11px] font-medium text-surface-700 mb-0.5">{t('phoneNumber')}</label>
               <div className="relative">
                 <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-surface-400 pointer-events-none"><Phone size={13} /></span>
                 <input id="cp-phone" name="phone" type="tel" value={form.phone} onChange={handleChange}
-                  placeholder="e.g. 9876543210" inputMode="numeric" maxLength={10}
+                  placeholder={t('phonePlaceholder')} inputMode="numeric" maxLength={10}
                   className={`w-full pl-8 pr-2.5 py-1.5 rounded-lg border text-[13px] bg-surface-50/50 text-surface-900 placeholder:text-surface-400 transition-all focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 ${errors.phone ? 'border-red-400' : 'border-surface-200'}`} />
               </div>
               {errors.phone && <p className="text-[10px] text-red-500 mt-0.5">{errors.phone}</p>}
@@ -106,11 +108,11 @@ const CompleteProfilePage = () => {
 
             {/* Role toggle */}
             <div>
-              <label className="block text-[11px] font-medium text-surface-700 mb-0.5">I want to use Quikden as a:</label>
+              <label className="block text-[11px] font-medium text-surface-700 mb-0.5">{t('wantToUseAs')}</label>
               <div className="grid grid-cols-2 gap-1 bg-surface-100 p-0.5 rounded-lg">
                 {[
-                  { value: 'TENANT', label: 'Tenant', icon: User },
-                  { value: 'OWNER', label: 'Owner', icon: Mail },
+                  { value: 'TENANT', label: t('tenant'), icon: User },
+                  { value: 'OWNER', label: t('owner'), icon: Mail },
                 ].map(({ value, label, icon: Icon }) => (
                   <button key={value} type="button" onClick={() => setForm((p) => ({ ...p, role: value }))}
                     className={`flex items-center justify-center gap-1 py-1.5 text-[11px] font-semibold rounded-md transition-all ${
@@ -128,7 +130,7 @@ const CompleteProfilePage = () => {
               {loading ? (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
-                <>Continue <ArrowRight size={14} /></>
+                <>{t('continue')} <ArrowRight size={14} /></>
               )}
             </button>
           </form>

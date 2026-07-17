@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { MailCheck, XCircle, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { auth, applyActionCode, checkActionCode } from '../config/firebase';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/layout/Navbar';
 
 const VerifyEmailPage = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { confirmEmailVerified } = useAuth();
@@ -20,7 +22,7 @@ const VerifyEmailPage = () => {
 
     if (!mode || !oobCode) {
       setStatus('error');
-      setMessage('Invalid verification link.');
+      setMessage(t('invalidVerification'));
       return;
     }
 
@@ -36,14 +38,14 @@ const VerifyEmailPage = () => {
         await confirmEmailVerified(email);
 
         setStatus('success');
-        toast.success('Email verified! Welcome to Quikden.');
+        toast.success(t('emailVerified'));
         setTimeout(() => navigate('/dashboard', { replace: true }), 2000);
       } catch (err) {
         setStatus('error');
         if (err.code === 'auth/invalid-action-code') {
-          setMessage('This verification link has expired or already been used.');
+          setMessage(t('linkExpired'));
         } else {
-          setMessage(err.message || 'Verification failed.');
+          setMessage(err.message || t('verificationFailed'));
         }
       }
     };
@@ -59,8 +61,8 @@ const VerifyEmailPage = () => {
           {status === 'loading' && (
             <>
               <Loader2 size={48} className="mx-auto text-primary-500 animate-spin mb-4" />
-              <h1 className="font-display font-bold text-xl text-surface-900 mb-2">Verifying your email...</h1>
-              <p className="text-surface-500 text-sm">Please wait a moment.</p>
+              <h1 className="font-display font-bold text-xl text-surface-900 mb-2">{t('verifyingEmail')}</h1>
+              <p className="text-surface-500 text-sm">{t('pleaseWait')}</p>
             </>
           )}
           {status === 'success' && (
@@ -68,8 +70,8 @@ const VerifyEmailPage = () => {
               <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
                 <MailCheck size={32} className="text-green-600" />
               </div>
-              <h1 className="font-display font-bold text-xl text-surface-900 mb-2">Email verified!</h1>
-              <p className="text-surface-500 text-sm">Redirecting you to the dashboard...</p>
+              <h1 className="font-display font-bold text-xl text-surface-900 mb-2">{t('emailVerifiedSuccess')}</h1>
+              <p className="text-surface-500 text-sm">{t('redirecting')}</p>
             </>
           )}
           {status === 'error' && (
@@ -77,10 +79,10 @@ const VerifyEmailPage = () => {
               <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
                 <XCircle size={32} className="text-red-600" />
               </div>
-              <h1 className="font-display font-bold text-xl text-surface-900 mb-2">Verification failed</h1>
+              <h1 className="font-display font-bold text-xl text-surface-900 mb-2">{t('verificationFailed')}</h1>
               <p className="text-surface-500 text-sm mb-4">{message}</p>
               <Link to="/register" className="text-sm font-medium text-primary-600 hover:underline">
-                Go back to registration
+                {t('goBackToRegistration')}
               </Link>
             </>
           )}

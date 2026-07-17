@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { Camera, Star } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { usersAPI, reviewsAPI, uploadAPI } from '../services/endpoints';
 import { useAuth } from '../context/AuthContext';
 import { compressImage } from '../utils/compressImage';
@@ -11,6 +12,7 @@ import ReviewCard from '../components/ReviewCard';
 import { Button, Input, Textarea, Avatar } from '../components/ui';
 
 const ProfilePage = () => {
+  const { t } = useTranslation();
   const { user, updateUser } = useAuth();
   const qc = useQueryClient();
   const [form, setForm] = useState({ name: user?.name || '', phone: user?.phone || '', bio: user?.bio || '' });
@@ -27,9 +29,9 @@ const ProfilePage = () => {
     onSuccess: ({ data }) => {
       updateUser(data.data);
       qc.invalidateQueries({ queryKey: ['reviews', user?.id] });
-      toast.success('Profile updated!');
+      toast.success(t('profileUpdated'));
     },
-    onError: () => toast.error('Failed to update profile'),
+    onError: () => toast.error(t('failedToUpdateProfile')),
   });
 
   const handlePhotoUpload = async (e) => {
@@ -42,14 +44,14 @@ const ProfilePage = () => {
       fd.append('photo', file);
       const { data } = await uploadAPI.profilePhoto(fd);
       updateUser({ profileImage: data.data.url });
-      toast.success('Photo updated!');
-    } catch { toast.error('Upload failed'); }
+      toast.success(t('photoUpdated'));
+    } catch { toast.error(t('uploadFailed')); }
     finally { setUploading(false); }
   };
 
   return (
     <div className="max-w-2xl mx-auto space-y-5 sm:space-y-6">
-      <h1 className="section-title">My Profile</h1>
+      <h1 className="section-title">{t('myProfile')}</h1>
 
       {/* Photo + basic info */}
       <div className="card p-4 sm:p-6 flex items-center gap-4 sm:gap-5">
@@ -65,24 +67,24 @@ const ProfilePage = () => {
           <p className="text-surface-500 text-sm">{user?.email}</p>
           <div className="flex items-center gap-1 mt-1">
             <Star size={14} className="text-accent-400 fill-accent-400" />
-            <span className="text-sm font-medium">{user?.avgRating?.toFixed(1) || 'No rating yet'}</span>
+            <span className="text-sm font-medium">{user?.avgRating?.toFixed(1) || t('noRatingYet')}</span>
           </div>
         </div>
       </div>
 
       {/* Edit form */}
       <div className="card p-4 sm:p-6 space-y-4">
-        <h3 className="font-semibold text-surface-900">Edit Information</h3>
-        <Input label="Full Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-        <Input label="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} type="tel" />
-        <Textarea label="Bio" value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Tell owners/tenants about yourself..." rows={3} />
-        <Button variant="primary" size="md" loading={isPending} onClick={() => updateProfile()}>Save Changes</Button>
+        <h3 className="font-semibold text-surface-900">{t('editInformation')}</h3>
+        <Input label={t('fullName')} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+        <Input label={t('phone')} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} type="tel" />
+        <Textarea label={t('bio')} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder={t('tellAbout')} rows={3} />
+        <Button variant="primary" size="md" loading={isPending} onClick={() => updateProfile()}>{t('saveChanges')}</Button>
       </div>
 
       {/* Reviews */}
       {reviews?.length > 0 && (
         <div>
-          <h3 className="font-semibold text-surface-900 mb-3">Reviews ({reviews.length})</h3>
+          <h3 className="font-semibold text-surface-900 mb-3">{t('reviewsCount', { count: reviews.length })}</h3>
           <div className="space-y-3">
             {reviews.map((r) => <ReviewCard key={r.id} review={r} />)}
           </div>

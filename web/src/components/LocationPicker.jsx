@@ -1,5 +1,6 @@
 // LocationPicker — click on map or get current location to set coordinates
 import { useRef, useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import toast from 'react-hot-toast';
@@ -8,6 +9,7 @@ import { MapPin, Crosshair, Loader2 } from 'lucide-react';
 const OPENFREEMAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty';
 
 const LocationPicker = ({ latitude, longitude, onChange }) => {
+  const { t } = useTranslation();
   const mapContainer = useRef(null);
   const mapRef = useRef(null);
   const markerRef = useRef(null);
@@ -70,11 +72,11 @@ const LocationPicker = ({ latitude, longitude, onChange }) => {
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
-      toast.error('Geolocation is not supported by your browser');
+      toast.error(t('geoNotSupported'));
       return;
     }
     if (!isSecure) {
-      toast('Location requires HTTPS. You can still click on the map to set coordinates.', { duration: 5000 });
+      toast(t('httpsRequiredMsg'), { duration: 5000 });
       return;
     }
     setGettingLocation(true);
@@ -85,14 +87,14 @@ const LocationPicker = ({ latitude, longitude, onChange }) => {
         updateMarker(lng, lat);
         onChange(lat, lng);
         setGettingLocation(false);
-        toast.success('Location set!');
+        toast.success(t('locationSet'));
       },
       (err) => {
         console.error('Geolocation error:', err);
         if (err.code === 1) {
-          toast.error('Location permission denied. Please allow location access in your browser settings.');
+          toast.error(t('locationDenied'));
         } else {
-          toast.error('Unable to get your location. Please try again or select on the map.');
+          toast.error(t('unableToGetLocation'));
         }
         setGettingLocation(false);
       },
@@ -118,7 +120,7 @@ const LocationPicker = ({ latitude, longitude, onChange }) => {
           ) : (
             <Crosshair size={16} />
           )}
-          {gettingLocation ? 'Getting location...' : isSecure ? 'Get Current Location' : '📍 HTTPS needed for location'}
+          {gettingLocation ? t('gettingLocation') : isSecure ? t('getCurrentLocation') : t('httpsRequired')}
         </button>
         {latitude && longitude && (
           <span className="text-xs text-surface-400 flex items-center gap-1">
@@ -128,7 +130,7 @@ const LocationPicker = ({ latitude, longitude, onChange }) => {
       </div>
       {!isSecure && (
         <p className="text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-xl">
-          ⚠️ Location access requires HTTPS. Use <strong>localhost:5173</strong> or click on the map to set coordinates manually.
+          {t('httpsWarning')}
         </p>
       )}
 
@@ -136,7 +138,7 @@ const LocationPicker = ({ latitude, longitude, onChange }) => {
         <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
       </div>
 
-      <p className="text-xs text-surface-400 text-center">Click on the map or use "Get Current Location" to set exact coordinates</p>
+      <p className="text-xs text-surface-400 text-center">{t('clickMapOrUse')}</p>
     </div>
   );
 };

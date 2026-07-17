@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { MapPin, Share2, Flag, Calendar, Eye, MessageCircle, LandPlot } from 'lucide-react';
 
 import { listingsAPI, savedAPI } from '../services/endpoints';
@@ -22,6 +23,7 @@ export default function LandDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const qc = useQueryClient();
+  const { t } = useTranslation();
 
   const { data, isLoading } = useQuery({
     queryKey: ['listing', id],
@@ -37,7 +39,7 @@ export default function LandDetail() {
   const [showContact, setShowContact] = useState(false);
 
   if (isLoading) return <div className="min-h-screen flex items-center justify-center"><Spinner size="lg" /></div>;
-  if (!data) return <div className="min-h-screen flex items-center justify-center text-surface-500">Land listing not found</div>;
+  if (!data) return <div className="min-h-screen flex items-center justify-center text-surface-500">{t('landNotFound')}</div>;
 
   const photos = data.photos || [];
   const isOwner = user?.id === data.ownerId;
@@ -61,7 +63,7 @@ export default function LandDetail() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <span className="badge bg-amber-100 text-amber-700">
-                  <LandPlot size={12} /> Land Sale
+                  <LandPlot size={12} /> {t('landSale')}
                 </span>
                 <span className="text-xs text-surface-400">{timeAgo(data.createdAt)}</span>
               </div>
@@ -77,17 +79,17 @@ export default function LandDetail() {
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div className="text-center p-3 bg-amber-50 rounded-xl">
                   <p className="text-2xl font-bold text-amber-700 font-display">{formatRent(data.rent)}</p>
-                  <p className="text-xs text-surface-500 mt-1">Total Price</p>
+                  <p className="text-xs text-surface-500 mt-1">{t('totalPrice')}</p>
                 </div>
                 {data.areaSqFt && (
                   <div className="text-center p-3 bg-primary-50 rounded-xl">
                     <p className="text-2xl font-bold text-primary-700 font-display">{data.areaSqFt}</p>
-                    <p className="text-xs text-surface-500 mt-1">Sq. Ft.</p>
+                    <p className="text-xs text-surface-500 mt-1">{t('sqft')}</p>
                   </div>
                 )}
                 <div className="text-center p-3 bg-surface-50 rounded-xl">
                   <p className="text-sm font-semibold text-surface-700">{data.status}</p>
-                  <p className="text-xs text-surface-500 mt-1">Status</p>
+                  <p className="text-xs text-surface-500 mt-1">{t('status')}</p>
                 </div>
               </div>
             </div>
@@ -95,19 +97,19 @@ export default function LandDetail() {
             {/* Description */}
             {data.description && (
               <div className="card p-5">
-                <h2 className="font-display font-semibold text-lg mb-3">Description</h2>
+                <h2 className="font-display font-semibold text-lg mb-3">{t('description')}</h2>
                 <p className="text-surface-600 text-sm leading-relaxed whitespace-pre-line">{data.description}</p>
               </div>
             )}
 
             {/* Map */}
             <div className="card p-5">
-              <h2 className="font-display font-semibold text-lg mb-4">Location</h2>
+              <h2 className="font-display font-semibold text-lg mb-4">{t('location')}</h2>
               <MapView lat={data.latitude} lng={data.longitude} title={data.title} className="h-64" />
               {data.isLocationExact ? (
-                <p className="text-xs text-success-600 mt-2 text-center font-medium">📍 Exact location</p>
+                <p className="text-xs text-success-600 mt-2 text-center font-medium">{t('exactLocation')}</p>
               ) : (
-                <p className="text-xs text-amber-600 mt-2 text-center font-medium">📍 Approximate location — exact location shared after request is accepted</p>
+                <p className="text-xs text-amber-600 mt-2 text-center font-medium">{t('approxLocation')}</p>
               )}
             </div>
 
@@ -116,7 +118,7 @@ export default function LandDetail() {
             {/* Reviews */}
             <div className="card p-5">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="font-display font-semibold text-lg">Reviews</h2>
+                <h2 className="font-display font-semibold text-lg">{t('reviews')}</h2>
                 {user && !isOwner && (
                   <ReviewForm listingId={data.id} receiverId={data.ownerId} />
                 )}
@@ -126,7 +128,7 @@ export default function LandDetail() {
                   {data.reviews.map((review) => <ReviewCard key={review.id} review={review} />)}
                 </div>
               ) : (
-                <p className="text-sm text-surface-400 text-center py-4">No reviews yet</p>
+                <p className="text-sm text-surface-400 text-center py-4">{t('noReviewsYet')}</p>
               )}
             </div>
           </div>
@@ -137,40 +139,40 @@ export default function LandDetail() {
               {/* Price */}
               <div className="text-center p-4 bg-amber-50 rounded-2xl">
                 <p className="text-3xl font-bold text-amber-700 font-display">{formatRent(data.rent)}</p>
-                <p className="text-sm text-surface-500">Total Price</p>
+                <p className="text-sm text-surface-500">{t('totalPrice')}</p>
               </div>
 
               {/* Available from */}
               {data.availableFrom && (
                 <div className="flex items-center gap-2 text-sm text-surface-600">
                   <Calendar size={14} className="text-primary-400" />
-                  Available from {new Date(data.availableFrom).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  {t('availableFromLabel')} {new Date(data.availableFrom).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </div>
               )}
 
               {/* Views */}
               <div className="flex items-center gap-2 text-xs text-surface-400">
-                <Eye size={13} /> {data.views} views
+                <Eye size={13} /> {data.views} {t('views')}
               </div>
 
               {/* Actions */}
               {!isOwner && (
                 <div className="space-y-2 pt-2">
                   <Button onClick={() => setShowContact(true)} className="w-full" variant="primary">
-                    <MessageCircle size={16} /> Contact Owner
+                    <MessageCircle size={16} /> {t('contactOwner')}
                   </Button>
                   <div className="flex gap-2">
                     <SaveButton listingId={data.id} isSaved={data.isSaved} onToggle={toggleSave} className="flex-1" />
                     <button onClick={() => setShowReport(true)} className="btn-outline btn-sm flex-1 gap-1">
-                      <Flag size={14} /> Report
+                      <Flag size={14} /> {t('report')}
                     </button>
                   </div>
                 </div>
               )}
 
               {/* Share */}
-              <button onClick={() => { navigator.clipboard.writeText(window.location.href); toast.success('Link copied!'); }} className="btn-ghost btn-sm w-full gap-1 text-surface-500">
-                <Share2 size={14} /> Share Listing
+              <button onClick={() => { navigator.clipboard.writeText(window.location.href); toast.success(t('copied')); }} className="btn-ghost btn-sm w-full gap-1 text-surface-500">
+                <Share2 size={14} /> {t('shareListing')}
               </button>
 
               {/* Owner info */}
@@ -179,7 +181,7 @@ export default function LandDetail() {
                 <Avatar src={data.owner?.profileImage} name={data.owner?.name} size="md" />
                 <div>
                   <p className="text-sm font-semibold text-surface-800">{data.owner?.name}</p>
-                  <p className="text-xs text-surface-400">Owner</p>
+                  <p className="text-xs text-surface-400">{t('owner')}</p>
                 </div>
               </div>
             </div>
@@ -188,17 +190,17 @@ export default function LandDetail() {
       </main>
 
       {/* Contact modal */}
-      <Modal isOpen={showContact} onClose={() => setShowContact(false)} title="Contact Owner">
+      <Modal isOpen={showContact} onClose={() => setShowContact(false)} title={t('contactOwner')}>
         <div className="space-y-3 text-sm">
-          {data.owner?.name && <p><strong>Name:</strong> {data.owner.name}</p>}
-          <p className="text-surface-500">Use the chat feature to contact the owner after sending a request.</p>
-          <Button onClick={() => { setShowContact(false); navigate('/dashboard/requests'); }} className="w-full" variant="primary">Go to Requests</Button>
+          {data.owner?.name && <p><strong>{t('nameLabel')}</strong> {data.owner.name}</p>}
+          <p className="text-surface-500">{t('chatToContact')}</p>
+          <Button onClick={() => { setShowContact(false); navigate('/dashboard/requests'); }} className="w-full" variant="primary">{t('goToRequests')}</Button>
         </div>
       </Modal>
 
       {/* Report modal */}
-      <Modal isOpen={showReport} onClose={() => setShowReport(false)} title="Report Listing">
-        <p className="text-sm text-surface-500">Please contact support to report this listing.</p>
+      <Modal isOpen={showReport} onClose={() => setShowReport(false)} title={t('reportListing')}>
+        <p className="text-sm text-surface-500">{t('contactSupport')}</p>
       </Modal>
     </div>
   );

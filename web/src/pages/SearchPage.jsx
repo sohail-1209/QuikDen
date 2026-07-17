@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Sparkles, Search, SlidersHorizontal, ArrowUpDown } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 import Navbar from '../components/layout/Navbar';
 import ListingFilters from '../components/listing/ListingFilters';
@@ -12,6 +13,7 @@ import { Button, Input, Select } from '../components/ui/index.js';
 
 const SearchPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { t } = useTranslation();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isAiMode, setIsAiMode] = useState(false);
   const [aiQuery, setAiQuery] = useState('');
@@ -86,7 +88,7 @@ const SearchPage = () => {
         // Set search params from parsed filters
         const parsed = data.parsedFilters || {};
         setParsedAiFilters(parsed);
-        toast.success('AI parsed your search query!');
+        toast.success(t('aiParsed'));
 
         // Convert parsed filters to URL search params
         const newParams = new URLSearchParams();
@@ -105,7 +107,7 @@ const SearchPage = () => {
         setSearchParams(newParams);
       }
     } catch (err) {
-      toast.error('AI search failed, using basic search instead.');
+      toast.error(t('aiFailed'));
       updateFilters({ q: aiQuery });
     } finally {
       setAiLoading(false);
@@ -138,7 +140,7 @@ const SearchPage = () => {
                   : 'text-surface-500 hover:text-surface-900'
                   }`}
               >
-                <Search size={16} /> Basic Search
+                <Search size={16} /> {t('basicSearch')}
               </button>
               <button
                 onClick={() => setIsAiMode(true)}
@@ -147,7 +149,7 @@ const SearchPage = () => {
                   : 'text-surface-500 hover:text-surface-900'
                   }`}
               >
-                <Sparkles size={16} /> AI Search
+                <Sparkles size={16} /> {t('aiSearch')}
               </button>
             </div>
 
@@ -157,7 +159,7 @@ const SearchPage = () => {
                 <form onSubmit={handleSearchSubmit} className="flex gap-2">
                   <div className="relative flex-1">
                     <Input
-                      placeholder="Search by keywords, landmarks, or areas..."
+                      placeholder={t('searchPlaceholder')}
                       value={filters.q}
                       onChange={(e) => updateFilters({ q: e.target.value })}
                       className=""
@@ -171,7 +173,7 @@ const SearchPage = () => {
                 <form onSubmit={handleAiSearchSubmit} className="flex gap-2">
                   <div className="relative flex-1">
                     <Input
-                      placeholder="e.g. need a ladies room in Mehdipatnam with parking under 6000..."
+                      placeholder={t('aiPlaceholder')}
                       value={aiQuery}
                       onChange={(e) => setAiQuery(e.target.value)}
                       className="pr-10 border-primary-300 focus:ring-primary-500 focus:border-primary-500"
@@ -179,7 +181,7 @@ const SearchPage = () => {
                     <Sparkles className="absolute right-3 top-1/2 -translate-y-1/2 text-primary-500 animate-pulse" size={18} />
                   </div>
                   <Button type="submit" variant="primary" loading={aiLoading}>
-                    Ask AI
+                    {t('askAi')}
                   </Button>
                 </form>
               )}
@@ -190,7 +192,7 @@ const SearchPage = () => {
               onClick={() => setIsFilterOpen(true)}
               className="lg:hidden w-full md:w-auto btn btn-secondary flex items-center justify-center gap-2"
             >
-              <SlidersHorizontal size={16} /> Filters
+                  <SlidersHorizontal size={16} /> {t('filters')}
             </button>
           </div>
 
@@ -198,7 +200,7 @@ const SearchPage = () => {
           {parsedAiFilters && (
             <div className="flex flex-wrap gap-2 mt-3 items-center border-t border-surface-100 pt-3">
               <span className="text-xs font-semibold text-primary-700 bg-primary-50 px-2 py-1 rounded-md flex items-center gap-1">
-                <Sparkles size={12} /> AI Filters:
+                <Sparkles size={12} /> {t('aiFilters')}
               </span>
               {Object.entries(parsedAiFilters).map(([key, val]) => {
                 if (!val || val === 'ANY') return null;
@@ -212,7 +214,7 @@ const SearchPage = () => {
                 onClick={handleResetFilters}
                 className="text-xs text-danger-500 hover:underline ml-auto font-medium"
               >
-                Clear AI search
+                {t('clearAiSearch')}
               </button>
             </div>
           )}
@@ -225,13 +227,13 @@ const SearchPage = () => {
             <div className="card p-5 sticky top-24">
               <div className="flex items-center justify-between mb-4 pb-4 border-b border-surface-100">
                 <h3 className="font-display font-semibold text-base text-surface-900 flex items-center gap-2">
-                  <SlidersHorizontal size={16} /> Filters
+              <SlidersHorizontal size={16} /> {t('filters')}
                 </h3>
                 <button
                   onClick={handleResetFilters}
                   className="text-xs text-primary-600 hover:underline font-medium"
                 >
-                  Reset All
+                  {t('resetAll')}
                 </button>
               </div>
               <ListingFilters
@@ -245,7 +247,7 @@ const SearchPage = () => {
           <div className="flex-grow">
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-surface-500 font-medium">
-                Showing {data?.data?.length || 0} listings
+                {t('showing', { count: data?.data?.length || 0 })}
               </p>
               <div className="flex items-center gap-2">
                 <ArrowUpDown size={14} className="text-surface-400" />
@@ -253,10 +255,10 @@ const SearchPage = () => {
                   onChange={(e) => updateFilters({ sort: e.target.value })}
                   className="bg-transparent border-none text-sm text-surface-600 focus:outline-none cursor-pointer font-medium"
                 >
-                  <option value="newest">Newest First</option>
-                  <option value="rent_asc">Rent: Low to High</option>
-                  <option value="rent_desc">Rent: High to Low</option>
-                  <option value="popular">Most Popular</option>
+                  <option value="newest">{t('newestFirst')}</option>
+                  <option value="rent_asc">{t('rentLowHigh')}</option>
+                  <option value="rent_desc">{t('rentHighLow')}</option>
+                  <option value="popular">{t('mostPopular')}</option>
                 </select>
               </div>
             </div>
@@ -272,7 +274,7 @@ const SearchPage = () => {
                   disabled={currentPage === 1}
                   onClick={() => updateFilters({ page: String(currentPage - 1) })}
                 >
-                  Prev
+                  {t('prev')}
                 </Button>
                 {Array.from({ length: totalPages }).map((_, idx) => (
                   <button
@@ -292,7 +294,7 @@ const SearchPage = () => {
                   disabled={currentPage === totalPages}
                   onClick={() => updateFilters({ page: String(currentPage + 1) })}
                 >
-                  Next
+                  {t('next')}
                 </Button>
               </div>
             )}
@@ -305,7 +307,7 @@ const SearchPage = () => {
         <div className="fixed inset-0 z-50 flex lg:hidden bg-surface-950/40 backdrop-blur-sm animate-fade-in">
           <div className="ml-auto w-full max-w-sm h-full bg-surface-50/95 backdrop-blur-xl shadow-xl flex flex-col animate-slide-up">
             <div className="p-4 border-b border-surface-100 flex items-center justify-between">
-              <h3 className="font-display font-semibold text-lg text-surface-900">Filters</h3>
+              <h3 className="font-display font-semibold text-lg text-surface-900">{t('filters')}</h3>
               <button
                 onClick={() => setIsFilterOpen(false)}
                 className="text-surface-400 hover:text-surface-600 font-bold text-lg"
@@ -321,10 +323,10 @@ const SearchPage = () => {
             </div>
             <div className="p-4 border-t border-surface-100 flex gap-2">
               <Button variant="secondary" className="flex-1" onClick={handleResetFilters}>
-                Reset
+                {t('reset')}
               </Button>
               <Button variant="primary" className="flex-1" onClick={() => setIsFilterOpen(false)}>
-                Apply
+                {t('apply')}
               </Button>
             </div>
           </div>

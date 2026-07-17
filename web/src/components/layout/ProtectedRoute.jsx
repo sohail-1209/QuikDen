@@ -1,5 +1,6 @@
 // ProtectedRoute — guards routes by authentication status and allowed roles
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -9,6 +10,7 @@ import { useAuth } from '../../context/AuthContext';
  *   Omit to allow any authenticated user.
  */
 export default function ProtectedRoute({ allowedRoles, children }) {
+  const { t } = useTranslation();
   const { user, loading } = useAuth();
   const location = useLocation();
 
@@ -17,7 +19,7 @@ export default function ProtectedRoute({ allowedRoles, children }) {
     return (
       <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center gap-3 text-surface-500">
         <Loader2 size={36} className="animate-spin text-primary-600" />
-        <p className="text-sm font-medium">Loading…</p>
+        <p className="text-sm font-medium">{t('loading')}</p>
       </div>
     );
   }

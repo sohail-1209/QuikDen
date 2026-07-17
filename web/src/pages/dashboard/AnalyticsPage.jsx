@@ -3,6 +3,7 @@ import {
   BarChart2, Eye, TrendingUp, DollarSign, List,
   Calendar, CheckCircle, Clock
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { listingsAPI, requestsAPI } from '../../services/endpoints';
 import PageHeader from '../../components/layout/PageHeader';
 
@@ -20,6 +21,7 @@ const StatCard = ({ label, value, description, icon: Icon, color }) => (
 );
 
 export default function AnalyticsPage() {
+  const { t } = useTranslation();
   const { data: listings, isLoading: listingsLoading } = useQuery({
     queryKey: ['myListings'],
     queryFn: () => listingsAPI.getMyListings().then((r) => r.data.data),
@@ -50,7 +52,7 @@ export default function AnalyticsPage() {
   if (isLoading) {
     return (
       <div className="max-w-5xl mx-auto space-y-5 sm:space-y-6">
-        <PageHeader title="Analytics" subtitle="Performance stats for your listings" />
+        <PageHeader title={t('analytics')} subtitle={t('performanceStats')} />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {[1,2,3,4].map((i) => <div key={i} className="skeleton h-24 rounded-2xl" />)}
         </div>
@@ -64,35 +66,35 @@ export default function AnalyticsPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 sm:space-y-8 animate-fade-in">
-      <PageHeader title="Analytics" subtitle="Performance stats and trends for your listings" />
+      <PageHeader title={t('analytics')} subtitle={t('performanceTrends')} />
 
       {/* Stats Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard
-          label="Total Views"
+          label={t('totalViews')}
           value={totalViews.toLocaleString('en-IN')}
-          description="Across all your listings"
+          description={t('acrossAll')}
           icon={Eye}
           color="bg-primary-600 shadow-lg shadow-primary-500/20"
         />
         <StatCard
-          label="My Listings"
+          label={t('myListings')}
           value={totalListings}
-          description={`${activeListings} active listings`}
+          description={`${activeListings} ${t('activeListingsCount')}`}
           icon={List}
           color="bg-info-500 shadow-lg shadow-info-500/20"
         />
         <StatCard
-          label="Avg. Rent"
+          label={t('avgRent')}
           value={`₹${avgRent.toLocaleString('en-IN')}`}
-          description="Average monthly rent set"
+          description={t('avgRentDesc')}
           icon={DollarSign}
           color="bg-success-500 shadow-lg shadow-success-500/20"
         />
         <StatCard
-          label="Total Requests"
+          label={t('totalRequestsLabel')}
           value={totalRequests}
-          description={`${pendingRequests} pending verification`}
+          description={`${pendingRequests} ${t('pendingVerification')}`}
           icon={TrendingUp}
           color="bg-accent-500 shadow-lg shadow-accent-500/20"
         />
@@ -103,8 +105,8 @@ export default function AnalyticsPage() {
         <div className="card p-4 sm:p-6 lg:col-span-2 space-y-5 sm:space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-display font-semibold text-lg text-surface-900">Traffic Breakdown</h3>
-              <p className="text-xs text-surface-400 mt-0.5">Views per listing</p>
+              <h3 className="font-display font-semibold text-lg text-surface-900">{t('trafficBreakdown')}</h3>
+              <p className="text-xs text-surface-400 mt-0.5">{t('viewsPerListing')}</p>
             </div>
             <BarChart2 className="text-surface-400" size={20} />
           </div>
@@ -112,7 +114,7 @@ export default function AnalyticsPage() {
           {!listings?.length ? (
             <div className="h-60 flex flex-col items-center justify-center text-surface-400">
               <span className="text-3xl mb-2">📊</span>
-              <p className="text-sm font-medium">No listings found to analyze</p>
+              <p className="text-sm font-medium">{t('noListingsAnalyze')}</p>
             </div>
           ) : (
             <div className="space-y-4 max-h-[280px] overflow-y-auto pr-1">
@@ -122,7 +124,7 @@ export default function AnalyticsPage() {
                   <div key={l.id} className="space-y-1.5">
                     <div className="flex justify-between items-center text-xs font-medium">
                       <span className="text-surface-700 truncate max-w-[80%]">{l.title}</span>
-                      <span className="text-surface-900 font-bold">{l.views ?? 0} views</span>
+                      <span className="text-surface-900 font-bold">{l.views ?? 0} {t('views')}</span>
                     </div>
                     <div className="h-2.5 w-full bg-surface-100 rounded-full overflow-hidden">
                       <div
@@ -141,8 +143,8 @@ export default function AnalyticsPage() {
         <div className="card p-4 sm:p-6 space-y-5 sm:space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-display font-semibold text-lg text-surface-900">Request Status</h3>
-              <p className="text-xs text-surface-400 mt-0.5">Conversion funnel</p>
+              <h3 className="font-display font-semibold text-lg text-surface-900">{t('requestStatus')}</h3>
+              <p className="text-xs text-surface-400 mt-0.5">{t('conversionFunnel')}</p>
             </div>
             <TrendingUp className="text-surface-400" size={20} />
           </div>
@@ -151,21 +153,21 @@ export default function AnalyticsPage() {
             <div className="flex items-center justify-between p-3 bg-surface-50 rounded-xl">
               <div className="flex items-center gap-3">
                 <Clock className="text-warning-500" size={18} />
-                <span className="text-sm font-medium text-surface-700">Pending</span>
+                <span className="text-sm font-medium text-surface-700">{t('pending')}</span>
               </div>
               <span className="text-lg font-bold text-surface-900">{pendingRequests}</span>
             </div>
             <div className="flex items-center justify-between p-3 bg-surface-50 rounded-xl">
               <div className="flex items-center gap-3">
                 <CheckCircle className="text-success-500" size={18} />
-                <span className="text-sm font-medium text-surface-700">Accepted</span>
+                <span className="text-sm font-medium text-surface-700">{t('accepted')}</span>
               </div>
               <span className="text-lg font-bold text-surface-900">{acceptedRequests}</span>
             </div>
             <div className="flex items-center justify-between p-3 bg-surface-50 rounded-xl">
               <div className="flex items-center gap-3">
                 <Calendar className="text-primary-500" size={18} />
-                <span className="text-sm font-medium text-surface-700">Total</span>
+                <span className="text-sm font-medium text-surface-700">{t('total')}</span>
               </div>
               <span className="text-lg font-bold text-surface-900">{totalRequests}</span>
             </div>

@@ -1,20 +1,21 @@
 // NearbyPlaces — fetches nearby POIs via Geoapify Places API
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Hospital, GraduationCap, Train, Bus, ShoppingBag, Dumbbell, Landmark, Fuel, Utensils, TreePine, Navigation, RefreshCw } from 'lucide-react';
 
 const GEOAPIFY_KEY = 'c471b4637f644bbaa597b0103c703121';
 
 const CATEGORIES = [
-  { key: 'hospital', label: 'Hospital', icon: Hospital, geoapify: 'healthcare.hospital,healthcare.clinic_or_praxis', color: 'text-red-500' },
-  { key: 'college', label: 'College', icon: GraduationCap, geoapify: 'education.school,education.university,education.college', color: 'text-blue-500' },
-  { key: 'metro', label: 'Metro', icon: Train, geoapify: 'public_transport.subway', color: 'text-purple-500' },
-  { key: 'bus', label: 'Bus Stop', icon: Bus, geoapify: 'public_transport.bus', color: 'text-green-500' },
-  { key: 'grocery', label: 'Grocery', icon: ShoppingBag, geoapify: 'commercial.supermarket,commercial.convenience', color: 'text-amber-500' },
-  { key: 'gym', label: 'Gym', icon: Dumbbell, geoapify: 'sport.fitness.gym,sport.fitness.fitness_centre', color: 'text-orange-500' },
-  { key: 'bank', label: 'ATM', icon: Landmark, geoapify: 'service.financial.bank,service.financial.atm', color: 'text-teal-500' },
-  { key: 'petrol', label: 'Petrol', icon: Fuel, geoapify: 'service.vehicle.fuel', color: 'text-slate-500' },
-  { key: 'restaurant', label: 'Restaurant', icon: Utensils, geoapify: 'catering.restaurant,catering.cafe,catering.fast_food', color: 'text-rose-500' },
-  { key: 'park', label: 'Park', icon: TreePine, geoapify: 'leisure.park', color: 'text-emerald-500' },
+  { key: 'hospital', labelKey: 'hospital', icon: Hospital, geoapify: 'healthcare.hospital,healthcare.clinic_or_praxis', color: 'text-red-500' },
+  { key: 'college', labelKey: 'college', icon: GraduationCap, geoapify: 'education.school,education.university,education.college', color: 'text-blue-500' },
+  { key: 'metro', labelKey: 'metro', icon: Train, geoapify: 'public_transport.subway', color: 'text-purple-500' },
+  { key: 'bus', labelKey: 'busStop', icon: Bus, geoapify: 'public_transport.bus', color: 'text-green-500' },
+  { key: 'grocery', labelKey: 'grocery', icon: ShoppingBag, geoapify: 'commercial.supermarket,commercial.convenience', color: 'text-amber-500' },
+  { key: 'gym', labelKey: 'gym', icon: Dumbbell, geoapify: 'sport.fitness.gym,sport.fitness.fitness_centre', color: 'text-orange-500' },
+  { key: 'bank', labelKey: 'atm', icon: Landmark, geoapify: 'service.financial.bank,service.financial.atm', color: 'text-teal-500' },
+  { key: 'petrol', labelKey: 'petrol', icon: Fuel, geoapify: 'service.vehicle.fuel', color: 'text-slate-500' },
+  { key: 'restaurant', labelKey: 'restaurant', icon: Utensils, geoapify: 'catering.restaurant,catering.cafe,catering.fast_food', color: 'text-rose-500' },
+  { key: 'park', labelKey: 'park', icon: TreePine, geoapify: 'leisure.park', color: 'text-emerald-500' },
 ];
 
 const fetchWithRetry = async (url, retries = 2, delay = 1000) => {
@@ -56,6 +57,7 @@ const categorizeFeature = (feature) => {
 };
 
 const NearbyPlaces = ({ lat, lng }) => {
+  const { t } = useTranslation();
   const [places, setPlaces] = useState({});
   const [activeCategory, setActiveCategory] = useState('hospital');
   const [loading, setLoading] = useState(true);
@@ -113,7 +115,7 @@ const NearbyPlaces = ({ lat, lng }) => {
   return (
     <div className="card p-5">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-display font-semibold text-lg text-surface-900">Nearby Places</h3>
+        <h3 className="font-display font-semibold text-lg text-surface-900">{t('nearbyPlaces')}</h3>
         <button onClick={loadAllPlaces} disabled={loading} className="p-2 hover:bg-surface-100 rounded-lg transition-colors" title="Refresh">
           <RefreshCw size={16} className={`text-surface-500 ${loading ? 'animate-spin' : ''}`} />
         </button>
@@ -136,7 +138,7 @@ const NearbyPlaces = ({ lat, lng }) => {
               }`}
             >
               <CIcon size={13} />
-              {c.label}
+              {t(c.labelKey)}
               {hasData && <span className="ml-1 text-[10px] opacity-70">({places[c.key].length})</span>}
             </button>
           );
@@ -149,11 +151,11 @@ const NearbyPlaces = ({ lat, lng }) => {
         </div>
       ) : error ? (
         <div className="text-center py-4">
-          <p className="text-surface-400 text-sm mb-2">Failed to load places</p>
-          <button onClick={loadAllPlaces} className="text-primary-600 text-sm font-medium hover:underline">Try again</button>
+          <p className="text-surface-400 text-sm mb-2">{t('failedToLoadPlaces')}</p>
+          <button onClick={loadAllPlaces} className="text-primary-600 text-sm font-medium hover:underline">{t('tryAgain')}</button>
         </div>
       ) : current.length === 0 ? (
-        <p className="text-surface-400 text-sm text-center py-4">No {cat?.label} found nearby</p>
+        <p className="text-surface-400 text-sm text-center py-4">{t('noCategoryNearby', { category: t(cat?.labelKey) })}</p>
       ) : (
         <div className="space-y-2">
           {current.map((place) => (
@@ -168,7 +170,7 @@ const NearbyPlaces = ({ lat, lng }) => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-surface-800">{place.name}</p>
-                  <p className="text-xs text-surface-400">Tap to navigate</p>
+                  <p className="text-xs text-surface-400">{t('tapToNavigate')}</p>
                 </div>
               </div>
               <Navigation size={14} className="text-primary-500" />

@@ -1,10 +1,12 @@
 // IconSidebar — thin icon sidebar with temporary expand overlay
 import { useState, useEffect, useRef } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { PanelLeftOpen, PanelLeftClose } from 'lucide-react';
 import { MENUS } from './Sidebar';
 
 function IconItem({ to, icon: Icon, label, end, onNavigate }) {
+  const { t } = useTranslation();
   return (
     <NavLink
       to={to}
@@ -25,7 +27,7 @@ function IconItem({ to, icon: Icon, label, end, onNavigate }) {
           </span>
           {/* Label — only visible when expanded */}
           <span className="icon-sidebar-label hidden text-sm font-medium whitespace-nowrap overflow-hidden">
-            {label}
+            {t(label)}
           </span>
           {/* Active dot */}
           {isActive && (
@@ -38,6 +40,7 @@ function IconItem({ to, icon: Icon, label, end, onNavigate }) {
 }
 
 export default function IconSidebar({ role }) {
+  const { t } = useTranslation();
   const items = MENUS[role] ?? MENUS.TENANT;
   const [expanded, setExpanded] = useState(false);
   const sidebarRef = useRef(null);
@@ -121,7 +124,7 @@ export default function IconSidebar({ role }) {
               ? 'bg-surface-200 text-surface-600 hover:bg-surface-300'
               : 'bg-surface-100 text-surface-400 hover:bg-surface-200 hover:text-surface-600'
           }`}
-          title={expanded ? 'Collapse sidebar' : 'Expand sidebar'}
+          title={expanded ? t('collapseSidebar') : t('expandSidebar')}
         >
           {expanded ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
         </button>

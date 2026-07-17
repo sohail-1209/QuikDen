@@ -2,16 +2,17 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ClipboardList } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { requestsAPI } from '../../services/endpoints';
 import RequestCard from '../../components/RequestCard';
 
 // ── Tab definitions ────────────────────────────────────────────────────────────
 const TABS = [
-  { key: 'ALL',      label: 'All' },
-  { key: 'PENDING',  label: 'Pending' },
-  { key: 'ACCEPTED', label: 'Accepted' },
-  { key: 'REJECTED', label: 'Rejected' },
+  { key: 'ALL',      labelKey: 'all' },
+  { key: 'PENDING',  labelKey: 'pending' },
+  { key: 'ACCEPTED', labelKey: 'accepted' },
+  { key: 'REJECTED', labelKey: 'rejected' },
 ];
 
 // ── Badge colours per tab ──────────────────────────────────────────────────────
@@ -37,13 +38,14 @@ const RequestSkeleton = () => (
 
 // ── Empty state ────────────────────────────────────────────────────────────────
 const EmptyState = ({ tab }) => {
+  const { t } = useTranslation();
   const messages = {
-    ALL:      { emoji: '📋', text: 'You have no requests yet.' },
-    PENDING:  { emoji: '⏳', text: 'No pending requests right now.' },
-    ACCEPTED: { emoji: '✅', text: 'No accepted requests yet.' },
-    REJECTED: { emoji: '❌', text: 'No rejected requests.' },
+    ALL:      { emoji: '📋', textKey: 'noRequestsYet' },
+    PENDING:  { emoji: '⏳', textKey: 'noPendingNow' },
+    ACCEPTED: { emoji: '✅', textKey: 'noAcceptedYet' },
+    REJECTED: { emoji: '❌', textKey: 'noRejected' },
   };
-  const { emoji, text } = messages[tab] ?? messages.ALL;
+  const { emoji, textKey } = messages[tab] ?? messages.ALL;
 
   return (
     <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
@@ -51,11 +53,11 @@ const EmptyState = ({ tab }) => {
         {emoji}
       </div>
       <div>
-        <p className="font-semibold text-surface-700">{text}</p>
+        <p className="font-semibold text-surface-700">{t(textKey)}</p>
         <p className="text-sm text-surface-400 mt-1">
           {tab === 'ALL'
-            ? 'Requests you send or receive will appear here.'
-            : `Switch to another tab to see other requests.`}
+            ? t('requestsAppear')
+            : t('switchTab')}
         </p>
       </div>
     </div>
@@ -66,6 +68,7 @@ const EmptyState = ({ tab }) => {
 export default function RequestsPage() {
   const { user } = useAuth();
   const userRole = user?.role ?? 'TENANT';
+  const { t } = useTranslation();
 
   const [activeTab, setActiveTab] = useState('ALL');
 
@@ -100,11 +103,11 @@ export default function RequestsPage() {
           <ClipboardList size={20} className="text-primary-600" />
         </div>
         <div>
-          <h1 className="section-title">Requests</h1>
+          <h1 className="section-title">{t('requests')}</h1>
           <p className="section-subtitle">
             {userRole === 'OWNER'
-              ? 'Review and respond to tenant requests'
-              : 'Track all your rental requests'}
+              ? t('reviewRespond')
+              : t('trackRequests')}
           </p>
         </div>
       </div>
@@ -121,7 +124,7 @@ export default function RequestsPage() {
                 : 'text-surface-500 hover:text-surface-700'
             }`}
           >
-            {tab.label}
+            {t(tab.labelKey)}
             {counts[tab.key] > 0 && (
               <span
                 className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${
@@ -139,8 +142,8 @@ export default function RequestsPage() {
       {isError ? (
         <div className="card p-10 flex flex-col items-center gap-3 text-center">
           <span className="text-3xl">⚠️</span>
-          <p className="font-semibold text-surface-700">Failed to load requests</p>
-          <p className="text-sm text-surface-400">Please refresh the page and try again.</p>
+          <p className="font-semibold text-surface-700">{t('failedToLoadRequests')}</p>
+          <p className="text-sm text-surface-400">{t('refreshTryAgain')}</p>
         </div>
       ) : isLoading ? (
         <div className="space-y-3">

@@ -19,13 +19,17 @@ export const AuthProvider = ({ children }) => {
         setUser(data.data);
         subscribeToPush().catch(() => {});
       })
-      .catch(() => localStorage.removeItem('accessToken'))
+      .catch(() => {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+      })
       .finally(() => setLoading(false));
   }, []);
 
   const login = async (credentials) => {
     const { data } = await authAPI.login(credentials);
     localStorage.setItem('accessToken', data.data.accessToken);
+    if (data.data.refreshToken) localStorage.setItem('refreshToken', data.data.refreshToken);
     setUser(data.data.user);
     subscribeToPush().catch(() => {});
     return data.data.user;
@@ -38,7 +42,7 @@ export const AuthProvider = ({ children }) => {
 
   const googleAuth = async (idToken) => {
     const { data } = await authAPI.googleAuth(idToken);
-    const { needsProfile, tempToken, googleInfo, accessToken, user: userData } = data.data;
+    const { needsProfile, tempToken, googleInfo, accessToken, refreshToken, user: userData } = data.data;
 
     if (needsProfile) {
       // Store temp token for complete-profile step
@@ -48,6 +52,7 @@ export const AuthProvider = ({ children }) => {
 
     // Existing user — login normally
     localStorage.setItem('accessToken', accessToken);
+    if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
     setUser(userData);
     subscribeToPush().catch(() => {});
     return { user: userData, needsProfile: false };
@@ -63,6 +68,7 @@ export const AuthProvider = ({ children }) => {
 
     const userData = data.data.user;
     localStorage.setItem('accessToken', data.data.accessToken);
+    if (data.data.refreshToken) localStorage.setItem('refreshToken', data.data.refreshToken);
     setUser(userData);
     subscribeToPush().catch(() => {});
     return userData;
@@ -76,6 +82,7 @@ export const AuthProvider = ({ children }) => {
   const verifyEmail = async (otp) => {
     const { data } = await authAPI.verifyEmail(otp);
     localStorage.setItem('accessToken', data.data.accessToken);
+    if (data.data.refreshToken) localStorage.setItem('refreshToken', data.data.refreshToken);
     setUser(data.data.user);
     return data.data.user;
   };
@@ -83,6 +90,7 @@ export const AuthProvider = ({ children }) => {
   const confirmEmailVerified = async (email) => {
     const { data } = await authAPI.confirmEmailVerified(email);
     localStorage.setItem('accessToken', data.data.accessToken);
+    if (data.data.refreshToken) localStorage.setItem('refreshToken', data.data.refreshToken);
     setUser(data.data.user);
     subscribeToPush().catch(() => {});
     return data.data.user;
@@ -91,6 +99,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     await authAPI.logout().catch(() => {});
     localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
     setUser(null);
   };
 

@@ -50,15 +50,19 @@ api.interceptors.response.use(
       original._retry = true;
       isRefreshing = true;
       try {
-        const { data } = await api.post('/auth/refresh');
+        const refreshToken = localStorage.getItem('refreshToken');
+        const { data } = await api.post('/auth/refresh', { refreshToken });
         const newToken = data.data.accessToken;
+        const newRefresh = data.data.refreshToken;
         localStorage.setItem('accessToken', newToken);
+        if (newRefresh) localStorage.setItem('refreshToken', newRefresh);
         processQueue(null, newToken);
         original.headers.Authorization = `Bearer ${newToken}`;
         return api(original);
       } catch (err) {
         processQueue(err, null);
         localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
         window.location.href = '/login';
         return Promise.reject(err);
       } finally {

@@ -1,5 +1,6 @@
 // ChatList — shows list of all chats for the current user
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { chatAPI } from '../../services/endpoints';
 import { useAuth } from '../../context/AuthContext';
@@ -7,6 +8,7 @@ import { timeAgo } from '../../utils/helpers';
 import { MessageCircle } from 'lucide-react';
 
 const ChatListItem = ({ chat, userId }) => {
+  const { t } = useTranslation();
   const otherUser = chat.ownerId === userId ? chat.tenant : chat.owner;
   const lastMsg = chat.messages?.[0];
   const unread = chat._count?.messages || 0;
@@ -38,7 +40,7 @@ const ChatListItem = ({ chat, userId }) => {
           </span>
         </div>
         <p className={`text-xs truncate mt-0.5 ${unread > 0 ? 'text-surface-700 font-medium' : 'text-surface-400'}`}>
-          {lastMsg?.content || 'Chat unlocked — say hello!'}
+          {lastMsg?.content || t('chatUnlocked')}
         </p>
         <p className="text-xs text-primary-500 mt-0.5 truncate">{chat.listing?.title}</p>
       </div>
@@ -48,6 +50,7 @@ const ChatListItem = ({ chat, userId }) => {
 
 const ChatList = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const { data, isLoading } = useQuery({
     queryKey: ['chats'],
     queryFn: () => chatAPI.getChats().then((r) => r.data.data),
@@ -62,8 +65,8 @@ const ChatList = () => {
   if (!data?.length) return (
     <div className="flex flex-col items-center justify-center h-64 text-surface-400">
       <MessageCircle size={40} className="mb-3 text-surface-300" />
-      <p className="font-medium">No chats yet</p>
-      <p className="text-sm mt-1">Chats unlock after a request is accepted</p>
+      <p className="font-medium">{t('noChats')}</p>
+      <p className="text-sm mt-1">{t('chatsUnlockAfter')}</p>
     </div>
   );
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import Button from './Button';
 
 /**
@@ -12,11 +13,12 @@ import Button from './Button';
 
 const EmptyState = ({
   icon,
-  title = 'Nothing here yet',
+  title,
   description,
   action,
-  actionLabel = 'Get Started',
+  actionLabel,
 }) => {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
       {icon && (
@@ -27,16 +29,16 @@ const EmptyState = ({
         </div>
       )}
 
-      <h3 className="section-title text-xl mb-1">{title}</h3>
+      <h3 className="section-title text-xl mb-1">{title || t('nothingHere')}</h3>
 
       {description && (
         <p className="section-subtitle max-w-sm mt-1">{description}</p>
       )}
 
-      {action && actionLabel && (
+      {action && (
         <div className="mt-6">
           <Button variant="primary" size="md" onClick={action}>
-            {actionLabel}
+            {actionLabel || t('getStarted')}
           </Button>
         </div>
       )}

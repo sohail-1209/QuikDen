@@ -2,16 +2,19 @@
 export const formatRent = (amount) =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
 
-// Relative time (e.g., "2 days ago")
+// Relative time (e.g., "2 days ago") — uses i18n for locale-aware strings
+import i18n from '../i18n';
+
 export const timeAgo = (date) => {
+  const t = i18n.t.bind(i18n);
   const diff = Date.now() - new Date(date).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return t('justNow');
+  if (mins < 60) return `${mins}${t('mAgo')}`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) return `${hrs}${t('hAgo')}`;
   const days = Math.floor(hrs / 24);
-  if (days < 30) return `${days}d ago`;
+  if (days < 30) return `${days}${t('dAgo')}`;
   return new Date(date).toLocaleDateString('en-IN');
 };
 
@@ -28,18 +31,21 @@ export const getPrimaryPhoto = (listing) =>
 // Build amenity list from amenity object
 export const getAmenityList = (amenities) => {
   if (!amenities) return [];
+  const t = i18n.t.bind(i18n);
   const map = {
-    wifi: 'WiFi', ac: 'AC', parking: 'Parking', fridge: 'Fridge',
-    washingMachine: 'Washing Machine', kitchen: 'Kitchen', lift: 'Lift',
-    gym: 'Gym', security: 'Security', powerBackup: 'Power Backup',
-    waterSupply: 'Water Supply', cctv: 'CCTV',
+    wifi: t('wifi'), ac: t('ac'), parking: t('parking'), fridge: t('fridge'),
+    washingMachine: t('washingMachine'), kitchen: t('kitchen'), lift: t('lift'),
+    gym: t('gym'), security: t('security'), powerBackup: t('powerBackup'),
+    waterSupply: t('waterSupply'), cctv: t('cctv'),
   };
   return Object.entries(map).filter(([key]) => amenities[key]).map(([, label]) => label);
 };
 
 // Listing type label
-export const listingTypeLabel = (type) =>
-  ({ HOUSE_RENTAL: 'House Rental', ROOM_SHARING: 'Room Sharing', HOSTEL: 'Hostel / PG', LAND_SALE: 'Land Sale' })[type] || type;
+export const listingTypeLabel = (type) => {
+  const t = i18n.t.bind(i18n);
+  return ({ HOUSE_RENTAL: t('houseRental'), ROOM_SHARING: t('roomSharingType'), HOSTEL: t('hostelPg'), LAND_SALE: t('landSaleType') })[type] || type;
+};
 
 // Request status color class
 export const requestStatusClass = (status) => ({
@@ -50,4 +56,4 @@ export const requestStatusClass = (status) => ({
 
 // Extract error message from axios error
 export const getErrorMessage = (error) =>
-  error?.response?.data?.message || error?.message || 'Something went wrong';
+  error?.response?.data?.message || error?.message || i18n.t('somethingWrong');

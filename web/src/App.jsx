@@ -2,6 +2,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
@@ -50,14 +51,17 @@ const DashboardRedirect = () => {
 };
 
 // ─── Page loading fallback ─────────────────────────────
-const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-surface-50">
-    <div className="flex flex-col items-center gap-3">
-      <div className="w-10 h-10 border-3 border-primary-500 border-t-transparent rounded-full animate-spin" />
-      <p className="text-sm text-surface-400 font-medium">Loading…</p>
+const PageLoader = () => {
+  const { t } = useTranslation();
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-surface-50">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-10 h-10 border-3 border-primary-500 border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm text-surface-400 font-medium">{t('loading')}</p>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const queryClient = new QueryClient({
   defaultOptions: {

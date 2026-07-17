@@ -3,9 +3,11 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { ArrowRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/layout/Navbar';
+import { requestNotificationPermission } from '../utils/pushNotifications';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
@@ -44,6 +46,7 @@ const HouseIllustration = () => (
 );
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const { googleAuth } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -81,14 +84,16 @@ export default function LoginPage() {
     try {
       const result = await googleAuth(response.credential);
       if (result.needsProfile) {
-        toast.success('Please complete your profile');
+        toast.success(t('pleaseCompleteProfile'));
         navigate('/complete-profile', { replace: true });
       } else {
-        toast.success('Welcome back! 👋');
+        toast.success(t('welcomeBackHand'));
+        // Request notification permission on mobile (needs user gesture)
+        requestNotificationPermission().catch(() => {});
         navigate(from, { replace: true });
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Google login failed');
+      toast.error(err.response?.data?.message || t('googleLoginFailed'));
     } finally {
       setGoogleLoading(false);
     }
@@ -96,13 +101,13 @@ export default function LoginPage() {
 
   const handleGoogleLogin = () => {
     if (!GOOGLE_CLIENT_ID) {
-      toast('Google login not configured yet', { icon: '⚠️' });
+      toast(t('notConfigured'), { icon: '⚠️' });
       return;
     }
     if (window.google?.accounts?.id) {
       window.google.accounts.id.prompt();
     } else {
-      toast('Google Sign-In is loading, please try again', { icon: '⏳' });
+      toast(t('googleLoading'), { icon: '⏳' });
     }
   };
 
@@ -141,7 +146,7 @@ export default function LoginPage() {
             <HouseIllustration />
             <div className="text-left">
               <h1 className="font-display font-bold text-lg sm:text-xl text-surface-900 tracking-tight">
-                Welcome back!
+                {t('welcomeBack')}
               </h1>
               <p className="text-surface-500 text-[11px] sm:text-xs mt-0.5">
                 Sign in to your QuikDen account
@@ -167,7 +172,7 @@ export default function LoginPage() {
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
                 </svg>
               )}
-              <span>{googleLoading ? 'Signing in...' : 'Continue with Google'}</span>
+              <span>{googleLoading ? t('signingIn') : t('continueGoogle')}</span>
             </div>
             {!googleLoading && <ArrowRight size={14} className="text-surface-400" />}
           </button>
@@ -175,25 +180,25 @@ export default function LoginPage() {
           {/* Contact message */}
           <div className="mt-4 p-3 bg-surface-50 rounded-xl text-center">
             <p className="text-[11px] text-surface-500 leading-relaxed">
-              Don't have a Google account?{' '}
+              {t('noGoogleAccount')}{' '}
               <a
                 href="mailto:quikden.com@gmail.com"
                 className="text-primary-600 font-semibold hover:underline"
               >
-                Contact us
+                {t('contactUs')}
               </a>
-              {' '}and we'll help you get started.
+              {' '}{t('andHelp')}
             </p>
           </div>
 
           {/* Register link */}
           <p className="text-center text-[11px] sm:text-xs text-surface-500 mt-3">
-            New to QuikDen?{' '}
+            {t('newToQuikden')}{' '}
             <Link
               to="/register"
               className="text-primary-600 font-semibold hover:text-primary-700 hover:underline transition-colors inline-flex items-center gap-1"
             >
-              Create your account
+              {t('createAccount')}
               <ArrowRight size={14} />
             </Link>
           </p>
