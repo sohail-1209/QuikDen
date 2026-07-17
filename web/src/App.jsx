@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
+import Stars from './components/ui/Stars';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import DashboardLayout from './components/layout/DashboardLayout';
 
@@ -78,6 +79,7 @@ export default function App() {
       <AuthProvider>
         <SocketProvider>
           <BrowserRouter>
+            <Stars />
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 {/* ─ Public ─ */}

@@ -14,6 +14,7 @@ import { notificationsAPI } from '../../services/endpoints';
 import { timeAgo } from '../../utils/helpers';
 import Avatar from '../ui/Avatar';
 import LanguageSwitcher from '../ui/LanguageSwitcher';
+import LampToggle from '../ui/LampToggle';
 
 const NAV_ITEMS = [
   {
@@ -294,6 +295,7 @@ export default function Navbar() {
 
           {/* Right actions */}
           <div className="flex items-center gap-1">
+            <LampToggle />
             <LanguageSwitcher />
             {user ? (
               <>
