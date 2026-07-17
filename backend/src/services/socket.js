@@ -69,9 +69,9 @@ const initSocket = (io) => {
           return callback?.({ error: 'Unauthorized' });
         }
 
-        // Check if listing is still active
-        if (chat.listing && chat.listing.status !== 'ACTIVE') {
-          return callback?.({ error: 'This listing is no longer active. Messaging has been disabled.' });
+        // Check if listing has been deleted
+        if (chat.listing && chat.listing.status === 'DELETED') {
+          return callback?.({ error: 'This listing has been deleted. Messaging has been disabled.' });
         }
 
         const message = await prisma.message.create({

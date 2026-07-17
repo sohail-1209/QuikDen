@@ -238,7 +238,8 @@ const ChatWindow = ({ chatId, chat, otherUser, request: initialRequest, hideHead
       if (realMsg) {
         setMessages((prev) => prev.map((m) => m.id === tempMsg.id ? { ...realMsg, sender: m.sender } : m));
       }
-    } catch {
+    } catch (err) {
+      console.error("Message send REST error:", err?.response?.data || err);
       toast.error(t('failedToSend'));
       setInput(content);
       setMessages((prev) => prev.filter((m) => m.id !== tempMsg.id));
