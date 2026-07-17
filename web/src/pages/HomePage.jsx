@@ -273,8 +273,8 @@ export default function HomePage() {
                 className="flex items-center gap-3 p-3 sm:p-4 rounded-2xl bg-white/60 hover:bg-white/80 transition-all duration-300 group shadow-sm hover:shadow-md"
                 style={{ animation: `slide-up 0.4s cubic-bezier(0.16,1,0.3,1) ${idx * 80}ms both` }}
               >
-                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center text-white shadow-md group-hover:scale-110 transition-transform duration-300`}>
-                  <Icon size={18} />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center shrink-0 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                  <Icon size={18} className="text-primary-600" />
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-surface-800">{t(tKey)}</p>

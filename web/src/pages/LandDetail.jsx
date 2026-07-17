@@ -8,7 +8,7 @@ import { MapPin, Share2, Flag, Calendar, Eye, MessageCircle, LandPlot } from 'lu
 
 import { listingsAPI, savedAPI } from '../services/endpoints';
 import { useAuth } from '../context/AuthContext';
-import { formatRent, timeAgo } from '../utils/helpers';
+import { formatRent, formatNumber, timeAgo } from '../utils/helpers';
 import MapView from '../components/MapView';
 import NearbyPlaces from '../components/NearbyPlaces';
 import ReviewCard from '../components/ReviewCard';
@@ -152,7 +152,7 @@ export default function LandDetail() {
 
               {/* Views */}
               <div className="flex items-center gap-2 text-xs text-surface-400">
-                <Eye size={13} /> {data.views} {t('views')}
+                <Eye size={13} /> {formatNumber(data.views)} {t('views')}
               </div>
 
               {/* Actions */}

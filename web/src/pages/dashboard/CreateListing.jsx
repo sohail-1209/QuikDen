@@ -410,6 +410,30 @@ const CreateListing = () => {
 
     // Step 1 — Location
     <div key="location" className="space-y-4">
+      <div className="border-t border-surface-100 pt-4 mt-4">
+        <p className="text-sm font-semibold text-surface-700 mb-3">{t('exactLocationLabel')}</p>
+        <LocationPicker
+          latitude={form.latitude ? Number(form.latitude) : null}
+          longitude={form.longitude ? Number(form.longitude) : null}
+          onChange={(lat, lng) => {
+            set('latitude', String(lat));
+            set('longitude', String(lng));
+          }}
+          onAddressFill={(data) => {
+            setAddressInput(data.address || '');
+            setForm((prev) => ({
+              ...prev,
+              address: data.address || prev.address,
+              city: data.city || prev.city,
+              state: data.state || prev.state,
+              pincode: data.pincode || prev.pincode,
+              latitude: String(data.latitude || prev.latitude),
+              longitude: String(data.longitude || prev.longitude),
+            }));
+          }}
+        />
+      </div>
+
       <div className="relative">
         <Input
           label={t('searchFullAddress')}
@@ -466,6 +490,18 @@ const CreateListing = () => {
           onChange={(lat, lng) => {
             set('latitude', String(lat));
             set('longitude', String(lng));
+          }}
+          onAddressFill={(data) => {
+            setAddressInput(data.address || '');
+            setForm((prev) => ({
+              ...prev,
+              address: data.address || prev.address,
+              city: data.city || prev.city,
+              state: data.state || prev.state,
+              pincode: data.pincode || prev.pincode,
+              latitude: String(data.latitude || prev.latitude),
+              longitude: String(data.longitude || prev.longitude),
+            }));
           }}
         />
       </div>

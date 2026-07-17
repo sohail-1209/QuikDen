@@ -12,7 +12,7 @@ import {
 
 import { listingsAPI, requestsAPI, savedAPI } from '../services/endpoints';
 import { useAuth } from '../context/AuthContext';
-import { formatRent, getAmenityList, timeAgo } from '../utils/helpers';
+import { formatRent, formatNumber, getAmenityList, timeAgo } from '../utils/helpers';
 import MapView from '../components/MapView';
 import NearbyPlaces from '../components/NearbyPlaces';
 import ReviewCard from '../components/ReviewCard';
@@ -98,7 +98,7 @@ const ListingDetail = () => {
                 <MapPin size={15} /> {data.address}, {data.city}, {data.state}
               </div>
               <div className="flex items-center gap-4 text-sm text-surface-400">
-                <span className="flex items-center gap-1"><Eye size={14} /> {data.views} {t('views')}</span>
+                <span className="flex items-center gap-1"><Eye size={14} /> {formatNumber(data.views)} {t('views')}</span>
                 <span className="flex items-center gap-1"><Calendar size={14} /> {t('listed')} {timeAgo(data.createdAt)}</span>
               </div>
             </div>

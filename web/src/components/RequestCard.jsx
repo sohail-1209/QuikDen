@@ -22,7 +22,7 @@ const RequestCard = ({ request, userRole }) => {
   const photo = request.listing?.photos?.[0]?.url;
 
   return (
-    <div className="card p-4 flex gap-4 animate-slide-up">
+    <div className="card p-4 flex gap-4 animate-slide-up overflow-hidden">
       {/* Listing thumbnail */}
       <Link to={`/listing/${request.listing?.id}`} className="flex-shrink-0">
         <img
@@ -34,17 +34,17 @@ const RequestCard = ({ request, userRole }) => {
 
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
-          <div>
+          <div className="min-w-0 flex-1">
             <Link to={`/listing/${request.listing?.id}`} className="font-semibold text-surface-900 text-sm hover:text-primary-600 transition-colors line-clamp-1">
               {request.listing?.title}
             </Link>
             <div className="flex items-center gap-1 text-xs text-surface-400 mt-0.5">
-              <MapPin size={11} /> {request.listing?.city}
-              <span className="mx-1">·</span>
-              <span className="font-medium text-surface-700">{formatRent(request.listing?.rent)}/mo</span>
+              <MapPin size={11} className="flex-shrink-0" /> <span className="truncate">{request.listing?.city}</span>
+              <span className="mx-1 flex-shrink-0">·</span>
+              <span className="font-medium text-surface-700 flex-shrink-0">{formatRent(request.listing?.rent)}/mo</span>
             </div>
           </div>
-          <span className={`badge flex-shrink-0 text-xs ${requestStatusClass(request.status)}`}>
+          <span className={`badge flex-shrink-0 text-[10px] px-2 py-0.5 whitespace-nowrap ${requestStatusClass(request.status)}`}>
             {request.status}
           </span>
         </div>

@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { listingsAPI, requestsAPI } from '../../services/endpoints';
+import { formatRent, formatNumber } from '../../utils/helpers';
 import PageHeader from '../../components/layout/PageHeader';
 
 const StatCard = ({ label, value, description, icon: Icon, color }) => (
@@ -72,7 +73,7 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard
           label={t('totalViews')}
-          value={totalViews.toLocaleString('en-IN')}
+          value={formatNumber(totalViews)}
           description={t('acrossAll')}
           icon={Eye}
           color="bg-primary-600 shadow-lg shadow-primary-500/20"
@@ -86,7 +87,7 @@ export default function AnalyticsPage() {
         />
         <StatCard
           label={t('avgRent')}
-          value={`₹${avgRent.toLocaleString('en-IN')}`}
+          value={`₹${formatNumber(avgRent)}`}
           description={t('avgRentDesc')}
           icon={DollarSign}
           color="bg-success-500 shadow-lg shadow-success-500/20"
@@ -124,7 +125,7 @@ export default function AnalyticsPage() {
                   <div key={l.id} className="space-y-1.5">
                     <div className="flex justify-between items-center text-xs font-medium">
                       <span className="text-surface-700 truncate max-w-[80%]">{l.title}</span>
-                      <span className="text-surface-900 font-bold">{l.views ?? 0} {t('views')}</span>
+                      <span className="text-surface-900 font-bold">{formatNumber(l.views ?? 0)} {t('views')}</span>
                     </div>
                     <div className="h-2.5 w-full bg-surface-100 rounded-full overflow-hidden">
                       <div

@@ -2,6 +2,10 @@
 export const formatRent = (amount) =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
 
+// Format number in Indian style (x,xx,xxx)
+export const formatNumber = (num) =>
+  new Intl.NumberFormat('en-IN').format(num);
+
 // Relative time (e.g., "2 days ago") — uses i18n for locale-aware strings
 import i18n from '../i18n';
 
@@ -36,7 +40,7 @@ export const getAmenityList = (amenities) => {
     wifi: t('wifi'), ac: t('ac'), parking: t('parking'), fridge: t('fridge'),
     washingMachine: t('washingMachine'), kitchen: t('kitchen'), lift: t('lift'),
     gym: t('gym'), security: t('security'), powerBackup: t('powerBackup'),
-    waterSupply: t('waterSupply'), cctv: t('cctv'),
+    waterSupply: t('waterSupply'), cctv: t('cctv'), ventilation: t('ventilation'),
   };
   return Object.entries(map).filter(([key]) => amenities[key]).map(([, label]) => label);
 };

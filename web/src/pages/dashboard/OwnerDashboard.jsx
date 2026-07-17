@@ -9,7 +9,7 @@ import { useAuth } from '../../context/AuthContext';
 import { requestsAPI, listingsAPI } from '../../services/endpoints';
 import RequestCard from '../../components/RequestCard';
 import { useTranslation } from 'react-i18next';
-import { formatRent, getPrimaryPhoto, requestStatusClass } from '../../utils/helpers';
+import { formatRent, getPrimaryPhoto, requestStatusClass, formatNumber } from '../../utils/helpers';
 import Avatar from '../../components/ui/Avatar';
 
 // ── Analytics card ─────────────────────────────────────────────────────────────
@@ -77,7 +77,7 @@ const ListingRow = ({ listing }) => {
             {listing.isActive ? t('active') : t('inactive')}
           </span>
           <span className="text-xs text-surface-400 flex items-center gap-0.5">
-            <Eye size={11} /> {listing.views ?? 0} {t('views')}
+            <Eye size={11} /> {formatNumber(listing.views ?? 0)} {t('views')}
           </span>
         </div>
       </div>
@@ -168,7 +168,7 @@ export default function OwnerDashboard() {
         <AnalyticsCard
           icon={Eye}
           label={t('totalViews')}
-          value={totalViews.toLocaleString('en-IN')}
+          value={formatNumber(totalViews)}
           color="bg-violet-500"
           isLoading={listingsLoading}
         />

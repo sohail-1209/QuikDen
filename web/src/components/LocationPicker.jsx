@@ -1,4 +1,4 @@
-// LocationPicker — click on map or get current location to set coordinates
+// LocationPicker — click on map or get current location to set coordinates + auto-fill address
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import maplibregl from 'maplibre-gl';
@@ -7,14 +7,39 @@ import toast from 'react-hot-toast';
 import { MapPin, Crosshair, Loader2 } from 'lucide-react';
 
 const OPENFREEMAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty';
+const GEOAPIFY_KEY = 'c471b4637f644bbaa597b0103c703121';
 
-const LocationPicker = ({ latitude, longitude, onChange }) => {
+const LocationPicker = ({ latitude, longitude, onChange, onAddressFill }) => {
   const { t } = useTranslation();
   const mapContainer = useRef(null);
   const mapRef = useRef(null);
   const markerRef = useRef(null);
   const [gettingLocation, setGettingLocation] = useState(false);
   const [mapReady, setMapReady] = useState(false);
+
+  // Reverse geocode to fill address fields
+  const reverseGeocode = useCallback(async (lat, lng) => {
+    if (!onAddressFill) return;
+    try {
+      const res = await fetch(
+        `https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lng}&apiKey=${GEOAPIFY_KEY}&format=json&addressdetails=1`
+      );
+      const data = await res.json();
+      const feat = data.features?.[0];
+      if (!feat) return;
+      const addr = feat.properties;
+      onAddressFill({
+        address: addr.address_line1 || addr.formatted || '',
+        city: addr.city || addr.town || addr.village || addr.county || '',
+        state: addr.state || '',
+        pincode: addr.postcode || '',
+        latitude: lat,
+        longitude: lng,
+      });
+    } catch (err) {
+      console.error('Reverse geocode error:', err);
+    }
+  }, [onAddressFill]);
 
   const updateMarker = useCallback((lng, lat) => {
     if (!mapRef.current) return;
@@ -47,8 +72,11 @@ const LocationPicker = ({ latitude, longitude, onChange }) => {
 
     map.on('click', (e) => {
       const { lng, lat } = e.lngLat;
-      updateMarker(lng, lat);
-      onChange(Number(lat.toFixed(6)), Number(lng.toFixed(6)));
+      const fixedLat = Number(lat.toFixed(6));
+      const fixedLng = Number(lng.toFixed(6));
+      updateMarker(fixedLng, fixedLat);
+      onChange(fixedLat, fixedLng);
+      reverseGeocode(fixedLat, fixedLng);
     });
 
     mapRef.current = map;
@@ -86,6 +114,7 @@ const LocationPicker = ({ latitude, longitude, onChange }) => {
         const lng = Number(pos.coords.longitude.toFixed(6));
         updateMarker(lng, lat);
         onChange(lat, lng);
+        reverseGeocode(lat, lng);
         setGettingLocation(false);
         toast.success(t('locationSet'));
       },
