@@ -22,13 +22,13 @@ export default function MobileQuickNav() {
   const items = user?.role === 'OWNER' ? OWNER_ITEMS : TENANT_ITEMS;
 
   return (
-    <div className="lg:hidden flex gap-2 overflow-x-auto px-4 py-2 scrollbar-none">
+    <div className="lg:hidden flex gap-2 px-4 py-2">
       {items.map(({ to, icon: Icon, label }) => (
         <NavLink
           key={to}
           to={to}
           className={({ isActive }) =>
-            `flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all shrink-0 ${
+            `flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-xl text-xs font-medium transition-all ${
               isActive
                 ? 'bg-primary-50 text-primary-700 shadow-sm'
                 : 'bg-white text-surface-600 hover:bg-surface-50 border border-surface-100'

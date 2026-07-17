@@ -113,12 +113,12 @@ export default function RequestsPage() {
       </div>
 
       {/* ── Tabs ────────────────────────────────────────────────────────────── */}
-      <div className="flex gap-1 bg-surface-100 p-1 rounded-xl w-fit overflow-x-auto no-scrollbar">
+      <div className="flex gap-1 bg-surface-100 p-1 rounded-xl w-full">
         {TABS.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 whitespace-nowrap ${
+            className={`flex-1 flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-150 whitespace-nowrap ${
               activeTab === tab.key
                 ? 'bg-surface-50/80 text-surface-900 shadow-sm'
                 : 'text-surface-500 hover:text-surface-700'
@@ -127,7 +127,7 @@ export default function RequestsPage() {
             {t(tab.labelKey)}
             {counts[tab.key] > 0 && (
               <span
-                className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${
+                className={`text-[10px] sm:text-xs font-semibold px-1 sm:px-1.5 py-0.5 rounded-full ${
                   activeTab === tab.key ? TAB_BADGE[tab.key] : 'bg-surface-200 text-surface-500'
                 }`}
               >

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   Home, Eye, Clock, CheckCircle, Plus, ArrowRight,
-  TrendingUp, Building2,
+  Building2,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { requestsAPI, listingsAPI } from '../../services/endpoints';
@@ -12,26 +12,25 @@ import { useTranslation } from 'react-i18next';
 import { formatRent, getPrimaryPhoto, requestStatusClass, formatNumber } from '../../utils/helpers';
 import Avatar from '../../components/ui/Avatar';
 
-// ── Analytics card ─────────────────────────────────────────────────────────────
-const AnalyticsCard = ({ icon: Icon, label, value, color, sub, isLoading }) => (
-  <div className="card p-3 sm:p-5 flex flex-col gap-2 sm:gap-3">
-    <div className="flex items-center justify-between">
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color}`}>
-        <Icon size={18} className="text-white" />
-      </div>
-      {sub != null && (
-        <span className="text-xs text-emerald-600 font-medium flex items-center gap-0.5">
-          <TrendingUp size={12} /> {sub}
-        </span>
-      )}
+// ── Category-style card (matches homepage) ──────────────────────────────────────
+const CategoryCard = ({ to, icon: Icon, label, value, color, isLoading, delay = 0 }) => (
+  <Link
+    to={to}
+    className="flex items-center gap-3 p-3 sm:p-4 rounded-2xl bg-white/60 hover:bg-white/80 transition-all duration-300 group shadow-sm hover:shadow-md border border-surface-100"
+    style={{ animation: `slide-up 0.4s cubic-bezier(0.16,1,0.3,1) ${delay}ms both` }}
+  >
+    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0 shadow-sm group-hover:scale-110 transition-transform duration-300 ${color}`}>
+      <Icon size={18} className="text-white" />
     </div>
-    {isLoading ? (
-      <div className="skeleton h-8 w-14 rounded-lg" />
-    ) : (
-      <p className="text-3xl font-bold text-surface-900 font-display">{value}</p>
-    )}
-    <p className="text-xs text-surface-400 font-medium -mt-1">{label}</p>
-  </div>
+    <div className="flex-1 min-w-0">
+      {isLoading ? (
+        <div className="skeleton h-5 w-8 rounded-lg mb-1" />
+      ) : (
+        <p className="text-lg font-bold text-surface-900 font-display">{value}</p>
+      )}
+      <p className="text-xs text-surface-400 font-medium">{label}</p>
+    </div>
+  </Link>
 );
 
 // ── Skeleton for request cards ─────────────────────────────────────────────────
@@ -156,35 +155,43 @@ export default function OwnerDashboard() {
         </button>
       </div>
 
-      {/* ── Analytics cards ─────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <AnalyticsCard
+      {/* ── Analytics cards — Category card style ───────────────────────────── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <CategoryCard
+          to="/dashboard/listings"
           icon={Building2}
           label={t('totalListings')}
           value={totalListings}
           color="bg-primary-500"
           isLoading={listingsLoading}
+          delay={0}
         />
-        <AnalyticsCard
+        <CategoryCard
+          to="/dashboard/listings"
           icon={Eye}
           label={t('totalViews')}
           value={formatNumber(totalViews)}
           color="bg-violet-500"
           isLoading={listingsLoading}
+          delay={80}
         />
-        <AnalyticsCard
+        <CategoryCard
+          to="/dashboard/requests"
           icon={Clock}
           label={t('pendingRequests')}
           value={pendingRequests.length}
           color="bg-amber-500"
           isLoading={requestsLoading}
+          delay={160}
         />
-        <AnalyticsCard
+        <CategoryCard
+          to="/dashboard/requests"
           icon={CheckCircle}
           label={t('acceptedRequests')}
           value={acceptedRequestsCount}
           color="bg-emerald-500"
           isLoading={requestsLoading}
+          delay={240}
         />
       </div>
 

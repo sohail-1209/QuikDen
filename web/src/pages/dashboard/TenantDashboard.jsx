@@ -8,37 +8,24 @@ import { requestsAPI, savedAPI, chatAPI, listingsAPI } from '../../services/endp
 import RequestCard from '../../components/RequestCard';
 import Avatar from '../../components/ui/Avatar';
 
-// ── Stat card ─────────────────────────────────────────────────────────────────
-const StatCard = ({ icon: Icon, label, value, color, isLoading }) => (
-  <div className="card p-5 flex items-center gap-4">
-    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${color}`}>
-      <Icon size={22} className="text-white" />
+// ── Category-style card (matches homepage) ──────────────────────────────────────
+const CategoryCard = ({ to, icon: Icon, label, value, color, isLoading, delay = 0 }) => (
+  <Link
+    to={to}
+    className="flex items-center gap-3 p-3 sm:p-4 rounded-2xl bg-white/60 hover:bg-white/80 transition-all duration-300 group shadow-sm hover:shadow-md border border-surface-100"
+    style={{ animation: `slide-up 0.4s cubic-bezier(0.16,1,0.3,1) ${delay}ms both` }}
+  >
+    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0 shadow-sm group-hover:scale-110 transition-transform duration-300 ${color}`}>
+      <Icon size={18} className="text-white" />
     </div>
-    <div>
+    <div className="flex-1 min-w-0">
       {isLoading ? (
-        <div className="skeleton h-7 w-10 rounded-lg mb-1" />
+        <div className="skeleton h-5 w-8 rounded-lg mb-1" />
       ) : (
-        <p className="text-2xl font-bold text-surface-900 font-display">{value}</p>
+        <p className="text-lg font-bold text-surface-900 font-display">{value}</p>
       )}
       <p className="text-xs text-surface-400 font-medium">{label}</p>
     </div>
-  </div>
-);
-
-// ── Quick link button ──────────────────────────────────────────────────────────
-const QuickLink = ({ to, icon: Icon, label, description }) => (
-  <Link
-    to={to}
-    className="card card-hover p-4 flex items-center gap-3 group"
-  >
-    <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center flex-shrink-0 group-hover:bg-primary-100 transition-colors">
-      <Icon size={18} className="text-primary-600" />
-    </div>
-    <div className="flex-1 min-w-0">
-      <p className="font-semibold text-surface-800 text-sm">{label}</p>
-      <p className="text-xs text-surface-400 truncate">{description}</p>
-    </div>
-    <ArrowRight size={16} className="text-surface-300 group-hover:text-primary-500 transition-colors flex-shrink-0" />
   </Link>
 );
 
@@ -109,28 +96,34 @@ export default function TenantDashboard() {
         </div>
       </div>
 
-      {/* ── Stats row ───────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-        <StatCard
+      {/* ── Stats row — Category card style ──────────────────────────────────── */}
+      <div className="grid grid-cols-3 gap-3">
+        <CategoryCard
+          to="/dashboard/saved"
           icon={Bookmark}
           label={t('savedListings')}
           value={savedCount}
           color="bg-primary-500"
           isLoading={savedLoading}
+          delay={0}
         />
-        <StatCard
+        <CategoryCard
+          to="/dashboard/requests"
           icon={Send}
           label={t('activeRequests')}
           value={activeRequestsCount}
           color="bg-amber-500"
           isLoading={requestsLoading}
+          delay={80}
         />
-        <StatCard
+        <CategoryCard
+          to="/dashboard/chats"
           icon={MessageSquare}
           label={t('chats')}
           value={chatsCount}
           color="bg-emerald-500"
           isLoading={chatsLoading}
+          delay={160}
         />
       </div>
 
@@ -176,27 +169,36 @@ export default function TenantDashboard() {
         )}
       </section>
 
-      {/* ── Quick Links ─────────────────────────────────────────────────────── */}
+      {/* ── Quick Links — Category card style ──────────────────────────────────── */}
       <section>
         <h2 className="section-title mb-3 sm:mb-4">{t('quickLinks')}</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
-          <QuickLink
+        <div className="grid grid-cols-3 gap-3">
+          <CategoryCard
             to="/search"
             icon={Search}
             label={t('searchListings')}
-            description={t('findNextHome')}
+            value={t('findNextHome')}
+            color="bg-violet-500"
+            isLoading={false}
+            delay={0}
           />
-          <QuickLink
+          <CategoryCard
             to="/dashboard/saved"
             icon={Heart}
             label={t('savedListings')}
-            description={t('savedCount', { count: savedCount })}
+            value={`${savedCount} ${t('saved')}`}
+            color="bg-rose-500"
+            isLoading={savedLoading}
+            delay={80}
           />
-          <QuickLink
+          <CategoryCard
             to="/dashboard/chats"
             icon={MessageSquare}
             label={t('chats')}
-            description={t('activeConversations', { count: chatsCount })}
+            value={`${chatsCount} ${t('active')}`}
+            color="bg-teal-500"
+            isLoading={chatsLoading}
+            delay={160}
           />
         </div>
       </section>

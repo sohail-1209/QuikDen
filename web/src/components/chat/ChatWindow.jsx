@@ -283,8 +283,8 @@ const ChatWindow = ({ chatId, chat, otherUser, request: initialRequest, hideHead
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
-      <div className="px-4 py-3 border-t border-surface-100 bg-surface-50">
+      {/* Input — extra bottom padding on mobile to clear Xiayoki FAB */}
+      <div className="px-4 py-3 pb-20 sm:pb-3 border-t border-surface-100 bg-surface-50">
         {isRequestRejected ? (
           <p className="text-center text-xs text-surface-400">{t('messagingDisabled')}</p>
         ) : (
