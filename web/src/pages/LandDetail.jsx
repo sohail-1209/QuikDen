@@ -31,11 +31,6 @@ export default function LandDetail() {
     queryFn: () => listingsAPI.getOne(id).then((r) => r.data.data),
   });
 
-  const { mutate: toggleSave } = useMutation({
-    mutationFn: () => savedAPI.toggle(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['listing', id] }),
-  });
-
   const [showReport, setShowReport] = useState(false);
   const [showContact, setShowContact] = useState(false);
 
@@ -163,7 +158,7 @@ export default function LandDetail() {
                     <MessageCircle size={16} /> {t('contactOwner')}
                   </Button>
                   <div className="flex gap-2">
-                    <SaveButton listingId={data.id} isSaved={data.isSaved} onToggle={toggleSave} className="flex-1" />
+                    <SaveButton listingId={data.id} isSaved={data.isSaved} onToggle={() => qc.invalidateQueries({ queryKey: ['listing', id] })} className="flex-1" />
                     <button onClick={() => setShowReport(true)} className="btn-outline btn-sm flex-1 gap-1">
                       <Flag size={14} /> {t('report')}
                     </button>

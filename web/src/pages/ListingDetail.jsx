@@ -63,18 +63,18 @@ const ListingDetail = () => {
   });
 
   const { mutate: toggleSave } = useMutation({
-    mutationFn: () => localSaved ? savedAPI.unsave(id) : savedAPI.save(id),
-    onMutate: () => {
-      setLocalSaved((prev) => !prev);
+    mutationFn: (currentlySaved) => currentlySaved ? savedAPI.unsave(id) : savedAPI.save(id),
+    onMutate: (currentlySaved) => {
+      setLocalSaved(!currentlySaved);
     },
-    onSuccess: () => {
+    onSuccess: (res, currentlySaved) => {
       qc.invalidateQueries({ queryKey: ['listing', id] });
       qc.invalidateQueries({ queryKey: ['saved'] });
-      toast.success(localSaved ? t('saved') : t('removedFromSaved'));
+      toast.success(currentlySaved ? t('removedFromSaved') : t('saved'));
     },
-    onError: () => {
-      setLocalSaved((prev) => !prev);
-      toast.error(t('somethingWrong'));
+    onError: (err, currentlySaved) => {
+      setLocalSaved(currentlySaved);
+      toast.error(t('somethingWrong') || 'Something went wrong');
     },
   });
 
@@ -235,7 +235,7 @@ const ListingDetail = () => {
                       variant="outline"
                       size="md"
                       className="flex-1"
-                      onClick={() => toggleSave()}
+                      onClick={() => toggleSave(localSaved)}
                     >
                       <Heart size={16} className={localSaved ? 'fill-red-500 text-red-500' : 'text-surface-450 group-hover:text-red-400'} />
                       {localSaved ? t('saved') : t('save')}
