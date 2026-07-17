@@ -5,15 +5,15 @@ import { ListChecks, Heart, SendHorizontal } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const TENANT_ITEMS = [
-  { to: '/dashboard/my-listings', icon: ListChecks, label: 'myListingsMenu' },
-  { to: '/dashboard/saved', icon: Heart, label: 'savedListingsMenu' },
-  { to: '/dashboard/requests', icon: SendHorizontal, label: 'myRequestsMenu' },
+  { to: '/dashboard/my-listings', icon: ListChecks, label: 'My Listing' },
+  { to: '/dashboard/saved', icon: Heart, label: 'Saved Listings' },
+  { to: '/dashboard/requests', icon: SendHorizontal, label: 'My Requests' },
 ];
 
 const OWNER_ITEMS = [
-  { to: '/dashboard/listings', icon: ListChecks, label: 'myListingsMenu' },
-  { to: '/dashboard/saved', icon: Heart, label: 'savedListingsMenu' },
-  { to: '/dashboard/requests', icon: SendHorizontal, label: 'requestsMenu' },
+  { to: '/dashboard/listings', icon: ListChecks, label: 'My Listings' },
+  { to: '/dashboard/saved', icon: Heart, label: 'Saved Listings' },
+  { to: '/dashboard/requests', icon: SendHorizontal, label: 'requests' },
 ];
 
 export default function MobileQuickNav() {
@@ -28,10 +28,9 @@ export default function MobileQuickNav() {
           key={to}
           to={to}
           className={({ isActive }) =>
-            `flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-xl text-xs font-medium transition-all ${
-              isActive
-                ? 'bg-primary-50 text-primary-700 shadow-sm'
-                : 'bg-white text-surface-600 hover:bg-surface-50 border border-surface-100'
+            `flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-xl text-xs font-medium transition-all ${isActive
+              ? 'bg-primary-50 text-primary-700 shadow-sm'
+              : 'bg-white text-surface-600 hover:bg-surface-50 border border-surface-100'
             }`
           }
         >
