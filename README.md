@@ -1,135 +1,209 @@
-# Roomiee — Complete Product Plan & Documentation
+# Roomiee — Architecture & Codebase Documentation
 
 Roomiee is India's easiest platform to find rental houses, hostels, paying guest (PG) accommodations, roommate share listings, and manage listings for property owners.
 
 ---
 
-## Goal & Mission
+## Workspace Directory Map
 
-- **Find Rental Houses:** Browse and list entire apartments or houses for rent.
-- **Find Roommates:** Connect with other individuals looking for room sharing options.
-- **Hostel/PG Accommodations:** Browse/list hostels with multiple sharing options and pricing tiers.
-- **Trust & Reviews:** Build feedback loops between owners and tenants using ratings and reviews.
-- **Safe Communication:** Unlocked in-app real-time chat once requests are accepted.
-- **Facility Discovery:** Interactive mapping showing nearby schools, hospitals, metro stations, gyms, etc.
-- **AI Search:** Search properties using natural language query parsing (powered by LLM).
-- **Abuse Reporting:** Simple moderation mechanism for flagging fake listings or scams.
+The Roomiee workspace is divided into two primary sub-projects: `backend` (Node.js/Express api) and `web` (React/Vite single-page client).
 
----
-
-## Tech Stack
-
-### Frontend
-- **React (v19.2.7):** Core library for component-based rendering.
-- **Vite (v8.1.1):** Build tool and fast local dev server.
-- **React Router DOM (v7.18.1):** Client-side navigation.
-- **TanStack React Query (v5.101.2):** Server-state caching and synchronization.
-- **Tailwind CSS (v3.4.19):** Utility-first styling framework.
-- **Axios (v1.18.1):** HTTP requests with interceptors.
-- **Socket.io-client (v4.8.3):** Real-time web socket messaging.
-- **Leaflet & MapLibre GL JS:** Interactive map widgets and layers.
-- **Lucide React (v1.24.0):** Clean SVG icons.
-- **react-hot-toast:** Easy visual toasts.
-
-### Backend
-- **Node.js & Express (v5.2.1):** Server runtime and REST framework.
-- **Prisma (v6.19.3):** Modern database ORM.
-- **PostgreSQL:** Primary relational database (hosted via Supabase or Neon).
-- **Socket.io (v4.8.3):** Real-time web socket server.
-- **jsonwebtoken (v9.0.3):** Standard authentication via access and refresh tokens.
-- **bcryptjs (v3.0.3):** 12-round password hashing.
-- **Cloudinary (v1.41.3):** Image hosting, resizing, and optimizations.
-- **web-push (v3.6.7):** VAPID-based push notifications for PWAs.
-
-### AI Search & Intelligence
-- **OpenRouter API:** Harnesses free LLM endpoints (e.g. `mistralai/mistral-7b-instruct:free`) to convert plain language into structured filters.
-- **Fallback Regex Parser:** A local regex-based engine to handle queries when LLMs are offline (matching cities, BHKs, budget, types, etc.).
-- **Query Cache:** Caches AI parsed queries in memory to optimize rate limits.
-
----
-
-## User Roles & Permissions
-
-### 1. Guest (No Authentication)
-- Browse listings, use standard filters, view photos and interactive maps.
-- Use AI natural language search box.
-- Read reviews and browse host profiles.
-- *Cannot:* Chat, save listings to wishlist, send requests, or create properties.
-
-### 2. Tenant
-- Everything a Guest can do.
-- Save/unsave listings to their wishlist.
-- Send rental and room-sharing requests.
-- Chat with owners/hosts (unlocked only after a request is accepted).
-- Create "Room Sharing" listings to find roommates.
-- Sublet or post room shares from accepted bookings.
-- Review owners (1-5 stars with comments) and see owner's contact phone number.
-
-### 3. Owner
-- Everything a Guest can do.
-- List properties of any type: House Rental, Room Sharing, Hostel/PG, or Land Sale.
-- Accept or reject incoming requests from tenants.
-- Chat with tenants (unlocked once request is accepted).
-- Manage listing status (Active, Paused, Rented) and review performance analytics.
-- Rate tenants who rent or request listings.
-
-### 4. Admin
-- Access the Admin Dashboard dashboard tabs (Overview, Users, Listings, Reports).
-- Ban/unban users and verify listings.
-- Review flagged content (abuse reports) and update their statuses (Open, Resolved, Dismissed).
-- View global analytics (total users, active listings, requests, revenue).
-
----
-
-## Database Schema Overview
-
-```mermaid
-erDiagram
-    Users ||--o{ Listings : owns
-    Users ||--o{ Requests : sends
-    Users ||--o{ SavedListings : wishlists
-    Users ||--o{ Reviews : writes
-    Listings ||--o{ Photos : has
-    Listings ||--o| Amenities : features
-    Listings ||--o| RoomSharing : configured-for
-    Listings ||--o| HostelSharing : configured-for
-    HostelSharing ||--o{ HostelSharingTiers : options
-    Requests ||--o| Chats : initiates
-    Chats ||--o{ Messages : contains
+```
+roomiee/
+├── backend/                  # Server-side APIs and services
+│   ├── prisma/               # Prisma Database schemas and seeds
+│   └── src/
+│       ├── controllers/      # Route request handler logic
+│       ├── middleware/       # JWT auth, error formatting, inputs validation
+│       ├── routes/           # API path declarations & middleware bindings
+│       ├── scripts/          # DB data fixes and maintenance scripts
+│       ├── services/         # Third-party integrations (Cloudinary, Socket, AI)
+│       └── utils/            # Custom errors, async wrappers, DB clients
+└── web/                      # Client-side web portal
+    ├── public/               # Static assets & Manifest JSON
+    └── src/
+        ├── assets/           # Media elements (images, logo)
+        ├── components/       # Reusable React components (maps, search, layout)
+        ├── config/           # Firebase/SDK configurations
+        ├── context/          # Global React state contexts (auth, socket)
+        ├── locales/          # Localization translations (en, hi, te, ur)
+        ├── pages/            # Core views & Dashboards (guest, tenant, owner, admin)
+        ├── services/         # API HTTP Client client-requests mapping
+        └── utils/            # Helper functions (caching, formatting, compression)
 ```
 
-### Table Fields Summary
+---
 
-- **Users:** `id`, `name`, `email`, `phone`, `password` (hashed), `role`, `avgRating`, `profileImage`, `isBanned`, `fcmToken`, `createdAt`.
-- **Listings:** `id`, `ownerId`, `title`, `description`, `type` (Enum), `status` (Enum), `rent`, `deposit`, `maintenance`, `address`, `city`, `latitude`, `longitude`, `bedrooms`, `bathrooms`, `areaSqFt`, `furnished`, `availableFrom`, `views`, `createdAt`.
-- **Amenities:** `listingId` (unique), `wifi`, `parking`, `washingMachine`, `ac`, `fridge`, `kitchen`, `lift`, `gym`, `security`, `powerBackup`, `waterSupply`, `cctv`.
-- **Photos:** `id`, `listingId`, `url`, `publicId` (Cloudinary ID), `isPrimary`, `order`.
-- **RoomSharing:** `listingId` (unique), `genderRequired`, `minAge`, `maxAge`, `occupationPref`, `smoking`, `drinking`, `vegOnly`, `petsAllowed`, `currentOccupants`, `totalRooms`.
-- **HostelSharing:** `listingId` (unique), `genderRequired`, `minAge`, `maxAge`, `smoking`, `drinking`, `vegOnly`, `petsAllowed`.
-- **HostelSharingTiers:** `id`, `hostelSharingId`, `sharingSize`, `price`, `available`.
-- **Requests:** `id`, `listingId`, `tenantId`, `status` (PENDING, ACCEPTED, REJECTED), `message`, `createdAt`.
-- **SavedListings:** `id`, `userId`, `listingId`.
-- **Chats:** `id`, `ownerId`, `tenantId`, `listingId`, `requestId`.
-- **Messages:** `id`, `chatId`, `senderId`, `content`, `imageUrl`, `seen`, `createdAt`.
-- **Reviews:** `id`, `listingId` (optional), `reviewerId`, `receiverId`, `rating` (1-5), `comment`, `createdAt`.
-- **Reports:** `id`, `listingId`, `reporterId`, `reason` (Enum), `details`, `status` (OPEN, RESOLVED, DISMISSED), `createdAt`.
-- **Notifications:** `id`, `userId`, `title`, `body`, `type`, `data` (JSON), `read`, `createdAt`.
+## File-by-File Detailed Functionality
+
+### 1. Backend Codebase (`backend/src/`)
+
+#### Server Setup & Routing
+* **`index.js`** *(Server Bootstrapper)*
+  - Entrypoint of the backend application.
+  - Sets up Express, configures CORS and JSON parsers, registers request and cookie parsing middlewares.
+  - Initialises HTTP and Socket.io servers, mounting paths dynamically to routes defined under `routes/`.
+  - Configures global error handling logic using `error.middleware.js`.
+
+#### Controllers (`backend/src/controllers/`)
+* **`auth.controller.js`** *(User Authentication)*
+  - Handles `/register` and `/login` requests, implementing roles verification (Tenant, Owner) and checks for banned user status.
+  - Creates JWT access tokens (expires in 15m) and refresh tokens (expires in 7d).
+  - Handles HttpOnly cookie rotations, logout flows, and user profile queries `/me`.
+  - Manages patch requests for FCM tokens.
+* **`chat.controller.js`** *(Chat Threads Management)*
+  - Retrieves a list of active conversation threads (`/api/chats/`) with the last message contents, sender details, and aggregate unread counts.
+  - Retrieves paginated messages history for a given chatId (`/api/chats/:id/messages`) and flags unread messages as read.
+* **`listing.controller.js`** *(Listing CRUD)*
+  - Implements complete CRUD lifecycle for listings (House, Room, Hostel, Land).
+  - Handles nested relations: creates and updates secondary tables such as `Amenities`, `RoomSharing`, `HostelSharing`, and `HostelSharingTiers`.
+  - Manages listing states (`ACTIVE`, `PAUSED`, `RENTED`).
+  - Handles view count increments asynchronously (fire-and-forget).
+* **`notification.controller.js`** *(In-app Alerts history)*
+  - Exposes endpoints to retrieve the latest 50 notifications, mark individual notification read, or mark all as read.
+* **`report.controller.js`** *(Content Moderation Flags)*
+  - Handles reporting a listing.
+  - Handles admin listing query of reports and status patch requests (`OPEN`, `RESOLVED`, `DISMISSED`).
+* **`request.controller.js`** *(Rental & roommate requests flow)*
+  - Processes tenancy requests. Prevents duplicate requests or self-requests.
+  - Handles request approvals/rejections by owners. Approving atomic-creates a Chat room.
+  - Reveals owner phone number upon acceptance.
+* **`review.controller.js`** *(Trust ratings)*
+  - Manages feedback ratings (1-5 stars) and comments. Prevents duplicate submissions and self-rating.
+  - Recalculates user overall rating average (`avgRating`) and total feedback counters.
+* **`saved.controller.js`** *(Wishlists)*
+  - Toggles saving/unsaving properties and queries tenant-saved lists.
+* **`search.controller.js`** *(Search Engines)*
+  - Combines SQL full-text searches with multi-field parameters (city, budget, type).
+  - Triggers the AI prompt query parsing service or invokes the regex fallback mapping.
+* **`upload.controller.js`** *(Cloudinary upload integrations)*
+  - Accepts image arrays (multer) and routes them to Cloudinary (compresses to JPG, limits size).
+  - Manages deletion endpoints (removes files from database and triggers deletion on Cloudinary servers).
+* **`user.controller.js`** *(Profiles)*
+  - Exposes public profile information and handles user bio or name updates.
+* **`xiayoki.controller.js`** *(Chatbot router API)*
+  - Processes input query parameters, retrieves chat context history, forwards requests to the AI bot agent service, and returns structured navigation buttons in JSON.
+
+#### Middleware (`backend/src/middleware/`)
+* **`auth.middleware.js`** *(Session validations)*
+  - Standard JWT token validation checks. Extractor attaches current profile details. Blocks access to banned accounts. Supports optional extractor mode (allows guest requests through).
+* **`error.middleware.js`** *(Error formatter)*
+  - Translates operational exceptions and database codes (Prisma duplicate key warnings, syntax errors) into structured JSON responses.
+* **`validate.middleware.js`** *(Input filters)*
+  - Integrates `express-validator` to intercept and check input payloads (fields formatting, requirements, values ranges) before hitting controllers.
+
+#### Routes (`backend/src/routes/`)
+* Declares standard REST path setups linking specific controller callbacks to routes (e.g. `/api/auth`, `/api/listings`, `/api/search`, `/api/chats`, `/api/admin`, etc.).
+
+#### Services (`backend/src/services/`)
+* **`ai.service.js`** *(OpenRouter LLM Interface)*
+  - Interacts with OpenRouter endpoints using model configurations to interpret plain text inputs and translate them into query parameters.
+* **`auth.service.js`** *(JWT Signer)*
+  - Utilities for token generation, verification, and rotation.
+* **`cloudinary.service.js`** *(Media Storage Client)*
+  - Handles Cloudinary API actions (image uploads, gravity-cropped profile photos, delete assets).
+* **`email.service.js`** *(Mailer)*
+  - Handles transactional emails (welcome notifications, verification checks).
+* **`notification.service.js`** *(Alerts Broadcaster)*
+  - Multiplexes alerts: creates DB notification entries, sends push alerts via FCM for PWAs, and pushes web-push updates.
+* **`socket.js`** *(Real-Time Server)*
+  - Handles Socket.io connections: joins active chat rooms, broadcasts typing events, registers seen states, and emits incoming real-time messages.
+* **`xiayoki.service.js`** *(Chatbot Agent)*
+  - Stores system prompt persona guidelines for the assistant, handles conversational threads, formats answers, and embeds clickable route redirects.
+
+#### Utilities (`backend/src/utils/`)
+* **`AppError.js`** - Custom error class extension identifying operational errors.
+* **`asyncHandler.js`** - Eliminates repetitive try-catch blocks in Express controller callbacks.
+* **`prisma.js`** - Initialises the singleton instance of the Prisma client database connector.
 
 ---
 
-## Key Page Routes
+### 2. Frontend Web Codebase (`web/src/`)
 
-### Public Pages
-- `/` - **Home Page:** Hero search, city quick links, stats, and guides.
-- `/search` - **Search Page:** Filter sidebar, results grid, and AI search switcher.
-- `/listing/:id` / `/room/:id` / `/hostel/:id` / `/land/:id` - **Details Pages:** Displays photo galleries, amenities, maps, nearby amenities, and owner profiles.
-- `/login` & `/register` - **Auth Pages:** Split-screen authentication.
+#### State & Config Providers
+* **`main.jsx`** *(Bootstrap)*
+  - Binds App container, React Query Cache manager, Socket connection provider, and session contexts.
+* **`i18n.js`** *(Localisation)*
+  - Configurations for English, Hindi, Telugu, and Urdu language maps.
+* **`context/AuthContext.jsx`** *(User State Provider)*
+  - Stores current session details, intercepts API responses to automatically handle JWT rotations, and exposes login and logout functions.
+* **`context/SocketContext.jsx`** *(Real-Time Communications)*
+  - Establishes connection state to the socket server, syncs typing indicators, tracks unread counts, and updates chat screens.
+* **`config/firebase.js`** - Stores configurations for Firebase PWA push alerts.
 
-### Dashboards (Protected)
-- `/dashboard/tenant` - **Tenant Home:** Wishlists, outgoing request logs, and chat summaries.
-- `/dashboard/owner` - **Owner Home:** Listed properties, incoming requests, views/clicks charts.
-- `/dashboard/listings/new` - **Listing Creator:** Interactive maps picker, dynamic forms by type.
-- `/dashboard/chats` - **Chat Hub:** Conversations threads with unread indicators and active bubbles.
+#### Base Layouts (`web/src/components/layout/`)
+* **`Navbar.jsx`** *(Navigation Top Bar)*
+  - Handles logo display, language selector dropdown, in-app notifications panels (swipe-to-delete), avatar menu redirects, and public mobile menu drawer.
+* **`IconSidebar.jsx`** & **`Sidebar.jsx`** *(Side Panel layout)*
+  - Responsive dashboards control panels mapping specific paths (listings, saved, profile).
+* **`DashboardLayout.jsx`** - Main wrapper structure binding sidebar and pages.
+* **`ProtectedRoute.jsx`** - Restricts path listings to registered users or specific roles.
 
-### Administration
-- `/admin/*` - **Admin Panels:** Global analytical counts, report resolution controls, and user restrictions.
+#### Core Page Views (`web/src/pages/`)
+* **`HomePage.jsx`** *(Landing Portal)*
+  - Includes search bars, popular city links, recent listings grids, and stats.
+* **`SearchPage.jsx`** *(Search Portal)*
+  - Hosts dual-mode toggle search (Basic and AI options) with filter sliders, badges, and paginated results list.
+* **`ListingDetail.jsx`**, **`RoomDetail.jsx`**, **`HostelDetail.jsx`**, **`LandDetail.jsx`** *(Details)*
+  - Formats image galleries, details (rent, maintenance, availability, rules), maps, lists nearby amenities, lets user save to wishlist, write reviews, and send a booking request.
+* **`LoginPage.jsx`** & **`RegisterPage.jsx`** *(Authentication)*
+  - Multi-form credentials validation screens.
+
+#### Dashboards Pages (`web/src/pages/dashboard/`)
+* **`TenantDashboard.jsx`** & **`OwnerDashboard.jsx`** *(Dashboards)*
+  - Summarises user metrics (Wishlisted, Active requests, Chats, Views) using glass-card widgets.
+* **`CreateListing.jsx`** *(Listing Builder)*
+  - Forms with conditional fields based on listing type (amenities checklists, hostel occupancy tiers, land specifics) and maps coordinates picker.
+* **`RequestsPage.jsx`** - Manages requests history and approvals.
+* **`SavedPage.jsx`** - Grid lists user bookmarked items.
+* **`ChatPage.jsx`** - Handles real-time chats with typing indicators and image upload fallbacks.
+
+#### Reusable Utility Components (`web/src/components/`)
+* **`MapView.jsx`** - Leaflet canvas plotting coordinates with privacy offsets.
+* **`LocationPicker.jsx`** - OpenStreetMap pin drop mapping tool.
+* **`NearbyPlaces.jsx`** - Overpass API scanner listing facilities in radius.
+* **`ImageGallery.jsx`** - Carousel gallery overlay.
+* **`xiayoki/XiayokiChatbot.jsx`** *(Draggable Bot FAB)*
+  - Renders the floating chatbot.
+  - Implements pointer and touch event drag tracking.
+  - Feeds drag displacements to target styled containers using CSS variables, while disabling dragging animations on mobile screens.
+
+#### Client Utils (`web/src/utils/`)
+* **`compressImage.js`** - Resizes and compresses image attachments before uploads to save bandwidth.
+* **`helpers.js`** - Currency formatters, time-ago text, and distance validators.
+
+---
+
+## Architecture & Flows
+
+### Authentication Flow
+
+```mermaid
+sequenceGroup Auth JWT Flow
+    Client ->> Server: login (credentials)
+    Server -->> Client: returns accessToken (JSON) + HttpOnly refreshToken (Cookie)
+    Note over Client: Stores accessToken in state; attaches header Bearer token to all Axios calls.
+    ... 15 minutes passes ...
+    Client ->> Server: Any request (expired token)
+    Server -->> Client: 401 Unauthorized
+    Client ->> Server: /api/auth/refresh (Cookie read)
+    Server -->> Client: new accessToken (JSON)
+    Client ->> Server: Re-runs original request
+```
+
+### Tenancy Request & Chat Creation Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Tenant
+    actor Owner
+    Tenant->>Server: POST /api/requests (listingId)
+    Server-->>Owner: Emit in-app notification (FCM/DB)
+    Owner->>Server: PATCH /api/requests/:id (ACCEPTED)
+    Note over Server: Atomic transaction: set status ACCEPTED and create Chat
+    Server-->>Tenant: Notify Accepted status
+    Tenant->>Server: GET /api/requests/:id/contact
+    Server-->>Tenant: Return Owner phone number
+    Note over Tenant, Owner: Socket.io real-time chat unlocked
+```
