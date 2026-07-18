@@ -37,6 +37,12 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (payload) => {
     const { data } = await authAPI.register(payload);
+    if (data.success && data.data?.accessToken) {
+      localStorage.setItem('accessToken', data.data.accessToken);
+      if (data.data.refreshToken) localStorage.setItem('refreshToken', data.data.refreshToken);
+      setUser(data.data.user);
+      subscribeToPush().catch(() => {});
+    }
     return data;
   };
 

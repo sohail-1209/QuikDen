@@ -137,22 +137,15 @@ const RegisterPage = () => {
     if (!validate()) return;
     setLoading(true);
     try {
-      const response = await register({
+      await register({
         name: form.name.trim(),
         email: form.email.trim(),
         phone: form.phone,
         password: form.password,
         role: form.role,
       });
-      toast.success(t('verificationOtpSent', 'Verification OTP sent to your phone.'));
-      
-      const mockOtp = response.data?.otp;
-      const targetUserId = response.data?.userId || response.userId;
-      
-      navigate(`/verify-otp?userId=${targetUserId}`, {
-        state: { mockOtp },
-        replace: true
-      });
+      toast.success(t('welcomeHand', 'Welcome! 👋'));
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       toast.error(err.response?.data?.message || t('signupFailed', 'Registration failed'));
     } finally {

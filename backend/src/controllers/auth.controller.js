@@ -61,20 +61,12 @@ const register = asyncHandler(async (req, res) => {
   if (existing) {
     if (existing.isVerified) throw new AppError('Email or phone already registered', 409);
     
-    // Unverified user — regenerate token and send OTP again
-    const { token: otp } = await generateVerificationToken(existing.id);
-    const smsResult = await sendSMSOTP(phone || existing.phone, otp);
-    
-    res.status(201).json({
-      success: true,
-      message: 'Account created. Please verify your mobile number.',
-      data: {
-        userId: existing.id,
-        email: existing.email,
-        phone: existing.phone,
-        ...(smsResult.success ? {} : { otp: smsResult.otp }),
-      },
+    // Unverified user — auto-verify now and login
+    const updated = await prisma.user.update({
+      where: { id: existing.id },
+      data: { isVerified: true },
     });
+    await sendTokens(updated, res, 200);
     return;
   }
 
@@ -82,22 +74,10 @@ const register = asyncHandler(async (req, res) => {
 
   const hashed = await bcrypt.hash(password, 12);
   const user = await prisma.user.create({
-    data: { name, email, phone, password: hashed, role: allowedRole, isVerified: false },
+    data: { name, email, phone, password: hashed, role: allowedRole, isVerified: true },
   });
 
-  const { token: otp } = await generateVerificationToken(user.id);
-  const smsResult = await sendSMSOTP(user.phone, otp);
-
-  res.status(201).json({
-    success: true,
-    message: 'Account created. Please verify your mobile number.',
-    data: {
-      userId: user.id,
-      email: user.email,
-      phone: user.phone,
-      ...(smsResult.success ? {} : { otp: smsResult.otp }),
-    },
-  });
+  await sendTokens(user, res, 201);
 });
 
 // ─── Resend OTP ───────────────────────────────
