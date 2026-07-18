@@ -21,6 +21,7 @@ const LoginPage      = lazy(() => import('./pages/LoginPage'));
 const RegisterPage   = lazy(() => import('./pages/RegisterPage'));
 const CompleteProfilePage = lazy(() => import('./pages/CompleteProfilePage'));
 const VerifyEmailPage     = lazy(() => import('./pages/VerifyEmailPage'));
+const VerifyOtpPage       = lazy(() => import('./pages/VerifyOtpPage'));
 const ChatPage       = lazy(() => import('./pages/ChatPage'));
 const ProfilePage    = lazy(() => import('./pages/ProfilePage'));
 const AboutPage      = lazy(() => import('./pages/AboutPage'));
@@ -126,6 +127,7 @@ export default function App() {
                 <Route path="/login"    element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/verify-email" element={<VerifyEmailPage />} />
+                <Route path="/verify-otp"   element={<VerifyOtpPage />} />
                 <Route path="/complete-profile" element={<CompleteProfilePage />} />
 
                 {/* ─ Dashboard redirect ─ */}

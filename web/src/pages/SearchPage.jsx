@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Sparkles, Search, SlidersHorizontal, ArrowUpDown, Home, Building2, Users, LandPlot, Grid } from 'lucide-react';
+import { Sparkles, Search, SlidersHorizontal, ArrowUpDown, Home, Building2, Users, LandPlot, Grid, PanelLeftOpen, PanelLeftClose } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 
@@ -9,18 +9,21 @@ import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import ListingFilters from '../components/listing/ListingFilters';
 import ListingGrid from '../components/listing/ListingGrid';
-import { searchAPI, listingsAPI } from '../services/endpoints';
+import { searchAPI, listingsAPI, savedAPI } from '../services/endpoints';
+import { useAuth } from '../context/AuthContext';
 import { Button, Input, Select } from '../components/ui/index.js';
 import SEO from '../components/SEO';
 
 const SearchPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isAiMode, setIsAiMode] = useState(false);
   const [aiQuery, setAiQuery] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [parsedAiFilters, setParsedAiFilters] = useState(null);
+  const [desktopFiltersOpen, setDesktopFiltersOpen] = useState(true);
 
   // Sync search parameters from URL
   const filters = {
@@ -73,6 +76,14 @@ const SearchPage = () => {
       return listingsAPI.getAll(params).then((r) => r.data);
     },
   });
+
+  const { data: savedData } = useQuery({
+    queryKey: ['saved'],
+    queryFn: () => savedAPI.getAll().then((r) => r.data.data),
+    enabled: !!user,
+    staleTime: 1000 * 60 * 2,
+  });
+  const savedIds = new Set((savedData ?? []).map((l) => l.id));
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -264,10 +275,13 @@ const SearchPage = () => {
         </div>
 
         {/* ─── Main Grid Layout ────────────────────────────────────────────── */}
-        <div className="flex gap-8">
-          {/* Sidebar Filters (Desktop) */}
-          <div className="hidden lg:block w-72 flex-shrink-0">
-            <div className="card p-5 sticky top-24">
+        <div className="flex gap-6">
+          {/* Sidebar Filters (Desktop) — collapsible */}
+          <div
+            className="hidden lg:block flex-shrink-0 overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+            style={{ width: desktopFiltersOpen ? '18rem' : '0rem' }}
+          >
+            <div className="card p-5 sticky top-24" style={{ width: '18rem' }}>
               <div className="flex items-center justify-between mb-4 pb-4 border-b border-surface-100">
                 <h3 className="font-display font-semibold text-base text-surface-900 flex items-center gap-2">
               <SlidersHorizontal size={16} /> {t('filters')}
@@ -287,7 +301,19 @@ const SearchPage = () => {
           </div>
 
           {/* Results column */}
-          <div className="flex-grow">
+          <div className="flex-grow min-w-0">
+            {/* Desktop filter toggle button */}
+            <div className="hidden lg:flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setDesktopFiltersOpen((v) => !v)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl border border-surface-200 bg-white/80 text-surface-600 hover:bg-surface-50 hover:text-surface-800 transition-all duration-200 text-sm font-medium shadow-sm"
+                >
+                  {desktopFiltersOpen ? <PanelLeftClose size={16} strokeWidth={2} /> : <PanelLeftOpen size={16} strokeWidth={2} />}
+                  {desktopFiltersOpen ? (t('hideFilters') || 'Hide Filters') : (t('showFilters') || 'Show Filters')}
+                </button>
+              </div>
+            </div>
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-surface-500 font-medium">
                 {t('showing', { count: data?.data?.length || 0 })}
@@ -306,7 +332,7 @@ const SearchPage = () => {
               </div>
             </div>
 
-            <ListingGrid listings={data?.data || []} isLoading={isLoading} />
+            <ListingGrid listings={data?.data || []} isLoading={isLoading} savedIds={savedIds} />
 
             {/* Pagination */}
             {totalPages > 1 && (

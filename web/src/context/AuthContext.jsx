@@ -96,6 +96,11 @@ export const AuthProvider = ({ children }) => {
     return data.data.user;
   };
 
+  const resendOtp = async (userId) => {
+    const { data } = await authAPI.resendOtp(userId);
+    return data;
+  };
+
   const logout = async () => {
     await authAPI.logout().catch(() => {});
     localStorage.removeItem('accessToken');
@@ -108,7 +113,7 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider value={{
       user, loading, login, register, logout, updateUser,
-      googleAuth, completeProfile, sendVerificationEmail, verifyEmail, confirmEmailVerified,
+      googleAuth, completeProfile, sendVerificationEmail, verifyEmail, confirmEmailVerified, resendOtp,
     }}>
       {children}
     </AuthContext.Provider>

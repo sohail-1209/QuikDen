@@ -1,8 +1,7 @@
-// LoginPage — Google-only sign in
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Mail, Lock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { useAuth } from '../context/AuthContext';
@@ -48,10 +47,15 @@ const HouseIllustration = () => (
 
 export default function LoginPage() {
   const { t } = useTranslation();
-  const { googleAuth } = useAuth();
+  const { login, googleAuth } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [googleLoading, setGoogleLoading] = useState(false);
+  
+  // Normal Login states
+  const [form, setForm] = useState({ email: '', password: '' });
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const from = location.state?.from?.pathname ?? '/dashboard';
 
@@ -85,16 +89,16 @@ export default function LoginPage() {
     try {
       const result = await googleAuth(response.credential);
       if (result.needsProfile) {
-        toast.success(t('pleaseCompleteProfile'));
+        toast.success(t('pleaseCompleteProfile', 'Please complete your profile'));
         navigate('/complete-profile', { replace: true });
       } else {
-        toast.success(t('welcomeBackHand'));
+        toast.success(t('welcomeBackHand', 'Welcome back! 👋'));
         // Request notification permission and subscribe (needs user gesture on mobile)
         requestNotificationPermission().then(() => subscribeToPush()).catch(() => {});
         navigate(from, { replace: true });
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || t('googleLoginFailed'));
+      toast.error(err.response?.data?.message || t('googleLoginFailed', 'Google login failed'));
     } finally {
       setGoogleLoading(false);
     }
@@ -102,13 +106,49 @@ export default function LoginPage() {
 
   const handleGoogleLogin = () => {
     if (!GOOGLE_CLIENT_ID) {
-      toast(t('notConfigured'), { icon: '⚠️' });
+      toast(t('notConfigured', 'Google Sign-In is not configured'), { icon: '⚠️' });
       return;
     }
     if (window.google?.accounts?.id) {
       window.google.accounts.id.prompt();
     } else {
-      toast(t('googleLoading'), { icon: '⏳' });
+      toast(t('googleLoading', 'Loading Google Sign-In...'), { icon: '⏳' });
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: undefined }));
+  };
+
+  const validate = () => {
+    const e = {};
+    if (!form.email.trim()) e.email = t('emailRequired', 'Email is required');
+    else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = t('invalidEmail', 'Enter a valid email');
+    if (!form.password) e.password = t('passwordRequired', 'Password is required');
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+    setLoading(true);
+    try {
+      await login({ email: form.email.trim(), password: form.password });
+      toast.success(t('welcomeBackHand', 'Welcome back! 👋'));
+      requestNotificationPermission().then(() => subscribeToPush()).catch(() => {});
+      navigate(from, { replace: true });
+    } catch (err) {
+      if (err.response?.status === 403 && err.response?.data?.data?.needsVerification) {
+        toast.error(err.response?.data?.message || 'Verification required');
+        navigate(`/verify-otp?userId=${err.response.data.data.userId}`, { replace: true });
+      } else {
+        toast.error(err.response?.data?.message || t('loginFailed', 'Login failed'));
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -153,7 +193,7 @@ export default function LoginPage() {
             <HouseIllustration />
             <div className="text-left">
               <h1 className="font-display font-bold text-lg sm:text-xl text-surface-900 tracking-tight">
-                {t('welcomeBack')}
+                {t('welcomeBack', 'Welcome Back')}
               </h1>
               <p className="text-surface-500 text-[11px] sm:text-xs mt-0.5">
                 Sign in to your QuikDen account
@@ -165,7 +205,7 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={handleGoogleLogin}
-            disabled={googleLoading}
+            disabled={googleLoading || loading}
             className="w-full flex items-center justify-between border border-surface-200 rounded-xl px-3 py-2.5 text-[13px] font-medium text-surface-700 bg-white hover:bg-surface-50 hover:border-surface-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <div className="flex items-center gap-2.5">
@@ -179,33 +219,89 @@ export default function LoginPage() {
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
                 </svg>
               )}
-              <span>{googleLoading ? t('signingIn') : t('continueGoogle')}</span>
+              <span>{googleLoading ? t('signingIn', 'Signing In...') : t('continueGoogle', 'Continue with Google')}</span>
             </div>
             {!googleLoading && <ArrowRight size={14} className="text-surface-400" />}
           </button>
 
+          {/* Divider */}
+          <div className="flex items-center my-4">
+            <div className="flex-grow border-t border-surface-200"></div>
+            <span className="mx-3 text-[10px] font-semibold text-surface-400 uppercase tracking-wider">{t('or', 'or')}</span>
+            <div className="flex-grow border-t border-surface-200"></div>
+          </div>
+
+          {/* Normal Login Form */}
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div>
+              <label htmlFor="login-email" className="block text-[11px] font-medium text-surface-700 mb-0.5">{t('email', 'Email Address')}</label>
+              <div className="relative">
+                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-surface-400 pointer-events-none"><Mail size={13} /></span>
+                <input
+                  id="login-email"
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  placeholder={t('emailPlaceholder', 'name@example.com')}
+                  className={`w-full pl-8 pr-2.5 py-1.5 rounded-lg border text-[13px] bg-surface-50/50 text-surface-900 placeholder:text-surface-400 transition-all focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 ${errors.email ? 'border-red-400 ring-red-100 ring-2' : 'border-surface-200'}`}
+                />
+              </div>
+              {errors.email && <p className="text-[10px] text-red-500 mt-0.5">{errors.email}</p>}
+            </div>
+
+            <div>
+              <label htmlFor="login-password" className="block text-[11px] font-medium text-surface-700 mb-0.5">{t('password', 'Password')}</label>
+              <div className="relative">
+                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-surface-400 pointer-events-none"><Lock size={13} /></span>
+                <input
+                  id="login-password"
+                  name="password"
+                  type="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  placeholder={t('passwordPlaceholder', '••••••••')}
+                  className={`w-full pl-8 pr-2.5 py-1.5 rounded-lg border text-[13px] bg-surface-50/50 text-surface-900 placeholder:text-surface-400 transition-all focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 ${errors.password ? 'border-red-400 ring-red-100 ring-2' : 'border-surface-200'}`}
+                />
+              </div>
+              {errors.password && <p className="text-[10px] text-red-500 mt-0.5">{errors.password}</p>}
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading || googleLoading}
+              className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-gradient-to-r from-primary-500 to-primary-600 text-white text-sm font-semibold shadow-lg shadow-primary-500/25 hover:shadow-xl hover:from-primary-600 hover:to-primary-700 active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed mt-4"
+            >
+              {loading ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>{t('signIn', 'Sign In')} <ArrowRight size={14} /></>
+              )}
+            </button>
+          </form>
+
           {/* Contact message */}
           <div className="mt-4 p-3 bg-surface-50 rounded-xl text-center">
             <p className="text-[11px] text-surface-500 leading-relaxed">
-              {t('noGoogleAccount')}{' '}
+              {t('noGoogleAccount', 'Don’t have a Google Account?')}{' '}
               <a
                 href="mailto:quikden.com@gmail.com"
                 className="text-primary-600 font-semibold hover:underline"
               >
-                {t('contactUs')}
+                {t('contactUs', 'Contact Us')}
               </a>
-              {' '}{t('andHelp')}
+              {' '}{t('andHelp', 'and we will help you sign in.')}
             </p>
           </div>
 
           {/* Register link */}
           <p className="text-center text-[11px] sm:text-xs text-surface-500 mt-3">
-            {t('newToQuikden')}{' '}
+            {t('newToQuikden', 'New to Quikden?')}{' '}
             <Link
               to="/register"
               className="text-primary-600 font-semibold hover:text-primary-700 hover:underline transition-colors inline-flex items-center gap-1"
             >
-              {t('createAccount')}
+              {t('createAccount', 'Create Account')}
               <ArrowRight size={14} />
             </Link>
           </p>

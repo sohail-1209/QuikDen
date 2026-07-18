@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const {
   register,
+  resendOtp,
   login,
   refresh,
   logout,
@@ -19,6 +20,7 @@ const { validate } = require('../middleware/validate.middleware');
 const registerRules = [
   body('name').trim().notEmpty().withMessage('Name required'),
   body('email').isEmail().withMessage('Valid email required'),
+  body('phone').trim().notEmpty().withMessage('Phone number required').matches(/^(?:\+91|91)?[6-9]\d{9}$/).withMessage('Valid 10-digit Indian phone number required'),
   body('password').isLength({ min: 6 }).withMessage('Min 6 chars'),
 ];
 const loginRules = [
@@ -27,6 +29,7 @@ const loginRules = [
 ];
 
 router.post('/register', registerRules, validate, register);
+router.post('/resend-otp', resendOtp);
 router.post('/login', loginRules, validate, login);
 router.post('/refresh', refresh);
 router.post('/logout', logout);

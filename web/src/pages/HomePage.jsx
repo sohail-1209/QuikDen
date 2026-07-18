@@ -6,7 +6,8 @@ import {
   Search, MapPin, Home, Users, BedDouble, LandPlot, SlidersHorizontal,
   ArrowRight, Sparkles, Shield, Building2, Star, TrendingUp, Zap, CheckCircle,
 } from 'lucide-react';
-import { listingsAPI } from '../services/endpoints';
+import { listingsAPI, savedAPI } from '../services/endpoints';
+import { useAuth } from '../context/AuthContext';
 import ListingCard from '../components/listing/ListingCard';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
@@ -136,6 +137,15 @@ export default function HomePage() {
   const [typedText, setTypedText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const loaderRef = useRef(null);
+  const { user } = useAuth();
+
+  const { data: savedData } = useQuery({
+    queryKey: ['saved'],
+    queryFn: () => savedAPI.getAll().then((r) => r.data.data),
+    enabled: !!user,
+    staleTime: 1000 * 60 * 2,
+  });
+  const savedIds = new Set((savedData ?? []).map((l) => l.id));
 
   useEffect(() => {
     const t = setTimeout(() => setHeroVisible(true), 100);
@@ -349,7 +359,7 @@ export default function HomePage() {
             ? Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} index={i} />)
             : listings.map((listing, i) => (
               <div key={listing.id} className="h-full" style={{ animation: `slide-up 0.4s cubic-bezier(0.16,1,0.3,1) ${i * 50}ms both` }}>
-                <ListingCard listing={listing} />
+                <ListingCard listing={listing} isSaved={savedIds.has(listing.id)} />
               </div>
             ))
           }

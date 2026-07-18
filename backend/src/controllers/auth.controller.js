@@ -13,6 +13,7 @@ const {
   verifyEmailToken,
 } = require('../services/auth.service');
 const { sendVerificationEmail: sendEmail } = require('../services/email.service');
+const { sendSMSOTP } = require('../services/sms.service');
 
 // ─── Token helpers ────────────────────────────
 const signAccessToken = (id) =>
@@ -50,7 +51,7 @@ const sendTokens = async (user, res, statusCode = 200) => {
   });
 };
 
-// ─── Register (Firebase handles email verification) ──
+// ─── Register ─────────────────────────────────
 const register = asyncHandler(async (req, res) => {
   const { name, email, phone, password, role } = req.body;
 
@@ -59,8 +60,21 @@ const register = asyncHandler(async (req, res) => {
   });
   if (existing) {
     if (existing.isVerified) throw new AppError('Email or phone already registered', 409);
-    // Unverified user — return success so frontend can proceed with Firebase
-    res.status(201).json({ success: true, message: 'Account created. Please verify your email.', data: { userId: existing.id } });
+    
+    // Unverified user — regenerate token and send OTP again
+    const { token: otp } = await generateVerificationToken(existing.id);
+    const smsResult = await sendSMSOTP(phone || existing.phone, otp);
+    
+    res.status(201).json({
+      success: true,
+      message: 'Account created. Please verify your mobile number.',
+      data: {
+        userId: existing.id,
+        email: existing.email,
+        phone: existing.phone,
+        ...(smsResult.success ? {} : { otp: smsResult.otp }),
+      },
+    });
     return;
   }
 
@@ -71,7 +85,50 @@ const register = asyncHandler(async (req, res) => {
     data: { name, email, phone, password: hashed, role: allowedRole, isVerified: false },
   });
 
-  res.status(201).json({ success: true, message: 'Account created. Please verify your email.', data: { userId: user.id } });
+  const { token: otp } = await generateVerificationToken(user.id);
+  const smsResult = await sendSMSOTP(user.phone, otp);
+
+  res.status(201).json({
+    success: true,
+    message: 'Account created. Please verify your mobile number.',
+    data: {
+      userId: user.id,
+      email: user.email,
+      phone: user.phone,
+      ...(smsResult.success ? {} : { otp: smsResult.otp }),
+    },
+  });
+});
+
+// ─── Resend OTP ───────────────────────────────
+const resendOtp = asyncHandler(async (req, res) => {
+  const { userId } = req.body;
+  if (!userId) throw new AppError('User ID required', 400);
+
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new AppError('User not found', 404);
+
+  if (user.isVerified) {
+    return res.json({ success: true, message: 'User already verified' });
+  }
+
+  if (!user.phone) {
+    throw new AppError('User does not have a phone number registered', 400);
+  }
+
+  const { token: otp } = await generateVerificationToken(user.id);
+  const smsResult = await sendSMSOTP(user.phone, otp);
+
+  res.json({
+    success: true,
+    message: smsResult.success ? 'Verification OTP sent to your phone' : 'OTP generated (could not send SMS)',
+    data: {
+      userId: user.id,
+      email: user.email,
+      phone: user.phone,
+      ...(smsResult.success ? {} : { otp: smsResult.otp }),
+    },
+  });
 });
 
 // ─── Login ────────────────────────────────────
@@ -88,7 +145,14 @@ const login = asyncHandler(async (req, res) => {
 
   if (user.isBanned) throw new AppError('Account banned', 403);
 
-  if (!user.isVerified) throw new AppError('Please verify your email before logging in', 403);
+  if (!user.isVerified) {
+    // If not verified, return status 403 and the userId so frontend can redirect to verify-otp page!
+    return res.status(403).json({
+      success: false,
+      message: 'Please verify your phone number before logging in',
+      data: { userId: user.id, needsVerification: true }
+    });
+  }
 
   await sendTokens(user, res);
 });
@@ -258,6 +322,7 @@ const confirmEmailVerified = asyncHandler(async (req, res) => {
 
 module.exports = {
   register,
+  resendOtp,
   login,
   refresh,
   logout,

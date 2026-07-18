@@ -1,8 +1,7 @@
-// RegisterPage — Google-only signup
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, User, Mail, Phone, Lock, AtSign } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { useAuth } from '../context/AuthContext';
@@ -48,9 +47,14 @@ const HouseIllustration = () => (
 
 const RegisterPage = () => {
   const { t } = useTranslation();
-  const { googleAuth } = useAuth();
+  const { register, googleAuth } = useAuth();
   const navigate = useNavigate();
   const [googleLoading, setGoogleLoading] = useState(false);
+
+  // Normal Register states
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', role: 'TENANT' });
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!GOOGLE_CLIENT_ID) return;
@@ -82,16 +86,16 @@ const RegisterPage = () => {
     try {
       const result = await googleAuth(response.credential);
       if (result.needsProfile) {
-        toast.success(t('pleaseCompleteProfile'));
+        toast.success(t('pleaseCompleteProfile', 'Please complete your profile'));
         navigate('/complete-profile', { replace: true });
       } else {
-        toast.success(t('welcomeHand'));
+        toast.success(t('welcomeHand', 'Welcome! 👋'));
         // Request notification permission and subscribe (needs user gesture on mobile)
         requestNotificationPermission().then(() => subscribeToPush()).catch(() => {});
         navigate('/dashboard', { replace: true });
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || t('googleSignupFailed'));
+      toast.error(err.response?.data?.message || t('googleSignupFailed', 'Google sign up failed'));
     } finally {
       setGoogleLoading(false);
     }
@@ -99,13 +103,60 @@ const RegisterPage = () => {
 
   const handleGoogleSignup = () => {
     if (!GOOGLE_CLIENT_ID) {
-      toast(t('notConfigured'), { icon: '⚠️' });
+      toast(t('notConfigured', 'Google Sign-In is not configured'), { icon: '⚠️' });
       return;
     }
     if (window.google?.accounts?.id) {
       window.google.accounts.id.prompt();
     } else {
-      toast(t('googleLoading'), { icon: '⏳' });
+      toast(t('googleLoading', 'Loading Google Sign-In...'), { icon: '⏳' });
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: undefined }));
+  };
+
+  const validate = () => {
+    const e = {};
+    if (!form.name.trim()) e.name = t('fullNameRequired', 'Full name is required');
+    if (!form.email.trim()) e.email = t('emailRequired', 'Email is required');
+    else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = t('invalidEmail', 'Enter a valid email');
+    if (!form.phone.trim()) e.phone = t('phoneRequired', 'Phone number is required');
+    else if (!/^[6-9]\d{9}$/.test(form.phone)) e.phone = t('invalidPhone', 'Enter a valid 10-digit mobile number');
+    if (!form.password) e.password = t('passwordRequired', 'Password is required');
+    else if (form.password.length < 6) e.password = t('passwordMin', 'Password must be at least 6 characters');
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+    setLoading(true);
+    try {
+      const response = await register({
+        name: form.name.trim(),
+        email: form.email.trim(),
+        phone: form.phone,
+        password: form.password,
+        role: form.role,
+      });
+      toast.success(t('verificationOtpSent', 'Verification OTP sent to your phone.'));
+      
+      const mockOtp = response.data?.otp;
+      const targetUserId = response.data?.userId || response.userId;
+      
+      navigate(`/verify-otp?userId=${targetUserId}`, {
+        state: { mockOtp },
+        replace: true
+      });
+    } catch (err) {
+      toast.error(err.response?.data?.message || t('signupFailed', 'Registration failed'));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -140,10 +191,10 @@ const RegisterPage = () => {
             <HouseIllustration />
             <div className="text-left">
               <h1 className="font-display font-bold text-xl sm:text-2xl text-surface-900 tracking-tight">
-                {t('createAccount')}
+                {t('createAccount', 'Create Account')}
               </h1>
               <p className="text-surface-500 text-xs sm:text-sm mt-0.5">
-                {t('startSearching')}
+                {t('startSearching', 'Find your perfect home')}
               </p>
             </div>
           </div>
@@ -152,7 +203,7 @@ const RegisterPage = () => {
           <button
             type="button"
             onClick={handleGoogleSignup}
-            disabled={googleLoading}
+            disabled={googleLoading || loading}
             className="w-full flex items-center justify-between border border-surface-200 rounded-xl px-3 py-2.5 text-[13px] font-medium text-surface-700 bg-white hover:bg-surface-50 hover:border-surface-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <div className="flex items-center gap-2.5">
@@ -166,28 +217,139 @@ const RegisterPage = () => {
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
                 </svg>
               )}
-              <span>{googleLoading ? t('signingUp') : t('continueGoogle')}</span>
+              <span>{googleLoading ? t('signingUp', 'Signing Up...') : t('continueGoogle', 'Continue with Google')}</span>
             </div>
             {!googleLoading && <ArrowRight size={14} className="text-surface-400" />}
           </button>
 
+          {/* Divider */}
+          <div className="flex items-center my-4">
+            <div className="flex-grow border-t border-surface-200"></div>
+            <span className="mx-3 text-[10px] font-semibold text-surface-400 uppercase tracking-wider">{t('or', 'or')}</span>
+            <div className="flex-grow border-t border-surface-200"></div>
+          </div>
+
+          {/* Normal Signup Form */}
+          <form onSubmit={handleSubmit} className="space-y-2.5">
+            <div>
+              <label htmlFor="reg-name" className="block text-[11px] font-medium text-surface-700 mb-0.5">{t('fullName', 'Full Name')}</label>
+              <div className="relative">
+                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-surface-400 pointer-events-none"><AtSign size={13} /></span>
+                <input
+                  id="reg-name"
+                  name="name"
+                  type="text"
+                  value={form.name}
+                  onChange={handleChange}
+                  placeholder={t('namePlaceholder', 'John Doe')}
+                  className={`w-full pl-8 pr-2.5 py-1.5 rounded-lg border text-[13px] bg-surface-50/50 text-surface-900 placeholder:text-surface-400 transition-all focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 ${errors.name ? 'border-red-400 ring-red-100 ring-2' : 'border-surface-200'}`}
+                />
+              </div>
+              {errors.name && <p className="text-[10px] text-red-500 mt-0.5">{errors.name}</p>}
+            </div>
+
+            <div>
+              <label htmlFor="reg-email" className="block text-[11px] font-medium text-surface-700 mb-0.5">{t('email', 'Email Address')}</label>
+              <div className="relative">
+                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-surface-400 pointer-events-none"><Mail size={13} /></span>
+                <input
+                  id="reg-email"
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  placeholder={t('emailPlaceholder', 'name@example.com')}
+                  className={`w-full pl-8 pr-2.5 py-1.5 rounded-lg border text-[13px] bg-surface-50/50 text-surface-900 placeholder:text-surface-400 transition-all focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 ${errors.email ? 'border-red-400 ring-red-100 ring-2' : 'border-surface-200'}`}
+                />
+              </div>
+              {errors.email && <p className="text-[10px] text-red-500 mt-0.5">{errors.email}</p>}
+            </div>
+
+            <div>
+              <label htmlFor="reg-phone" className="block text-[11px] font-medium text-surface-700 mb-0.5">{t('phoneNumber', 'Phone Number')}</label>
+              <div className="relative">
+                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-surface-400 pointer-events-none"><Phone size={13} /></span>
+                <input
+                  id="reg-phone"
+                  name="phone"
+                  type="tel"
+                  maxLength={10}
+                  inputMode="numeric"
+                  value={form.phone}
+                  onChange={handleChange}
+                  placeholder={t('phonePlaceholder', '9876543210')}
+                  className={`w-full pl-8 pr-2.5 py-1.5 rounded-lg border text-[13px] bg-surface-50/50 text-surface-900 placeholder:text-surface-400 transition-all focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 ${errors.phone ? 'border-red-400 ring-red-100 ring-2' : 'border-surface-200'}`}
+                />
+              </div>
+              {errors.phone && <p className="text-[10px] text-red-500 mt-0.5">{errors.phone}</p>}
+            </div>
+
+            <div>
+              <label htmlFor="reg-password" className="block text-[11px] font-medium text-surface-700 mb-0.5">{t('password', 'Password')}</label>
+              <div className="relative">
+                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-surface-400 pointer-events-none"><Lock size={13} /></span>
+                <input
+                  id="reg-password"
+                  name="password"
+                  type="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  placeholder={t('passwordPlaceholder', 'Min 6 characters')}
+                  className={`w-full pl-8 pr-2.5 py-1.5 rounded-lg border text-[13px] bg-surface-50/50 text-surface-900 placeholder:text-surface-400 transition-all focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 ${errors.password ? 'border-red-400 ring-red-100 ring-2' : 'border-surface-200'}`}
+                />
+              </div>
+              {errors.password && <p className="text-[10px] text-red-500 mt-0.5">{errors.password}</p>}
+            </div>
+
+            {/* Role selection */}
+            <div>
+              <label className="block text-[11px] font-medium text-surface-700 mb-0.5">{t('wantToUseAs', 'I want to use Quikden as')}</label>
+              <div className="grid grid-cols-2 gap-1 bg-surface-100 p-0.5 rounded-lg">
+                {[
+                  { value: 'TENANT', label: t('tenant', 'Tenant'), icon: User },
+                  { value: 'OWNER', label: t('owner', 'Owner'), icon: Mail },
+                ].map(({ value, label, icon: Icon }) => (
+                  <button key={value} type="button" onClick={() => setForm((p) => ({ ...p, role: value }))}
+                    className={`flex items-center justify-center gap-1 py-1 text-[11px] font-semibold rounded-md transition-all ${
+                      form.role === value ? 'bg-white text-primary-600 shadow-sm' : 'text-surface-500 hover:text-surface-700'
+                    }`}>
+                    <Icon size={12} />
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading || googleLoading}
+              className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-gradient-to-r from-primary-500 to-primary-600 text-white text-sm font-semibold shadow-lg shadow-primary-500/25 hover:shadow-xl hover:from-primary-600 hover:to-primary-700 active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed mt-3"
+            >
+              {loading ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>{t('signUp', 'Sign Up')} <ArrowRight size={14} /></>
+              )}
+            </button>
+          </form>
+
           {/* Contact message */}
           <div className="mt-4 p-3 bg-surface-50 rounded-xl text-center">
             <p className="text-[11px] text-surface-500 leading-relaxed">
-              {t('noGoogleAccount')}{' '}
+              {t('noGoogleAccount', 'Don’t have a Google Account?')}{' '}
               <a
                 href="mailto:quikden.com@gmail.com"
                 className="text-primary-600 font-semibold hover:underline"
               >
-                {t('contactUs')}
+                {t('contactUs', 'Contact Us')}
               </a>
-              {' '}{t('andHelp')}
+              {' '}{t('andHelp', 'and we will help you sign in.')}
             </p>
           </div>
 
           <p className="text-center text-[11px] text-surface-500 mt-3">
-            {t('alreadyHaveAccount')}{' '}
-            <Link to="/login" className="text-primary-600 hover:underline font-semibold">{t('signIn')}</Link>
+            {t('alreadyHaveAccount', 'Already have an account?')}{' '}
+            <Link to="/login" className="text-primary-600 hover:underline font-semibold">{t('signIn', 'Sign In')}</Link>
           </p>
         </div>
       </div>

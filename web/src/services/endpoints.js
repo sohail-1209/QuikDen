@@ -13,6 +13,7 @@ export const authAPI = {
   sendVerification: () => api.post('/auth/send-verification'),
   verifyEmail: (otp) => api.post('/auth/verify-email', { otp }),
   confirmEmailVerified: (email) => api.post('/auth/confirm-email-verified', { email }),
+  resendOtp: (userId) => api.post('/auth/resend-otp', { userId }),
 };
 
 // ─── Listings ─────────────────────────────────────────
