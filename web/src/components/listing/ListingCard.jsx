@@ -49,6 +49,9 @@ const ListingCard = ({ listing, onSave, isSaved = false }) => {
   const isHouse = listing.type === 'HOUSE_RENTAL';
   const isHostel = listing.type === 'HOSTEL';
   const isLand = listing.type === 'LAND_SALE';
+  const minHostelPrice = isHostel && listing.hostelSharing?.tiers?.length > 0
+    ? Math.min(...listing.hostelSharing.tiers.map((t) => t.price))
+    : 0;
   const detailPath = isLand ? `/land/${listing.id}` : isHouse ? `/listing/${listing.id}` : isHostel ? `/hostel/${listing.id}` : `/room/${listing.id}`;
   const photoUrl = getPrimaryPhoto(listing) || PLACEHOLDER;
   const typeConfigRaw = TYPE_CONFIG_KEYS[listing.type] || TYPE_CONFIG_KEYS.HOUSE_RENTAL;
@@ -66,7 +69,7 @@ const ListingCard = ({ listing, onSave, isSaved = false }) => {
       role="link"
       tabIndex={0}
       onKeyDown={(e) => e.key === 'Enter' && navigate(detailPath)}
-      aria-label={`${listing.title} – ${formatRent(listing.rent)} per month`}
+      aria-label={`${listing.title} – ${isHostel && minHostelPrice > 0 ? `From ${formatRent(minHostelPrice)}` : formatRent(listing.rent)} per month`}
     >
       {/* Photo */}
       <div className="relative aspect-[4/3] overflow-hidden bg-surface-100">
@@ -109,7 +112,11 @@ const ListingCard = ({ listing, onSave, isSaved = false }) => {
         {/* Rent */}
         <div className="flex items-baseline gap-1">
           <span className="text-xl font-bold text-surface-900 font-display">
-            {formatRent(listing.rent)}
+            {isHostel && minHostelPrice > 0 ? (
+              `${t('from') || 'From'} ${formatRent(minHostelPrice)}`
+            ) : (
+              formatRent(listing.rent)
+            )}
           </span>
           <span className="text-xs text-surface-400 font-medium">{t('mo')}</span>
         </div>

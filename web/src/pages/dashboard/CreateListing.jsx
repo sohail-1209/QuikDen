@@ -98,7 +98,7 @@ const CreateListing = () => {
     return () => clearTimeout(delayDebounceFn);
   }, [addressInput]);
 
-  const { data: listingData, isLoading } = useQuery({
+  const { data: listingData, isLoading, isFetching } = useQuery({
     queryKey: ['listing', id],
     queryFn: () => listingsAPI.getOne(id).then((r) => r.data.data),
     enabled: isEdit,
@@ -581,7 +581,7 @@ const CreateListing = () => {
         <p className="text-sm text-surface-500">{t('addPhotosInstruction') || 'Upload photos to showcase your property.'}</p>
 
         {/* Existing photos + Uploading placeholder overlay */}
-        {(listingData?.photos?.length > 0 || uploadingPhotos) && (
+        {(listingData?.photos?.length > 0 || uploadingPhotos || isFetching) && (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {listingData?.photos?.map((photo, idx) => (
               <div key={photo.id} className="relative aspect-square rounded-2xl overflow-hidden group border border-surface-100">
@@ -599,7 +599,7 @@ const CreateListing = () => {
             ))}
             
             {/* Pulsing loading animation card */}
-            {uploadingPhotos && (
+            {(uploadingPhotos || isFetching) && (
               <div className="relative aspect-square rounded-2xl overflow-hidden border border-primary-200 bg-primary-50/30 flex flex-col items-center justify-center gap-2 shadow-inner animate-pulse">
                 <div className="h-6 w-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
                 <span className="text-[10px] font-bold text-primary-700 tracking-wide uppercase">{t('uploading') || 'Uploading...'}</span>

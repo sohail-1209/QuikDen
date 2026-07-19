@@ -26,9 +26,8 @@ const LocationPicker = ({ latitude, longitude, onChange, onAddressFill }) => {
         `https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lng}&apiKey=${GEOAPIFY_KEY}&format=json&addressdetails=1`
       );
       const data = await res.json();
-      const feat = data.features?.[0];
-      if (!feat) return;
-      const addr = feat.properties;
+      const addr = data.results?.[0] || data.features?.[0]?.properties;
+      if (!addr) return;
       onAddressFill({
         address: addr.address_line1 || addr.formatted || '',
         city: addr.city || addr.town || addr.village || addr.county || '',
