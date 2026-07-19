@@ -47,6 +47,7 @@ const CreateListing = () => {
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null); // null = "Other room"
+  const [uploadingPhotos, setUploadingPhotos] = useState(false);
 
   const set = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
   const setAmenity = (key, val) => setForm((prev) => ({ ...prev, amenities: { ...prev.amenities, [key]: val } }));
@@ -287,39 +288,47 @@ const CreateListing = () => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
+    setUploadingPhotos(true);
     try {
-      toast.loading(t('compressingPhotos'), { id: 'photo-upload' });
+      toast.loading(t('compressingPhotos') || 'Compressing photos...', { id: 'photo-upload' });
       const results = await compressImages(files, { maxWidth: 1200, maxHeight: 900, maxSizeKB: 50 });
 
       // Show compression results
       const summary = results.map((r) => `${formatFileSize(r.originalSize)} → ${formatFileSize(r.compressedSize)}`).join('\n');
-      toast.success(`${t('compressedCount', { count: results.length })}\n${summary}`, { id: 'photo-upload', duration: 4000 });
+      toast.success(`${t('compressedCount', { count: results.length }) || `Compressed ${results.length} images`}\n${summary}`, { id: 'photo-upload', duration: 4000 });
 
       const fd = new FormData();
       results.forEach((r) => fd.append('photos', r.file));
 
-      toast.loading(t('uploadingPhotos'), { id: 'photo-upload' });
+      toast.loading(t('uploadingPhotos') || 'Uploading photos...', { id: 'photo-upload' });
       await uploadAPI.listingPhotos(id, fd);
-      toast.success(t('photosUploaded'), { id: 'photo-upload' });
+      toast.success(t('photosUploaded') || 'Photos uploaded successfully!', { id: 'photo-upload' });
       qc.invalidateQueries({ queryKey: ['listing', id] });
     } catch {
-      toast.error(t('failedToUploadPhotos'), { id: 'photo-upload' });
+      toast.error(t('failedToUploadPhotos') || 'Failed to upload photos.', { id: 'photo-upload' });
+    } finally {
+      setUploadingPhotos(false);
     }
   };
 
   const steps = [
     // Step 0 — Basic Info
     <div key="basic" className="space-y-4">
-      <Input label={t('listingTitle')} value={form.title} onChange={(e) => set('title', e.target.value)} placeholder={t('titlePlaceholder')} />
-      <Textarea label={t('description')} value={form.description} onChange={(e) => set('description', e.target.value)} rows={4} placeholder={t('describeProperty')} />
+      <Input label={t('listingTitle') || 'Listing Title'} value={form.title} onChange={(e) => set('title', e.target.value)} placeholder={t('titlePlaceholder') || 'Enter listing title...'} />
+      <Textarea label={t('description') || 'Description'} value={form.description} onChange={(e) => set('description', e.target.value)} rows={4} placeholder={t('describeProperty') || 'Describe your property...'} />
       <Select
-        label={t('listingType')}
+        label={t('listingType') || 'Listing Type'}
         value={form.type}
         onChange={(e) => set('type', e.target.value)}
         options={
           user?.role === 'TENANT'
-            ? [{ value: 'ROOM_SHARING', label: t('roomSharingType') }]
-            : [{ value: 'HOUSE_RENTAL', label: t('houseRental') }, { value: 'ROOM_SHARING', label: t('roomSharingType') }, { value: 'HOSTEL', label: t('hostelPg') }, { value: 'LAND_SALE', label: t('landSaleType') }]
+            ? [{ value: 'ROOM_SHARING', label: t('roomSharingType') || 'Room Sharing' }]
+            : [
+                { value: 'HOUSE_RENTAL', label: t('houseRental') || 'House Rental' },
+                { value: 'ROOM_SHARING', label: t('roomSharingType') || 'Room Sharing' },
+                { value: 'HOSTEL', label: t('hostelPg') || 'Hostel & PG' },
+                { value: 'LAND_SALE', label: t('landSaleType') || 'Land Sale' }
+              ]
         }
         disabled={user?.role === 'TENANT'}
       />
@@ -328,23 +337,23 @@ const CreateListing = () => {
       {form.type === 'HOSTEL' && (
         <div className="border-t border-surface-100 pt-4">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-semibold text-surface-700">{t('sharingPricing')}</p>
+            <p className="text-sm font-semibold text-surface-700">{t('sharingPricing') || 'Sharing & Pricing'}</p>
             <button type="button" onClick={addHSTier} className="text-xs text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1">
-              <Plus size={14} /> {t('addTier')}
+              <Plus size={14} /> {t('addTier') || 'Add Tier'}
             </button>
           </div>
           <div className="space-y-3">
             {form.hostelSharing.tiers.map((tier, idx) => (
               <div key={idx} className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 p-3 bg-surface-50 rounded-xl">
                 <div className="flex-1">
-                  <Input label={t('noOfSharing')} type="number" value={tier.sharingSize} onChange={(e) => setHSTier(idx, 'sharingSize', e.target.value)} placeholder={t('sharingPlaceholder')} />
+                  <Input label={t('noOfSharing') || 'Sharing Size'} type="number" value={tier.sharingSize} onChange={(e) => setHSTier(idx, 'sharingSize', e.target.value)} placeholder={t('sharingPlaceholder') || 'e.g. 2, 3'} />
                 </div>
                 <div className="flex-1">
-                  <Input label={t('pricePerMo')} type="number" value={tier.price} onChange={(e) => setHSTier(idx, 'price', e.target.value)} placeholder={t('pricePlaceholder')} />
+                  <Input label={t('pricePerMo') || 'Price / Month'} type="number" value={tier.price} onChange={(e) => setHSTier(idx, 'price', e.target.value)} placeholder={t('pricePlaceholder') || 'e.g. 5000'} />
                 </div>
                 <label className="flex items-center gap-2 cursor-pointer min-h-[44px] sm:pb-2">
                   <input type="checkbox" checked={tier.available} onChange={(e) => setHSTier(idx, 'available', e.target.checked)} className="w-5 h-5 accent-primary-600" />
-                  <span className="text-xs text-surface-600">{t('availableLabel')}</span>
+                  <span className="text-xs text-surface-600">{t('availableLabel') || 'Available'}</span>
                 </label>
                 {form.hostelSharing.tiers.length > 1 && (
                   <button type="button" onClick={() => removeHSTier(idx)} className="p-2 text-red-500 hover:text-red-600 pb-2">
@@ -354,51 +363,51 @@ const CreateListing = () => {
               </div>
             ))}
           </div>
-          <p className="text-xs text-surface-400 mt-2">{t('addDifferentSharing')}</p>
+          <p className="text-xs text-surface-400 mt-2">{t('addDifferentSharing') || 'Add different sharing types if available.'}</p>
         </div>
       )}
 
       {form.type !== 'HOSTEL' && form.type !== 'LAND_SALE' && (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Input label={t('rentMo')} type="number" value={form.rent} onChange={(e) => set('rent', e.target.value)} />
-            <Input label={t('deposit₹')} type="number" value={form.deposit} onChange={(e) => set('deposit', e.target.value)} />
-            <Input label={t('maintenance₹')} type="number" value={form.maintenance} onChange={(e) => set('maintenance', e.target.value)} />
+            <Input label={t('rentMo') || 'Rent / Month (₹)'} type="number" value={form.rent} onChange={(e) => set('rent', e.target.value)} />
+            <Input label={t('deposit₹') || 'Deposit (₹)'} type="number" value={form.deposit} onChange={(e) => set('deposit', e.target.value)} />
+            <Input label={t('maintenance₹') || 'Maintenance (₹)'} type="number" value={form.maintenance} onChange={(e) => set('maintenance', e.target.value)} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label={t('bedroomsLabel')} type="number" value={form.bedrooms} onChange={(e) => set('bedrooms', e.target.value)} />
-            <Input label={t('bathroomsLabel')} type="number" value={form.bathrooms} onChange={(e) => set('bathrooms', e.target.value)} />
+            <Input label={t('bedroomsLabel') || 'Bedrooms'} type="number" value={form.bedrooms} onChange={(e) => set('bedrooms', e.target.value)} />
+            <Input label={t('bathroomsLabel') || 'Bathrooms'} type="number" value={form.bathrooms} onChange={(e) => set('bathrooms', e.target.value)} />
           </div>
         </>
       )}
 
       {form.type === 'HOSTEL' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Input label={t('deposit₹')} type="number" value={form.deposit} onChange={(e) => set('deposit', e.target.value)} />
-          <Input label={t('availableFrom')} type="date" value={form.availableFrom} onChange={(e) => set('availableFrom', e.target.value)} />
+          <Input label={t('deposit₹') || 'Deposit (₹)'} type="number" value={form.deposit} onChange={(e) => set('deposit', e.target.value)} />
+          <Input label={t('availableFrom') || 'Available From'} type="date" value={form.availableFrom} onChange={(e) => set('availableFrom', e.target.value)} />
         </div>
       )}
 
       {form.type === 'LAND_SALE' && (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label={t('totalPrice₹')} type="number" value={form.rent} onChange={(e) => set('rent', e.target.value)} placeholder={t('totalPricePlaceholder')} />
-            <Input label={t('areaSqft')} type="number" value={form.areaSqFt} onChange={(e) => set('areaSqFt', e.target.value)} placeholder={t('areaPlaceholder')} />
+            <Input label={t('totalPrice₹') || 'Total Price (₹)'} type="number" value={form.rent} onChange={(e) => set('rent', e.target.value)} placeholder={t('totalPricePlaceholder') || 'Total price'} />
+            <Input label={t('areaSqft') || 'Area (sq ft)'} type="number" value={form.areaSqFt} onChange={(e) => set('areaSqFt', e.target.value)} placeholder={t('areaPlaceholder') || 'Area'} />
           </div>
-          <Input label={t('availableFrom')} type="date" value={form.availableFrom} onChange={(e) => set('availableFrom', e.target.value)} />
+          <Input label={t('availableFrom') || 'Available From'} type="date" value={form.availableFrom} onChange={(e) => set('availableFrom', e.target.value)} />
         </>
       )}
 
       {form.type !== 'HOSTEL' && form.type !== 'LAND_SALE' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Input label={t('areaSqft')} type="number" value={form.areaSqFt} onChange={(e) => set('areaSqFt', e.target.value)} />
-          <Input label={t('availableFrom')} type="date" value={form.availableFrom} onChange={(e) => set('availableFrom', e.target.value)} />
+          <Input label={t('areaSqft') || 'Area (sq ft)'} type="number" value={form.areaSqFt} onChange={(e) => set('areaSqFt', e.target.value)} />
+          <Input label={t('availableFrom') || 'Available From'} type="date" value={form.availableFrom} onChange={(e) => set('availableFrom', e.target.value)} />
         </div>
       )}
 
       {form.type !== 'LAND_SALE' && (
         <div className="flex flex-wrap gap-4 sm:gap-6">
-          {[['furnished', t('furnished')], ['balcony', t('hasBalcony')], ['parking', t('parkingAvailable')]].map(([key, label]) => (
+          {[['furnished', t('furnished') || 'Furnished'], ['balcony', t('hasBalcony') || 'Has Balcony'], ['parking', t('parkingAvailable') || 'Parking Available']].map(([key, label]) => (
             <label key={key} className="flex items-center gap-2 cursor-pointer min-h-[44px]">
               <input type="checkbox" checked={form[key]} onChange={(e) => set(key, e.target.checked)} className="w-5 h-5 accent-primary-600" />
               <span className="text-sm text-surface-700">{label}</span>
@@ -410,40 +419,17 @@ const CreateListing = () => {
 
     // Step 1 — Location
     <div key="location" className="space-y-4">
-      <div className="border-t border-surface-100 pt-4 mt-4">
-        <p className="text-sm font-semibold text-surface-700 mb-3">{t('exactLocationLabel')}</p>
-        <LocationPicker
-          latitude={form.latitude ? Number(form.latitude) : null}
-          longitude={form.longitude ? Number(form.longitude) : null}
-          onChange={(lat, lng) => {
-            set('latitude', String(lat));
-            set('longitude', String(lng));
-          }}
-          onAddressFill={(data) => {
-            setAddressInput(data.address || '');
-            setForm((prev) => ({
-              ...prev,
-              address: data.address || prev.address,
-              city: data.city || prev.city,
-              state: data.state || prev.state,
-              pincode: data.pincode || prev.pincode,
-              latitude: String(data.latitude || prev.latitude),
-              longitude: String(data.longitude || prev.longitude),
-            }));
-          }}
-        />
-      </div>
-
+      {/* 1. Address Search input */}
       <div className="relative">
         <Input
-          label={t('searchFullAddress')}
+          label={t('searchFullAddress') || 'Search Full Address'}
           value={addressInput}
           onChange={(e) => {
             setAddressInput(e.target.value);
             setShowSuggestions(true);
             set('address', e.target.value);
           }}
-          placeholder={t('startTypingAddress')}
+          placeholder={t('startTypingAddress') || 'Start typing address...'}
           className="w-full"
         />
         {showSuggestions && suggestions.length > 0 && (
@@ -476,14 +462,9 @@ const CreateListing = () => {
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Input label={t('city')} value={form.city} onChange={(e) => set('city', e.target.value)} />
-        <Input label={t('state')} value={form.state} onChange={(e) => set('state', e.target.value)} />
-      </div>
-      <Input label={t('pincode')} value={form.pincode} onChange={(e) => set('pincode', e.target.value)} />
-
+      {/* 2. Unified Location Map Picker */}
       <div className="border-t border-surface-100 pt-4 mt-4">
-        <p className="text-sm font-semibold text-surface-700 mb-3">{t('exactLocationLabel')}</p>
+        <p className="text-sm font-semibold text-surface-700 mb-3">{t('exactLocationLabel') || 'Pin Exact Location'}</p>
         <LocationPicker
           latitude={form.latitude ? Number(form.latitude) : null}
           longitude={form.longitude ? Number(form.longitude) : null}
@@ -492,34 +473,42 @@ const CreateListing = () => {
             set('longitude', String(lng));
           }}
           onAddressFill={(data) => {
-            setAddressInput(data.address || '');
+            if (data.address) setAddressInput(data.address);
             setForm((prev) => ({
               ...prev,
               address: data.address || prev.address,
               city: data.city || prev.city,
               state: data.state || prev.state,
               pincode: data.pincode || prev.pincode,
-              latitude: String(data.latitude || prev.latitude),
-              longitude: String(data.longitude || prev.longitude),
+              latitude: data.latitude ? String(data.latitude) : prev.latitude,
+              longitude: data.longitude ? String(data.longitude) : prev.longitude,
             }));
           }}
         />
       </div>
 
+      {/* 3. Address Detail Fields */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Input label={t('latitude')} type="number" step="any" value={form.latitude} onChange={(e) => set('latitude', e.target.value)} placeholder={t('latPlaceholder')} />
-        <Input label={t('longitude')} type="number" step="any" value={form.longitude} onChange={(e) => set('longitude', e.target.value)} placeholder={t('lngPlaceholder')} />
+        <Input label={t('city') || 'City'} value={form.city} onChange={(e) => set('city', e.target.value)} />
+        <Input label={t('state') || 'State'} value={form.state} onChange={(e) => set('state', e.target.value)} />
+      </div>
+      <Input label={t('pincode') || 'Pincode'} value={form.pincode} onChange={(e) => set('pincode', e.target.value)} />
+
+      {/* 4. Manual Coordinate Fields */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Input label={t('latitude') || 'Latitude'} type="number" step="any" value={form.latitude} onChange={(e) => set('latitude', e.target.value)} placeholder={t('latPlaceholder') || 'Latitude'} />
+        <Input label={t('longitude') || 'Longitude'} type="number" step="any" value={form.longitude} onChange={(e) => set('longitude', e.target.value)} placeholder={t('lngPlaceholder') || 'Longitude'} />
       </div>
     </div>,
 
     // Step 2 — Amenities
     <div key="amenities" className="space-y-3">
-      <p className="text-sm text-surface-500">{t('selectAmenities')}</p>
+      <p className="text-sm text-surface-500">{t('selectAmenities') || 'Select Amenities'}</p>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {AMENITY_FIELDS.map((key) => (
           <label key={key} className={`flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all min-h-[48px] ${form.amenities[key] ? 'border-primary-500 bg-primary-50' : 'border-surface-200 hover:border-surface-300'}`}>
             <input type="checkbox" checked={form.amenities[key]} onChange={(e) => setAmenity(key, e.target.checked)} className="w-5 h-5 accent-primary-600" />
-            <span className="text-sm font-medium text-surface-700">{t(AMENITY_LABELS[key])}</span>
+            <span className="text-sm font-medium text-surface-700">{t(AMENITY_LABELS[key]) || key}</span>
           </label>
         ))}
       </div>
@@ -529,18 +518,23 @@ const CreateListing = () => {
     <div key="room" className="space-y-4">
       {form.type === 'ROOM_SHARING' ? (
         <>
-          <Select label={t('genderPreference')} value={form.roomSharing.genderRequired} onChange={(e) => setRS('genderRequired', e.target.value)}
-            options={[{ value: 'ANY', label: t('any') }, { value: 'MALE', label: t('maleOnlyBadge') }, { value: 'FEMALE', label: t('femaleOnlyBadge') }]} />
+          <Select label={t('genderPreference') || 'Gender Preference'} value={form.roomSharing.genderRequired} onChange={(e) => setRS('genderRequired', e.target.value)}
+            options={[{ value: 'ANY', label: t('any') || 'Any' }, { value: 'MALE', label: t('maleOnlyBadge') || 'Male' }, { value: 'FEMALE', label: t('femaleOnlyBadge') || 'Female' }]} />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label={t('minAge')} type="number" value={form.roomSharing.minAge} onChange={(e) => setRS('minAge', e.target.value)} />
-            <Input label={t('maxAge')} type="number" value={form.roomSharing.maxAge} onChange={(e) => setRS('maxAge', e.target.value)} />
+            <Input label={t('minAge') || 'Minimum Age'} type="number" value={form.roomSharing.minAge} onChange={(e) => setRS('minAge', e.target.value)} />
+            <Input label={t('maxAge') || 'Maximum Age'} type="number" value={form.roomSharing.maxAge} onChange={(e) => setRS('maxAge', e.target.value)} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label={t('currentOccupantsLabel')} type="number" value={form.roomSharing.currentOccupants} onChange={(e) => setRS('currentOccupants', e.target.value)} />
-            <Input label={t('totalRooms')} type="number" value={form.roomSharing.totalRooms} onChange={(e) => setRS('totalRooms', e.target.value)} />
+            <Input label={t('currentOccupantsLabel') || 'Current Occupants'} type="number" value={form.roomSharing.currentOccupants} onChange={(e) => setRS('currentOccupants', e.target.value)} />
+            <Input label={t('totalRooms') || 'Total Rooms'} type="number" value={form.roomSharing.totalRooms} onChange={(e) => setRS('totalRooms', e.target.value)} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {[['smoking', t('smokingAllowed')], ['drinking', t('drinkingAllowed')], ['vegOnly', t('vegOnlyLabel')], ['petsAllowed', t('petsAllowed')]].map(([key, label]) => (
+            {[
+              ['smoking', t('smokingAllowed') || 'Smoking Allowed'],
+              ['drinking', t('drinkingAllowed') || 'Drinking Allowed'],
+              ['vegOnly', t('vegOnlyLabel') || 'Veg Only'],
+              ['petsAllowed', t('petsAllowed') || 'Pets Allowed']
+            ].map(([key, label]) => (
               <label key={key} className="flex items-center gap-2 cursor-pointer min-h-[44px] p-3 border rounded-xl hover:bg-surface-50">
                 <input type="checkbox" checked={form.roomSharing[key]} onChange={(e) => setRS(key, e.target.checked)} className="w-5 h-5 accent-primary-600" />
                 <span className="text-sm text-surface-700">{label}</span>
@@ -550,27 +544,32 @@ const CreateListing = () => {
         </>
       ) : form.type === 'HOSTEL' ? (
         <>
-          <Select label={t('genderPreference')} value={form.hostelSharing.genderRequired} onChange={(e) => setHS('genderRequired', e.target.value)}
-            options={[{ value: 'ANY', label: t('any') }, { value: 'MALE', label: t('maleOnlyBadge') }, { value: 'FEMALE', label: t('femaleOnlyBadge') }]} />
+          <Select label={t('genderPreference') || 'Gender Preference'} value={form.hostelSharing.genderRequired} onChange={(e) => setHS('genderRequired', e.target.value)}
+            options={[{ value: 'ANY', label: t('any') || 'Any' }, { value: 'MALE', label: t('maleOnlyBadge') || 'Male' }, { value: 'FEMALE', label: t('femaleOnlyBadge') || 'Female' }]} />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label={t('minAge')} type="number" value={form.hostelSharing.minAge} onChange={(e) => setHS('minAge', e.target.value)} />
-            <Input label={t('maxAge')} type="number" value={form.hostelSharing.maxAge} onChange={(e) => setHS('maxAge', e.target.value)} />
+            <Input label={t('minAge') || 'Minimum Age'} type="number" value={form.hostelSharing.minAge} onChange={(e) => setHS('minAge', e.target.value)} />
+            <Input label={t('maxAge') || 'Maximum Age'} type="number" value={form.hostelSharing.maxAge} onChange={(e) => setHS('maxAge', e.target.value)} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {[['smoking', t('smokingAllowed')], ['drinking', t('drinkingAllowed')], ['vegOnly', t('vegOnlyLabel')], ['petsAllowed', t('petsAllowed')]].map(([key, label]) => (
+            {[
+              ['smoking', t('smokingAllowed') || 'Smoking Allowed'],
+              ['drinking', t('drinkingAllowed') || 'Drinking Allowed'],
+              ['vegOnly', t('vegOnlyLabel') || 'Veg Only'],
+              ['petsAllowed', t('petsAllowed') || 'Pets Allowed']
+            ].map(([key, label]) => (
               <label key={key} className="flex items-center gap-2 cursor-pointer min-h-[44px] p-3 border rounded-xl hover:bg-surface-50">
                 <input type="checkbox" checked={form.hostelSharing[key]} onChange={(e) => setHS(key, e.target.checked)} className="w-5 h-5 accent-primary-600" />
                 <span className="text-sm text-surface-700">{label}</span>
               </label>
             ))}
           </div>
-          <p className="text-xs text-surface-400 text-center pt-2">{t('sharingPricingSet')}</p>
+          <p className="text-xs text-surface-400 text-center pt-2">{t('sharingPricingSet') || 'Pricing tiers are configured in Step 0.'}</p>
         </>
       ) : (
         <div className="text-center py-12 text-surface-400">
           <p className="text-4xl mb-3">🏠</p>
-          <p className="font-medium">{t('noRoomSharingDetails')}</p>
-          <p className="text-sm">{t('thisIsHouseRental')}</p>
+          <p className="font-medium">{t('noRoomSharingDetails') || 'No special sharing details required.'}</p>
+          <p className="text-sm">{t('thisIsHouseRental') || 'This is configured as a complete house rental.'}</p>
         </div>
       )}
     </div>,
@@ -579,16 +578,16 @@ const CreateListing = () => {
   if (isEdit) {
     steps.push(
       <div key="photos" className="space-y-4">
-        <p className="text-sm text-surface-500">{t('addPhotosInstruction')}</p>
+        <p className="text-sm text-surface-500">{t('addPhotosInstruction') || 'Upload photos to showcase your property.'}</p>
 
-        {/* Existing photos */}
-        {listingData?.photos?.length > 0 && (
+        {/* Existing photos + Uploading placeholder overlay */}
+        {(listingData?.photos?.length > 0 || uploadingPhotos) && (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {listingData.photos.map((photo, idx) => (
+            {listingData?.photos?.map((photo, idx) => (
               <div key={photo.id} className="relative aspect-square rounded-2xl overflow-hidden group border border-surface-100">
                 <img src={photo.url} alt="" className="w-full h-full object-cover" />
                 {idx === 0 && (
-                  <span className="absolute top-2 left-2 bg-primary-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{t('cover')}</span>
+                  <span className="absolute top-2 left-2 bg-primary-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{t('cover') || 'Cover'}</span>
                 )}
                 <button
                   onClick={() => deletePhoto(photo.id)}
@@ -598,6 +597,14 @@ const CreateListing = () => {
                 </button>
               </div>
             ))}
+            
+            {/* Pulsing loading animation card */}
+            {uploadingPhotos && (
+              <div className="relative aspect-square rounded-2xl overflow-hidden border border-primary-200 bg-primary-50/30 flex flex-col items-center justify-center gap-2 shadow-inner animate-pulse">
+                <div className="h-6 w-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+                <span className="text-[10px] font-bold text-primary-700 tracking-wide uppercase">{t('uploading') || 'Uploading...'}</span>
+              </div>
+            )}
           </div>
         )}
 
@@ -607,8 +614,8 @@ const CreateListing = () => {
             <Upload size={24} className="text-surface-500" />
           </div>
           <div className="text-center">
-            <p className="text-sm font-semibold text-surface-700">{t('clickToUpload')}</p>
-            <p className="text-xs text-surface-400 mt-1">{t('imagesCompressed')}</p>
+            <p className="text-sm font-semibold text-surface-700">{t('clickToUpload') || 'Click to upload files'}</p>
+            <p className="text-xs text-surface-400 mt-1">{t('imagesCompressed') || 'Images are automatically optimized.'}</p>
           </div>
           <input
             type="file"
@@ -627,8 +634,8 @@ const CreateListing = () => {
           <div className="p-4 bg-surface-100 rounded-2xl inline-block mb-4">
             <Camera size={32} className="text-surface-300" />
           </div>
-          <p className="font-medium text-surface-600">{t('addPhotosAfter')}</p>
-          <p className="text-sm mt-1">{t('uploadOnceSaved')}</p>
+          <p className="font-medium text-surface-600">{t('addPhotosAfter') || 'Photos can be uploaded after saving.'}</p>
+          <p className="text-sm mt-1">{t('uploadOnceSaved') || 'You will be able to upload photos once the listing is created.'}</p>
         </div>
       </div>
     );
