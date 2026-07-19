@@ -217,6 +217,13 @@ const getListing = asyncHandler(async (req, res) => {
   });
 });
 
+// ─── Helper: parse availableFrom safely ──────────────
+const parseAvailableFrom = (dateStr) => {
+  if (!dateStr) return new Date();
+  const d = new Date(dateStr);
+  return isNaN(d.getTime()) ? new Date() : d;
+};
+
 // ─── POST /listings — create listing (owner only) ─────
 const createListing = asyncHandler(async (req, res) => {
   const {
@@ -229,35 +236,48 @@ const createListing = asyncHandler(async (req, res) => {
   const listing = await prisma.listing.create({
     data: {
       ownerId: req.user.id,
-      title, description, type, rent: parseInt(rent),
-      deposit: parseInt(deposit), maintenance: parseInt(maintenance || 0),
+      title, description, type, rent: parseInt(rent) || 0,
+      deposit: parseInt(deposit) || 0, maintenance: parseInt(maintenance) || 0,
       address, city, state, pincode,
-      latitude: parseFloat(latitude), longitude: parseFloat(longitude),
-      bedrooms: parseInt(bedrooms || 1), bathrooms: parseInt(bathrooms || 1),
+      latitude: parseFloat(latitude) || 0.0, longitude: parseFloat(longitude) || 0.0,
+      bedrooms: parseInt(bedrooms) || 1, bathrooms: parseInt(bathrooms) || 1,
       balcony: Boolean(balcony), parking: Boolean(parking),
-      areaSqFt: areaSqFt ? parseInt(areaSqFt) : null,
+      areaSqFt: areaSqFt ? (parseInt(areaSqFt) || null) : null,
       furnished: Boolean(furnished),
-      availableFrom: availableFrom ? new Date(availableFrom) : null,
+      availableFrom: parseAvailableFrom(availableFrom),
       ...(amenities && {
         amenities: { create: amenities },
       }),
       ...(roomSharing && type === 'ROOM_SHARING' && {
-        roomSharing: { create: roomSharing },
+        roomSharing: {
+          create: {
+            genderRequired: roomSharing.genderRequired || 'ANY',
+            minAge: roomSharing.minAge ? (parseInt(roomSharing.minAge) || null) : null,
+            maxAge: roomSharing.maxAge ? (parseInt(roomSharing.maxAge) || null) : null,
+            occupationPref: roomSharing.occupationPref || 'ANY',
+            smoking: Boolean(roomSharing.smoking),
+            drinking: Boolean(roomSharing.drinking),
+            vegOnly: Boolean(roomSharing.vegOnly),
+            petsAllowed: Boolean(roomSharing.petsAllowed),
+            currentOccupants: parseInt(roomSharing.currentOccupants) || 0,
+            totalRooms: parseInt(roomSharing.totalRooms) || 1,
+          }
+        },
       }),
       ...(hostelSharing && type === 'HOSTEL' && {
         hostelSharing: {
           create: {
             genderRequired: hostelSharing.genderRequired || 'ANY',
-            minAge: hostelSharing.minAge ? parseInt(hostelSharing.minAge) : null,
-            maxAge: hostelSharing.maxAge ? parseInt(hostelSharing.maxAge) : null,
+            minAge: hostelSharing.minAge ? (parseInt(hostelSharing.minAge) || null) : null,
+            maxAge: hostelSharing.maxAge ? (parseInt(hostelSharing.maxAge) || null) : null,
             smoking: Boolean(hostelSharing.smoking),
             drinking: Boolean(hostelSharing.drinking),
             vegOnly: Boolean(hostelSharing.vegOnly),
             petsAllowed: Boolean(hostelSharing.petsAllowed),
             tiers: {
               create: (hostelSharing.tiers || []).map((t) => ({
-                sharingSize: parseInt(t.sharingSize),
-                price: parseInt(t.price),
+                sharingSize: parseInt(t.sharingSize) || 2,
+                price: parseInt(t.price) || 0,
                 available: t.available !== false,
               })),
             },
@@ -283,14 +303,14 @@ const updateListing = asyncHandler(async (req, res) => {
   const { amenities, roomSharing, hostelSharing, availableFrom, ...data } = req.body;
 
   // Cast numeric inputs in data
-  if (data.rent !== undefined) data.rent = parseInt(data.rent);
-  if (data.deposit !== undefined) data.deposit = parseInt(data.deposit);
-  if (data.maintenance !== undefined) data.maintenance = parseInt(data.maintenance || 0);
-  if (data.bedrooms !== undefined) data.bedrooms = parseInt(data.bedrooms);
-  if (data.bathrooms !== undefined) data.bathrooms = parseInt(data.bathrooms);
-  if (data.latitude !== undefined) data.latitude = parseFloat(data.latitude);
-  if (data.longitude !== undefined) data.longitude = parseFloat(data.longitude);
-  if (data.areaSqFt !== undefined) data.areaSqFt = data.areaSqFt ? parseInt(data.areaSqFt) : null;
+  if (data.rent !== undefined) data.rent = parseInt(data.rent) || 0;
+  if (data.deposit !== undefined) data.deposit = parseInt(data.deposit) || 0;
+  if (data.maintenance !== undefined) data.maintenance = parseInt(data.maintenance || 0) || 0;
+  if (data.bedrooms !== undefined) data.bedrooms = parseInt(data.bedrooms) || 1;
+  if (data.bathrooms !== undefined) data.bathrooms = parseInt(data.bathrooms) || 1;
+  if (data.latitude !== undefined) data.latitude = parseFloat(data.latitude) || 0.0;
+  if (data.longitude !== undefined) data.longitude = parseFloat(data.longitude) || 0.0;
+  if (data.areaSqFt !== undefined) data.areaSqFt = data.areaSqFt ? (parseInt(data.areaSqFt) || null) : null;
   if (data.furnished !== undefined) data.furnished = Boolean(data.furnished);
   if (data.balcony !== undefined) data.balcony = Boolean(data.balcony);
   if (data.parking !== undefined) data.parking = Boolean(data.parking);
@@ -311,14 +331,14 @@ const updateListing = asyncHandler(async (req, res) => {
   if (activeType === 'ROOM_SHARING' && roomSharing) {
     const roomSharingClean = {
       genderRequired: roomSharing.genderRequired || 'ANY',
-      minAge: roomSharing.minAge ? parseInt(roomSharing.minAge) : null,
-      maxAge: roomSharing.maxAge ? parseInt(roomSharing.maxAge) : null,
+      minAge: roomSharing.minAge ? (parseInt(roomSharing.minAge) || null) : null,
+      maxAge: roomSharing.maxAge ? (parseInt(roomSharing.maxAge) || null) : null,
       smoking: Boolean(roomSharing.smoking),
       drinking: Boolean(roomSharing.drinking),
       vegOnly: Boolean(roomSharing.vegOnly),
       petsAllowed: Boolean(roomSharing.petsAllowed),
-      currentOccupants: parseInt(roomSharing.currentOccupants || 0),
-      totalRooms: parseInt(roomSharing.totalRooms || 1),
+      currentOccupants: parseInt(roomSharing.currentOccupants) || 0,
+      totalRooms: parseInt(roomSharing.totalRooms) || 1,
     };
     roomSharingUpsert = { upsert: { create: roomSharingClean, update: roomSharingClean } };
   } else if (activeType !== 'ROOM_SHARING') {
@@ -330,8 +350,8 @@ const updateListing = asyncHandler(async (req, res) => {
   if (activeType === 'HOSTEL' && hostelSharing) {
     const hostelSharingClean = {
       genderRequired: hostelSharing.genderRequired || 'ANY',
-      minAge: hostelSharing.minAge ? parseInt(hostelSharing.minAge) : null,
-      maxAge: hostelSharing.maxAge ? parseInt(hostelSharing.maxAge) : null,
+      minAge: hostelSharing.minAge ? (parseInt(hostelSharing.minAge) || null) : null,
+      maxAge: hostelSharing.maxAge ? (parseInt(hostelSharing.maxAge) || null) : null,
       smoking: Boolean(hostelSharing.smoking),
       drinking: Boolean(hostelSharing.drinking),
       vegOnly: Boolean(hostelSharing.vegOnly),
@@ -347,8 +367,8 @@ const updateListing = asyncHandler(async (req, res) => {
         ...hostelSharingClean,
         tiers: {
           create: (hostelSharing.tiers || []).map((t) => ({
-            sharingSize: parseInt(t.sharingSize),
-            price: parseInt(t.price),
+            sharingSize: parseInt(t.sharingSize) || 2,
+            price: parseInt(t.price) || 0,
             available: t.available !== false,
           })),
         },
@@ -365,7 +385,7 @@ const updateListing = asyncHandler(async (req, res) => {
     where: { id: req.params.id },
     data: {
       ...data,
-      ...(req.body.availableFrom !== undefined && { availableFrom: new Date(req.body.availableFrom) }),
+      ...(req.body.availableFrom !== undefined && { availableFrom: parseAvailableFrom(req.body.availableFrom) }),
       ...(amenitiesUpsert && { amenities: amenitiesUpsert }),
       ...(roomSharingUpsert && { roomSharing: roomSharingUpsert }),
       ...(hostelSharingUpsert && { hostelSharing: hostelSharingUpsert }),
