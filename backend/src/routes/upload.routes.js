@@ -13,7 +13,7 @@ const upload = multer({
   },
 });
 
-router.post('/listing-photos/:listingId', protect, restrictTo('OWNER'), upload.array('photos', 10), uploadListingPhotos);
+router.post('/listing-photos/:listingId', protect, restrictTo('OWNER', 'TENANT'), upload.array('photos', 10), uploadListingPhotos);
 router.delete('/photos/:photoId', protect, deletePhoto);
 router.post('/profile', protect, upload.single('photo'), uploadProfilePhoto);
 
