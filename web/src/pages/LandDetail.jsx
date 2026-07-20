@@ -73,7 +73,7 @@ export default function LandDetail() {
       <JsonLd data={listingSchema} />
       <Navbar />
 
-      <main className="max-w-6xl mx-auto px-4 pt-24 pb-16">
+      <main className="max-w-6xl mx-auto px-4 py-8">
         <Breadcrumbs items={[
           { label: 'Home', href: '/' },
           { label: 'Search', href: '/search' },
@@ -108,7 +108,7 @@ export default function LandDetail() {
             <div className="card p-5">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div className="text-center p-3 bg-amber-50 rounded-xl">
-                  <p className="text-xl md:text-2xl font-bold text-amber-700 font-display">{formatRent(data.rent)}</p>
+                  <p className="text-lg md:text-2xl font-bold text-amber-700 font-display">{formatRent(data.rent)}</p>
                   <p className="text-xs text-surface-500 mt-1">{t('totalPrice')}</p>
                 </div>
                 {data.areaSqFt && (

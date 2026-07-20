@@ -16,6 +16,7 @@ const ProfilePage = () => {
   const { user, updateUser } = useAuth();
   const qc = useQueryClient();
   const [form, setForm] = useState({ name: user?.name || '', phone: user?.phone || '', bio: user?.bio || '' });
+  const [passForm, setPassForm] = useState({ currentPassword: '', newPassword: '' });
   const [uploading, setUploading] = useState(false);
 
   const { data: reviews } = useQuery({
@@ -32,6 +33,18 @@ const ProfilePage = () => {
       toast.success(t('profileUpdated'));
     },
     onError: () => toast.error(t('failedToUpdateProfile')),
+  });
+
+  const { mutate: updatePassword, isPending: isPassPending } = useMutation({
+    mutationFn: () => usersAPI.changePassword(passForm),
+    onSuccess: () => {
+      setPassForm({ currentPassword: '', newPassword: '' });
+      toast.success(t('passwordUpdated') || 'Password updated successfully');
+    },
+    onError: (err) => {
+      const msg = err?.response?.data?.message || t('somethingWrong') || 'Something went wrong';
+      toast.error(msg);
+    },
   });
 
   const handlePhotoUpload = async (e) => {
@@ -79,6 +92,14 @@ const ProfilePage = () => {
         <Input label={t('phone')} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} type="tel" />
         <Textarea label={t('bio')} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder={t('tellAbout')} rows={3} />
         <Button variant="primary" size="md" loading={isPending} onClick={() => updateProfile()}>{t('saveChanges')}</Button>
+      </div>
+
+      {/* Change Password form */}
+      <div className="card p-4 sm:p-6 space-y-4">
+        <h3 className="font-semibold text-surface-900">{t('changePassword') || 'Change Password'}</h3>
+        <Input label={t('currentPassword') || 'Current Password'} value={passForm.currentPassword} onChange={(e) => setPassForm({ ...passForm, currentPassword: e.target.value })} type="password" />
+        <Input label={t('newPassword') || 'New Password'} value={passForm.newPassword} onChange={(e) => setPassForm({ ...passForm, newPassword: e.target.value })} type="password" />
+        <Button variant="primary" size="md" loading={isPassPending} onClick={() => updatePassword()} disabled={!passForm.currentPassword || !passForm.newPassword}>{t('updatePassword') || 'Update Password'}</Button>
       </div>
 
       {/* Reviews */}

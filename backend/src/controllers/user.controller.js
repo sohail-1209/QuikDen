@@ -3,6 +3,8 @@ const prisma = require('../utils/prisma');
 const asyncHandler = require('../utils/asyncHandler');
 const AppError = require('../utils/AppError');
 
+const bcrypt = require('bcryptjs');
+
 // ─── GET /users/:id — public profile ─────────────────
 const getUser = asyncHandler(async (req, res) => {
   const user = await prisma.user.findUnique({
@@ -32,4 +34,25 @@ const updateProfile = asyncHandler(async (req, res) => {
   res.json({ success: true, data: updated });
 });
 
-module.exports = { getUser, updateProfile };
+// ─── PATCH /users/me/password — change password ────────────────
+const changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  
+  const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+  if (!user.password) {
+    throw new AppError('Accounts created with Google cannot change their password.', 400);
+  }
+
+  const match = await bcrypt.compare(currentPassword, user.password);
+  if (!match) throw new AppError('Incorrect current password', 401);
+
+  const hashed = await bcrypt.hash(newPassword, 12);
+  await prisma.user.update({
+    where: { id: req.user.id },
+    data: { password: hashed },
+  });
+
+  res.json({ success: true, message: 'Password updated successfully' });
+});
+
+module.exports = { getUser, updateProfile, changePassword };

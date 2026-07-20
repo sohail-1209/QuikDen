@@ -94,6 +94,7 @@ export const notificationsAPI = {
 export const usersAPI = {
   getUser: (id) => api.get(`/users/${id}`),
   updateProfile: (data) => api.patch('/users/me', data),
+  changePassword: (data) => api.patch('/users/me/password', data),
 };
 
 // ─── Xiayoki Chatbot ─────────────────────────────────
