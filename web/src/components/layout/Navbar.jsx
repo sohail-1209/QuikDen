@@ -190,6 +190,15 @@ export default function Navbar() {
 
   const deleteNotif = useMutation({
     mutationFn: (id) => notificationsAPI.delete(id),
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['notifications'] });
+      const previousNotifs = queryClient.getQueryData(['notifications']);
+      queryClient.setQueryData(['notifications'], (old) => old?.filter(n => n.id !== id) || []);
+      return { previousNotifs };
+    },
+    onError: (err, id, context) => {
+      queryClient.setQueryData(['notifications'], context.previousNotifs);
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
   });
 

@@ -51,13 +51,22 @@ const ListingRow = ({ listing }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
+  const getDetailPath = (listing) => {
+    if (listing.type === 'HOSTEL') return `/hostel/${listing.id}`;
+    if (listing.type === 'ROOM_SHARING') return `/room/${listing.id}`;
+    if (listing.type === 'LAND_SALE') return `/land/${listing.id}`;
+    return `/listing/${listing.id}`;
+  };
+
+  const detailPath = getDetailPath(listing);
+
   return (
     <div
       className="card p-3 flex items-center gap-3 cursor-pointer hover:shadow-md transition-shadow"
-      onClick={() => navigate(`/listing/${listing.id}`)}
+      onClick={() => navigate(detailPath)}
       role="link"
       tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && navigate(`/listing/${listing.id}`)}
+      onKeyDown={(e) => e.key === 'Enter' && navigate(detailPath)}
     >
       <img
         src={photo || 'https://placehold.co/56x56?text=📷'}

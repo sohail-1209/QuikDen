@@ -108,12 +108,12 @@ export default function LandDetail() {
             <div className="card p-5">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div className="text-center p-3 bg-amber-50 rounded-xl">
-                  <p className="text-2xl font-bold text-amber-700 font-display">{formatRent(data.rent)}</p>
+                  <p className="text-xl md:text-2xl font-bold text-amber-700 font-display">{formatRent(data.rent)}</p>
                   <p className="text-xs text-surface-500 mt-1">{t('totalPrice')}</p>
                 </div>
                 {data.areaSqFt && (
                   <div className="text-center p-3 bg-primary-50 rounded-xl">
-                    <p className="text-2xl font-bold text-primary-700 font-display">{data.areaSqFt}</p>
+                    <p className="text-xl md:text-2xl font-bold text-primary-700 font-display">{data.areaSqFt}</p>
                     <p className="text-xs text-surface-500 mt-1">{t('sqft')}</p>
                   </div>
                 )}
@@ -168,7 +168,7 @@ export default function LandDetail() {
             <div className="card p-6 sticky top-24 space-y-4">
               {/* Price */}
               <div className="text-center p-4 bg-amber-50 rounded-2xl">
-                <p className="text-3xl font-bold text-amber-700 font-display">{formatRent(data.rent)}</p>
+                <p className="text-2xl font-bold text-amber-700 font-display">{formatRent(data.rent)}</p>
                 <p className="text-sm text-surface-500">{t('totalPrice')}</p>
               </div>
 
