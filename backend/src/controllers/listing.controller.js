@@ -551,9 +551,8 @@ const completeBooking = asyncHandler(async (req, res) => {
   });
   if (!request) throw new AppError('Booking not found', 404);
 
-  await prisma.request.update({
+  await prisma.request.delete({
     where: { id: req.params.id },
-    data: { status: 'COMPLETED' },
   });
 
   res.json({ success: true });
