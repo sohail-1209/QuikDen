@@ -22,6 +22,15 @@ const RequestCard = ({ request }) => {
     onError: () => toast.error(t('failedToUpdate')),
   });
 
+  const { mutate: deleteReq, isPending: isDeleting } = useMutation({
+    mutationFn: () => requestsAPI.delete(request.id),
+    onSuccess: () => {
+      toast.success(t('requestDeleted') || 'Request canceled successfully');
+      qc.invalidateQueries({ queryKey: ['requests'] });
+    },
+    onError: () => toast.error(t('failedToUpdate')),
+  });
+
   const photo = request.listing?.photos?.[0]?.url;
   
   const isHostel = request.listing?.type === 'HOSTEL';
@@ -96,6 +105,19 @@ const RequestCard = ({ request }) => {
                 className="btn-primary btn-sm px-3 py-1 text-xs rounded-lg"
               >
                 {t('accept')}
+              </button>
+            </div>
+          )}
+
+          {/* Tenant action buttons: cancel request if pending */}
+          {!isListingOwner && request.status === 'PENDING' && (
+            <div className="flex gap-2 ml-auto">
+              <button
+                onClick={() => deleteReq()}
+                disabled={isDeleting}
+                className="btn btn-sm px-3 py-1 border border-danger-300 text-danger-500 hover:bg-danger-50 rounded-lg text-xs"
+              >
+                {t('cancelRequest') || 'Cancel Request'}
               </button>
             </div>
           )}

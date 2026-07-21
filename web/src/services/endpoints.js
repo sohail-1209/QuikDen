@@ -42,6 +42,7 @@ export const requestsAPI = {
   create: (data) => api.post('/requests', data),
   update: (id, status) => api.patch(`/requests/${id}`, { status }),
   getContact: (id) => api.get(`/requests/${id}/contact`),
+  delete: (id) => api.delete(`/requests/${id}`),
 };
 
 // ─── Saved ────────────────────────────────────────────

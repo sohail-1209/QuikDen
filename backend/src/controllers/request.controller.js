@@ -152,4 +152,15 @@ const getContact = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { createRequest, updateRequest, getRequests, getContact };
+// ─── DELETE /requests/:id — tenant cancels request ────────────
+const deleteRequest = asyncHandler(async (req, res) => {
+  const request = await prisma.request.findUnique({ where: { id: req.params.id } });
+  if (!request) throw new AppError('Request not found', 404);
+  if (request.tenantId !== req.user.id) throw new AppError('Not authorized', 403);
+  if (request.status !== 'PENDING') throw new AppError('Only pending requests can be deleted', 400);
+
+  await prisma.request.delete({ where: { id: request.id } });
+  res.json({ success: true, message: 'Request deleted' });
+});
+
+module.exports = { createRequest, updateRequest, getRequests, getContact, deleteRequest };
