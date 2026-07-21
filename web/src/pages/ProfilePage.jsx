@@ -90,13 +90,13 @@ const ListingRow = ({ listing }) => {
           {listing.type === 'HOSTEL' && listing.hostelSharing?.tiers?.length > 0
             ? `From ${formatRent(Math.min(...listing.hostelSharing.tiers.map((t) => t.price)))}`
             : formatRent(listing.rent)
-          }/mo · {listing.city}
+          }
+          {listing.type !== 'LAND_SALE' ? (listing.rentPeriod === 'per year' ? '/yr' : listing.rentPeriod === 'custom' ? '' : (t('mo') || '/mo')) : ''} · {listing.city}
         </p>
         <div className="flex items-center gap-2 mt-1.5">
           <span
-            className={`badge text-xs ${
-              listing.status === 'ACTIVE' ? 'badge-success' : listing.status === 'RENTED' ? 'badge-primary' : 'badge-gray'
-            }`}
+            className={`badge text-xs ${listing.status === 'ACTIVE' ? 'badge-success' : listing.status === 'RENTED' ? 'badge-primary' : 'badge-gray'
+              }`}
           >
             {listing.status === 'ACTIVE' ? t('active') : listing.status === 'RENTED' ? (listing.type === 'HOSTEL' ? t('fullyBooked') : t('booked')) : t('inactive')}
           </span>
@@ -168,13 +168,13 @@ const BookingItem = ({ booking, navigate, completeBookingMutation, t }) => {
 const MobileOptions = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  
+
   const TENANT_ITEMS = [
     { to: '/dashboard/my-listings', icon: ListChecks, label: 'My Listing' },
     { to: '/dashboard/saved', icon: Heart, label: 'Saved Listings' },
     { to: '/dashboard/requests', icon: SendHorizontal, label: 'My Requests' },
   ];
-  
+
   const OWNER_ITEMS = [
     { to: '/dashboard/listings', icon: ListChecks, label: 'My Listings' },
     { to: '/dashboard/saved', icon: Heart, label: 'Saved Listings' },
@@ -262,10 +262,10 @@ export default function ProfilePage() {
   const requests = requestsData ?? [];
   const savedCount = savedData?.length ?? 0;
   const chatsCount = chatsData?.length ?? 0;
-  
+
   const pendingRequests = requests.filter((r) => r.status === 'PENDING');
   const activeRequestsCount = pendingRequests.length;
-  
+
   // Owner computed
   const listings = listingsData ?? [];
   const totalListings = listings.length;
@@ -280,7 +280,7 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8 pb-8">
-      
+
       {/* ── Profile Section ──────────────────────────────────────────────────── */}
       <div className="card p-4 sm:p-6 mb-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -299,12 +299,6 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
-          <button
-            onClick={() => navigate('/dashboard/settings')}
-            className="btn-outline btn-sm lg:hidden self-start"
-          >
-            {t('settings') || 'Settings'}
-          </button>
         </div>
 
         {/* ── Reviews ─────────────────────────────────────────────────────────── */}
@@ -322,7 +316,7 @@ export default function ProfilePage() {
       <MobileOptions />
 
       {/* ── Stats / Analytics Cards ─────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className={`grid gap-2 ${isOwner ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-3'}`}>
         {isOwner ? (
           <>
             <CategoryCard

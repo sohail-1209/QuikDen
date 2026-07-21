@@ -206,7 +206,6 @@
   "contactOwner": "मालिक से संपर्क करें",
   "report": "रिपोर्ट",
   "shareListing": "लिस्टिंग साझा करें",
-  "owner": "मालिक",
   "nameLabel": "नाम:",
   "chatToContact": "अनुरोध भेजने के बाद मालिक से संपर्क करने के लिए चैट सुविधा का उपयोग करें।",
   "goToRequests": "अनुरोधों पर जाएं",
@@ -581,5 +580,16 @@
   "bookingConfirmed": "बुकिंग पुष्टि हो गई",
   "requestDeclined": "अनुरोध अस्वीकार कर दिया गया",
   "rentalRequest": "किराया अनुरोध",
-  "messagingDisabled": "इस अनुरोध के लिए संदेश भेजना बंद है"
+  "messagingDisabled": "इस अनुरोध के लिए संदेश भेजना बंद है",
+  "settings": "Settings",
+  "profilePhoto": "Profile Photo",
+  "updateProfilePhoto": "Update your profile picture here.",
+  "changePassword": "Change Password",
+  "newPassword": "New Password",
+  "updatePassword": "Update Password",
+  "confirmPasswordChange": "Confirm Password Change",
+  "passwordUpdated": "Password updated successfully",
+  "typeChangeToConfirm": "Please type",
+  "toConfirm": "to confirm.",
+  "confirm": "Confirm"
 }

@@ -86,7 +86,7 @@ const RoomDetail = () => {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: data?.title,
-    description: `${data?.title} - Shared room in ${data?.city}. Rent: ₹${data?.rent}/month.`,
+    description: `${data?.title} - Shared room in ${data?.city}. Rent: ₹${data?.rent}${data?.rentPeriod === 'per year' ? '/yr' : data?.rentPeriod === 'custom' ? '' : '/month'}.`,
     image: primaryPhoto,
     url: `https://quikden.vercel.app/room/${id}`,
     offers: {
@@ -102,7 +102,7 @@ const RoomDetail = () => {
     <>
       <SEO
         title={`${data?.title} — Shared Room in ${data?.city}`}
-        description={`${data?.title} available in ${data?.city}. Shared room, ₹${data?.rent}/month. ${rs?.genderRequired ? rs.genderRequired + ' preferred' : 'All genders'}. Zero brokerage on Quikden.`}
+        description={`${data?.title} available in ${data?.city}. Shared room, ₹${data?.rent}${data?.rentPeriod === 'per year' ? '/yr' : data?.rentPeriod === 'custom' ? '' : '/month'}. ${rs?.genderRequired ? rs.genderRequired + ' preferred' : 'All genders'}. Zero brokerage on Quikden.`}
         image={primaryPhoto}
         url={`/room/${id}`}
         type="article"
@@ -180,7 +180,9 @@ const RoomDetail = () => {
             <div className="card p-6 sticky top-24 space-y-4">
               <div>
                 <span className="font-display font-bold text-3xl text-surface-900">{formatRent(data?.rent)}</span>
-                <span className="text-surface-400 text-sm">{t('month')}</span>
+                <span className="text-surface-400 text-sm">
+                  {data?.rentPeriod === 'per year' ? '/year' : data?.rentPeriod === 'custom' ? '' : (t('month') || '/month')}
+                </span>
               </div>
               <div className="text-sm text-surface-600 space-y-1">
                 <div className="flex justify-between"><span>{t('deposit')}</span><span className="font-medium">{formatRent(data?.deposit)}</span></div>

@@ -244,7 +244,7 @@ const cleanAmenities = (amenitiesObj) => {
 // ─── POST /listings — create listing (owner only) ─────
 const createListing = asyncHandler(async (req, res) => {
   const {
-    title, description, type, rent, deposit, maintenance,
+    title, description, type, rent, rentPeriod, deposit, maintenance,
     address, city, state, pincode, latitude, longitude,
     bedrooms, bathrooms, balcony, parking, areaSqFt, furnished, availableFrom,
     amenities, roomSharing, hostelSharing,
@@ -254,6 +254,7 @@ const createListing = asyncHandler(async (req, res) => {
     data: {
       ownerId: req.user.id,
       title, description, type, rent: parseInt(rent) || 0,
+      rentPeriod: rentPeriod || 'per month',
       deposit: parseInt(deposit) || 0, maintenance: parseInt(maintenance) || 0,
       address, city, state, pincode,
       latitude: parseFloat(latitude) || 0.0, longitude: parseFloat(longitude) || 0.0,
@@ -321,6 +322,7 @@ const updateListing = asyncHandler(async (req, res) => {
 
   // Cast numeric inputs in data
   if (data.rent !== undefined) data.rent = parseInt(data.rent) || 0;
+  if (data.rentPeriod !== undefined) data.rentPeriod = data.rentPeriod;
   if (data.deposit !== undefined) data.deposit = parseInt(data.deposit) || 0;
   if (data.maintenance !== undefined) data.maintenance = parseInt(data.maintenance || 0) || 0;
   if (data.bedrooms !== undefined) data.bedrooms = parseInt(data.bedrooms) || 1;
@@ -478,7 +480,7 @@ const getMyBookings = asyncHandler(async (req, res) => {
       listing: {
         select: {
           id: true, title: true, address: true, city: true, state: true, pincode: true,
-          latitude: true, longitude: true, rent: true, deposit: true,
+          latitude: true, longitude: true, rent: true, rentPeriod: true, deposit: true,
           type: true, bedrooms: true, bathrooms: true,
           photos: { where: { isPrimary: true }, take: 1 },
           owner: { select: { id: true, name: true } },
@@ -492,7 +494,7 @@ const getMyBookings = asyncHandler(async (req, res) => {
 
 // ─── POST /listings/from-booking — create room sharing from accepted booking ──
 const createFromBooking = asyncHandler(async (req, res) => {
-  const { bookingId, title, description, rent, deposit, maintenance,
+  const { bookingId, title, description, rent, rentPeriod, deposit, maintenance,
     bedrooms, bathrooms, balcony, parking, areaSqFt, furnished, availableFrom,
     amenities, roomSharing } = req.body;
 
@@ -516,6 +518,7 @@ const createFromBooking = asyncHandler(async (req, res) => {
       title, description: description || '',
       type: 'ROOM_SHARING',
       rent: parseInt(rent),
+      rentPeriod: rentPeriod || 'per month',
       deposit: parseInt(deposit || 0),
       maintenance: parseInt(maintenance || 0),
       address: original.address,

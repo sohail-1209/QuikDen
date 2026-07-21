@@ -606,5 +606,16 @@
   "readyToFind": "Ready to discover your next home?",
   "readyToFindDesc": "Join thousands of students, professionals, and owners on Quikden today and find roommates, houses, or land easily.",
   "exploreProperties": "Explore Listings",
-  "postFreeListingBtn": "Post Free Listing"
+  "postFreeListingBtn": "Post Free Listing",
+  "settings": "Settings",
+  "profilePhoto": "Profile Photo",
+  "updateProfilePhoto": "Update your profile picture here.",
+  "changePassword": "Change Password",
+  "newPassword": "New Password",
+  "updatePassword": "Update Password",
+  "confirmPasswordChange": "Confirm Password Change",
+  "passwordUpdated": "Password updated successfully",
+  "typeChangeToConfirm": "Please type",
+  "toConfirm": "to confirm.",
+  "confirm": "Confirm"
 }

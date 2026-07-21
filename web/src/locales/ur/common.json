@@ -206,7 +206,6 @@
   "contactOwner": "مالک سے رابطہ کریں",
   "report": "رپورٹ",
   "shareListing": "لسٹنگ شیئر کریں",
-  "owner": "مالک",
   "nameLabel": "نام:",
   "chatToContact": "درخواست بھیجنے کے بعد مالک سے رابطہ کرنے کے لیے چیٹ صفت استعمال کریں۔",
   "goToRequests": "درخواستوں پر جائیں",
@@ -581,5 +580,16 @@
   "bookingConfirmed": "بکنگ کی تصدیق ہو گئی",
   "requestDeclined": "درخواست مسترد ہو گئی",
   "rentalRequest": "کرایہ درخواست",
-  "messagingDisabled": "اس درخواست کے لیے پیغامات بند ہیں"
+  "messagingDisabled": "اس درخواست کے لیے پیغامات بند ہیں",
+  "settings": "Settings",
+  "profilePhoto": "Profile Photo",
+  "updateProfilePhoto": "Update your profile picture here.",
+  "changePassword": "Change Password",
+  "newPassword": "New Password",
+  "updatePassword": "Update Password",
+  "confirmPasswordChange": "Confirm Password Change",
+  "passwordUpdated": "Password updated successfully",
+  "typeChangeToConfirm": "Please type",
+  "toConfirm": "to confirm.",
+  "confirm": "Confirm"
 }

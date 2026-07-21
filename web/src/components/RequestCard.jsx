@@ -60,7 +60,7 @@ const RequestCard = ({ request }) => {
             <div className="flex items-center gap-1 text-xs text-surface-400 mt-0.5">
               <MapPin size={11} className="flex-shrink-0" /> <span className="truncate">{request.listing?.city}</span>
               <span className="mx-1 flex-shrink-0">·</span>
-              <span className="font-medium text-surface-700 flex-shrink-0">{isHostel && !request.price ? `${t('from') || 'From'} ` : ''}{formatRent(displayPrice)}/mo</span>
+              <span className="font-medium text-surface-700 flex-shrink-0">{isHostel && !request.price ? `${t('from') || 'From'} ` : ''}{formatRent(displayPrice)}{request.listing?.type !== 'LAND_SALE' ? (request.listing?.rentPeriod === 'per year' ? '/yr' : request.listing?.rentPeriod === 'custom' ? '' : (t('mo') || '/mo')) : ''}</span>
             </div>
           </div>
           <span className={`badge flex-shrink-0 text-[10px] px-2 py-0.5 whitespace-nowrap ${requestStatusClass(request.status)}`}>

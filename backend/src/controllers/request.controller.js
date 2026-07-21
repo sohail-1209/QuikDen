@@ -117,7 +117,7 @@ const getRequests = asyncHandler(async (req, res) => {
       tenant: { select: { id: true, name: true, profileImage: true, avgRating: true } },
       listing: {
         select: {
-          id: true, title: true, city: true, rent: true, type: true, ownerId: true,
+          id: true, title: true, city: true, rent: true, rentPeriod: true, type: true, ownerId: true,
           photos: { where: { isPrimary: true }, take: 1 },
         },
       },

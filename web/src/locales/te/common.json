@@ -206,7 +206,6 @@
   "contactOwner": "యజమానిని సంప్రదించండి",
   "report": "నివేదిక",
   "shareListing": "లిస్టింగ్ షేర్ చేయండి",
-  "owner": "యజమాని",
   "nameLabel": "పేరు:",
   "chatToContact": "అభ్యర్థన పంపిన తర్వాత యజమానిని సంప్రదించడానికి చాట్ ఫీచర్ ఉపయోగించండి.",
   "goToRequests": "అభ్యర్థనలకు వెళ్ళండి",
@@ -581,5 +580,16 @@
   "bookingConfirmed": "బుకింగ్ నిర్ధారించబడింది",
   "requestDeclined": "అభ్యర్థన తిరస్కరించబడింది",
   "rentalRequest": "అద్దె అభ్యర్థన",
-  "messagingDisabled": "ఈ అభ్యర్థన కోసం సందేశాలు పంపడం నిలిపివేయబడింది"
+  "messagingDisabled": "ఈ అభ్యర్థన కోసం సందేశాలు పంపడం నిలిపివేయబడింది",
+  "settings": "Settings",
+  "profilePhoto": "Profile Photo",
+  "updateProfilePhoto": "Update your profile picture here.",
+  "changePassword": "Change Password",
+  "newPassword": "New Password",
+  "updatePassword": "Update Password",
+  "confirmPasswordChange": "Confirm Password Change",
+  "passwordUpdated": "Password updated successfully",
+  "typeChangeToConfirm": "Please type",
+  "toConfirm": "to confirm.",
+  "confirm": "Confirm"
 }

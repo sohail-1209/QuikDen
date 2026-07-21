@@ -150,6 +150,7 @@ model Listing {
 
   // Pricing
   rent        Int
+  rentPeriod  String        @default("per month")
   deposit     Int
   maintenance Int           @default(0)
 

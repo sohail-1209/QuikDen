@@ -7,7 +7,7 @@ import {
   Home, Search, Bell, Menu, X, ChevronDown, User,
   LayoutDashboard, LogOut, CheckCheck,
   BedDouble, LandPlot, Users,
-  Download, Trash2, Compass, LayoutGrid,
+  Download, Trash2, Compass, LayoutGrid, Settings
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { notificationsAPI } from '../../services/endpoints';
@@ -423,7 +423,7 @@ export default function Navbar() {
                       </div>
                       {[
                         { to: '/dashboard/profile', icon: User, label: t('myProfile') },
-                        { to: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
+                        { to: '/dashboard/settings', icon: Settings, label: t('settings') || 'Settings' },
                       ].map(({ to, icon: Icon, label }) => (
                         <Link
                           key={to}

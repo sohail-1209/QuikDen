@@ -12,6 +12,7 @@ const listingFeedSelect = {
   type: true,
   status: true,
   rent: true,
+  rentPeriod: true,
   deposit: true,
   address: true,
   city: true,

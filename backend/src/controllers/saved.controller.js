@@ -28,7 +28,7 @@ const getSaved = asyncHandler(async (req, res) => {
     include: {
       listing: {
         select: {
-          id: true, title: true, type: true, rent: true, deposit: true,
+          id: true, title: true, type: true, rent: true, rentPeriod: true, deposit: true,
           city: true, address: true, bedrooms: true, furnished: true,
           status: true, createdAt: true,
           owner: { select: { id: true, name: true, profileImage: true, avgRating: true } },

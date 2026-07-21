@@ -17,7 +17,7 @@ const AMENITY_FIELDS = ['wifi','parking','washingMachine','ac','fridge','kitchen
 const AMENITY_LABELS = { wifi:'wifi', parking:'parking', washingMachine:'washingMachine', ac:'ac', fridge:'fridge', kitchen:'kitchen', lift:'lift', gym:'gym', security:'security', powerBackup:'powerBackup', waterSupply:'waterSupply', cctv:'cctv', ventilation:'ventilation' };
 
 const defaultForm = {
-  title: '', description: '', type: 'HOUSE_RENTAL', rent: '', deposit: '', maintenance: '',
+  title: '', description: '', type: 'HOUSE_RENTAL', rent: '', rentPeriod: 'per month', deposit: '', maintenance: '',
   address: '', city: '', state: '', pincode: '', latitude: '', longitude: '',
   bedrooms: '1', bathrooms: '1', balcony: false, parking: false, areaSqFt: '', furnished: false,
   availableFrom: '',
@@ -122,6 +122,7 @@ const CreateListing = () => {
         description: listingData.description || '',
         type: listingData.type || 'HOUSE_RENTAL',
         rent: listingData.rent || '',
+        rentPeriod: listingData.rentPeriod || 'per month',
         deposit: listingData.deposit || '',
         maintenance: listingData.maintenance || '',
         address: listingData.address || '',
@@ -226,6 +227,7 @@ const CreateListing = () => {
       const payload = {
         ...form,
         rent: Number(form.rent),
+        rentPeriod: form.rentPeriod,
         deposit: Number(form.deposit),
         maintenance: Number(form.maintenance || 0),
         bedrooms: Number(form.bedrooms),
@@ -396,8 +398,15 @@ const CreateListing = () => {
 
       {form.type !== 'HOSTEL' && form.type !== 'LAND_SALE' && (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Input label={t('rentMo') || 'Rent / Month (₹)'} type="number" value={form.rent} onChange={(e) => set('rent', e.target.value)} />
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <Input label={t('rentLabel') || 'Rent (₹)'} type="number" value={form.rent} onChange={(e) => set('rent', e.target.value)} />
+            <Select label={t('rentPeriodLabel') || 'Rent Period'} value={form.rentPeriod} onChange={(e) => set('rentPeriod', e.target.value)}
+              options={[
+                { value: 'per month', label: t('perMonth') || 'Per Month' },
+                { value: 'per year', label: t('perYear') || 'Per Year' },
+                { value: 'custom', label: t('customPeriod') || 'Total (Custom)' }
+              ]}
+            />
             <Input label={t('deposit₹') || 'Deposit (₹)'} type="number" value={form.deposit} onChange={(e) => set('deposit', e.target.value)} />
             <Input label={t('maintenance₹') || 'Maintenance (₹)'} type="number" value={form.maintenance} onChange={(e) => set('maintenance', e.target.value)} />
           </div>

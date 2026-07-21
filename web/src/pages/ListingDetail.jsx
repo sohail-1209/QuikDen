@@ -97,7 +97,7 @@ const ListingDetail = () => {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: data.title,
-    description: `${data.title} - ${data.type?.replace(/_/g, ' ')} in ${data.city}. Rent: ₹${data.rent}/month.`,
+    description: `${data.title} - ${data.type?.replace(/_/g, ' ')} in ${data.city}. Rent: ₹${data.rent}${data.rentPeriod === 'per year' ? '/yr' : data.rentPeriod === 'custom' ? '' : '/month'}.`,
     image: primaryPhoto,
     url: `https://quikden.vercel.app/listing/${id}`,
     offers: {
@@ -120,8 +120,8 @@ const ListingDetail = () => {
   return (
     <>
       <SEO
-        title={`${data.title} — ₹${data.rent}/mo in ${data.city}`}
-        description={`${data.title} available in ${data.city}. ${data.bedrooms} BHK, ${data.bathrooms} bath, ${data.areaSqFt ? data.areaSqFt + ' sq ft' : ''}. Rent: ₹${data.rent}/month. Zero brokerage on Quikden.`}
+        title={`${data.title} — ₹${data.rent}${data.rentPeriod === 'per year' ? '/yr' : data.rentPeriod === 'custom' ? '' : '/mo'} in ${data.city}`}
+        description={`${data.title} available in ${data.city}. ${data.bedrooms} BHK, ${data.bathrooms} bath, ${data.areaSqFt ? data.areaSqFt + ' sq ft' : ''}. Rent: ₹${data.rent}${data.rentPeriod === 'per year' ? '/yr' : data.rentPeriod === 'custom' ? '' : '/month'}. Zero brokerage on Quikden.`}
         image={primaryPhoto}
         url={`/listing/${id}`}
         type="article"
@@ -225,7 +225,11 @@ const ListingDetail = () => {
             <div className="card p-6 sticky top-24">
               <div className="mb-4">
                 <span className="font-display font-bold text-3xl text-surface-900">{formatRent(data.rent)}</span>
-                <span className="text-surface-400 text-sm">{t('month')}</span>
+                {data.type !== 'LAND_SALE' && (
+                  <span className="text-surface-400 text-sm">
+                    {data.rentPeriod === 'per year' ? '/year' : data.rentPeriod === 'custom' ? '' : (t('month') || '/month')}
+                  </span>
+                )}
               </div>
               <div className="space-y-2 text-sm mb-5">
                 <div className="flex justify-between text-surface-600">

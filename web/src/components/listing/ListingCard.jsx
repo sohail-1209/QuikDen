@@ -120,7 +120,11 @@ const ListingCard = ({ listing, onSave, isSaved = false, hideSave = false }) => 
               formatRent(listing.rent)
             )}
           </span>
-          <span className="text-xs text-surface-400 font-medium">{t('mo')}</span>
+          {listing.type !== 'LAND_SALE' && (
+            <span className="text-xs text-surface-400 font-medium">
+              {listing.rentPeriod === 'per year' ? '/yr' : listing.rentPeriod === 'custom' ? '' : (t('mo') || '/mo')}
+            </span>
+          )}
         </div>
 
         {/* Title */}
