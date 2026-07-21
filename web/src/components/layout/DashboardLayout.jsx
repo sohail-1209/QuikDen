@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
-import MobileQuickNav from './MobileQuickNav';
 import BottomNavbar from './BottomNavbar';
 import { useAuth } from '../../context/AuthContext';
 
@@ -31,9 +30,6 @@ export default function DashboardLayout({ children }) {
     <>
       <Navbar />
       <div className="lg:pt-9 min-h-[calc(100vh-3.5rem)] lg:min-h-[calc(100vh-5rem)] flex flex-col bg-surface-50">
-
-        {/* ── Mobile quick-nav row ──────────────────────────────────────── */}
-        <MobileQuickNav />
 
         <div className="flex flex-1">
           {/* ── Collapsible sidebar (desktop, ≥ lg) ───────────────────── */}

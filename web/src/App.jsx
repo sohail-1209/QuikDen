@@ -27,13 +27,12 @@ const ProfilePage    = lazy(() => import('./pages/ProfilePage'));
 const AboutPage      = lazy(() => import('./pages/AboutPage'));
 
 // Dashboards
-const TenantDashboard = lazy(() => import('./pages/dashboard/TenantDashboard'));
-const OwnerDashboard  = lazy(() => import('./pages/dashboard/OwnerDashboard'));
 const RequestsPage    = lazy(() => import('./pages/dashboard/RequestsPage'));
 const SavedPage       = lazy(() => import('./pages/dashboard/SavedPage'));
 const MyListingsPage  = lazy(() => import('./pages/dashboard/MyListingsPage'));
 const CreateListing   = lazy(() => import('./pages/dashboard/CreateListing'));
 const AnalyticsPage   = lazy(() => import('./pages/dashboard/AnalyticsPage'));
+const SettingsPage    = lazy(() => import('./pages/SettingsPage'));
 
 // Admin
 const AdminDashboard  = lazy(() => import('./pages/admin/AdminDashboard'));
@@ -47,9 +46,8 @@ import { useAuth } from './context/AuthContext';
 const DashboardRedirect = () => {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
-  if (user.role === 'OWNER') return <Navigate to="/dashboard/owner" replace />;
   if (user.role === 'ADMIN') return <Navigate to="/admin" replace />;
-  return <Navigate to="/dashboard/tenant" replace />;
+  return <Navigate to="/dashboard/profile" replace />;
 };
 
 // ─── Page loading fallback ─────────────────────────────
@@ -143,12 +141,7 @@ export default function App() {
                     <DashboardLayout />
                   </ProtectedRoute>
                 }>
-                  {/* Tenant */}
-                  <Route path="/dashboard/tenant" element={
-                    <ProtectedRoute allowedRoles={['TENANT']}>
-                      <TenantDashboard />
-                    </ProtectedRoute>
-                  } />
+                  {/* Shared/Tenant/Owner Routes */}
                   <Route path="/dashboard/saved" element={
                     <ProtectedRoute allowedRoles={['TENANT', 'OWNER']}>
                       <SavedPage />
@@ -157,13 +150,6 @@ export default function App() {
                   <Route path="/dashboard/my-listings" element={
                     <ProtectedRoute allowedRoles={['TENANT']}>
                       <MyListingsPage />
-                    </ProtectedRoute>
-                  } />
-
-                  {/* Owner */}
-                  <Route path="/dashboard/owner" element={
-                    <ProtectedRoute allowedRoles={['OWNER']}>
-                      <OwnerDashboard />
                     </ProtectedRoute>
                   } />
                   <Route path="/dashboard/listings" element={
@@ -206,6 +192,11 @@ export default function App() {
                   <Route path="/dashboard/profile" element={
                     <ProtectedRoute allowedRoles={['TENANT', 'OWNER']}>
                       <ProfilePage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/settings" element={
+                    <ProtectedRoute allowedRoles={['TENANT', 'OWNER']}>
+                      <SettingsPage />
                     </ProtectedRoute>
                   } />
                 </Route>

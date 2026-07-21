@@ -275,14 +275,13 @@ export default function Navbar() {
               <img src="https://res.cloudinary.com/dldgj84bm/image/upload/v1784198779/ChatGPT_Image_Jul_16_2026_04_15_03_PM_wtomms.png" alt="Quikden" className="h-12 md:h-16 w-auto object-contain rounded-xl" />
             </Link>
 
-            {/* Quick link: Dashboard on public pages, Home on dashboard pages */}
-            {user && (
+            {user && !isDashboard && (
               <Link
-                to={isDashboard ? '/' : '/dashboard'}
+                to="/dashboard/profile"
                 className="md:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-primary-50 text-primary-700 text-xs font-semibold transition-colors active:bg-primary-100"
               >
-                {isDashboard ? <Home size={13} /> : <LayoutDashboard size={13} />}
-                {isDashboard ? t('home') : t('dashboard')}
+                <User size={13} />
+                {t('profile') || 'Profile'}
               </Link>
             )}
           </div>

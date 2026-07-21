@@ -14,22 +14,22 @@ import {
   Flag,
   PanelLeftOpen,
   PanelLeftClose,
+  Settings,
 } from 'lucide-react';
 
 
 // ─── Per-role menu configs ─────────────────────────────────────────────────
 export const MENUS = {
   TENANT: [
-    { to: '/dashboard', icon: LayoutDashboard, label: 'dashboardMenu' },
     { to: '/dashboard/my-listings', icon: ListChecks, label: 'myListingsMenu' },
     { to: '/dashboard/listings/new', icon: PlusSquare, label: 'addListingMenu' },
     { to: '/dashboard/saved', icon: Heart, label: 'savedListingsMenu' },
     { to: '/dashboard/requests', icon: SendHorizontal, label: 'myRequestsMenu' },
     { to: '/dashboard/chats', icon: MessageSquare, label: 'chatsMenu' },
     { to: '/dashboard/profile', icon: User, label: 'profileMenu' },
+    { to: '/dashboard/settings', icon: Settings, label: 'settings' },
   ],
   OWNER: [
-    { to: '/dashboard', icon: LayoutDashboard, label: 'dashboardMenu' },
     { to: '/dashboard/listings', icon: ListChecks, label: 'myListingsMenu' },
     { to: '/dashboard/listings/new', icon: PlusSquare, label: 'addListingMenu' },
     { to: '/dashboard/saved', icon: Heart, label: 'savedListingsMenu' },
@@ -37,6 +37,7 @@ export const MENUS = {
     { to: '/dashboard/chats', icon: MessageSquare, label: 'chatsMenu' },
     { to: '/dashboard/analytics', icon: BarChart2, label: 'analyticsMenu' },
     { to: '/dashboard/profile', icon: User, label: 'profileMenu' },
+    { to: '/dashboard/settings', icon: Settings, label: 'settings' },
   ],
   ADMIN: [
     { to: '/admin', icon: LayoutDashboard, label: 'dashboardMenu' },
