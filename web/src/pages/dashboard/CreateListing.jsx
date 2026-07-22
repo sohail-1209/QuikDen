@@ -378,7 +378,7 @@ const CreateListing = () => {
                   <Input label={t('noOfSharing') || 'Sharing Size'} type="number" value={tier.sharingSize} onChange={(e) => setHSTier(idx, 'sharingSize', e.target.value)} placeholder={t('sharingPlaceholder') || 'e.g. 2, 3'} />
                 </div>
                 <div className="flex-1">
-                  <Input label={t('pricePerMo') || 'Price / Month'} type="number" value={tier.price} onChange={(e) => setHSTier(idx, 'price', e.target.value)} placeholder={t('pricePlaceholder') || 'e.g. 5000'} />
+                  <Input label={t('price') || 'Price'} type="number" value={tier.price} onChange={(e) => setHSTier(idx, 'price', e.target.value)} placeholder={t('pricePlaceholder') || 'e.g. 5000'} />
                 </div>
                 <label className="flex items-center gap-2 cursor-pointer min-h-[44px] sm:pb-2">
                   <input type="checkbox" checked={tier.available} onChange={(e) => setHSTier(idx, 'available', e.target.checked)} className="w-5 h-5 accent-primary-600" />
@@ -418,7 +418,14 @@ const CreateListing = () => {
       )}
 
       {form.type === 'HOSTEL' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Select label={t('rentPeriodLabel') || 'Rent Period'} value={form.rentPeriod} onChange={(e) => set('rentPeriod', e.target.value)}
+            options={[
+              { value: 'per month', label: t('perMonth') || 'Per Month' },
+              { value: 'per year', label: t('perYear') || 'Per Year' },
+              { value: 'custom', label: t('customPeriod') || 'Total (Custom)' }
+            ]}
+          />
           <Input label={t('deposit₹') || 'Deposit (₹)'} type="number" value={form.deposit} onChange={(e) => set('deposit', e.target.value)} />
           <Input label={t('availableFrom') || 'Available From'} type="date" value={form.availableFrom} onChange={(e) => set('availableFrom', e.target.value)} />
         </div>
