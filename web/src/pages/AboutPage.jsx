@@ -32,7 +32,7 @@ export default function AboutPage() {
     <div className="min-h-screen bg-surface-50 font-sans">
       <SEO
         title="About Quikden — Zero Brokerage Rental Platform"
-        description="Quikden is India's premier platform to find rental houses, rooms, hostels, and flatmates without brokers. AI-powered search, real-time chat, verified listings."
+        description="Quikden is India’s premier platform to find rental houses, rooms, hostels, and flatmates without brokers. AI-powered search, real-time chat, verified listings."
         url="/about"
       />
       <JsonLd data={aboutSchema} />

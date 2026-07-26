@@ -215,7 +215,7 @@ export default function HomePage() {
     '@type': 'WebSite',
     name: 'Quikden',
     url: 'https://quikden.in',
-    description: "India's easiest platform to find rental houses, rooms, hostels, and roommates.",
+    description: "India’s easiest platform to find rental houses, rooms, hostels, and roommates.",
     potentialAction: {
       '@type': 'SearchAction',
       target: 'https://quikden.in/search?q={search_term_string}',
@@ -245,7 +245,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-surface-50">
       <SEO
         title="Find Rooms, Hostels & Flatmates in India"
-        description="India's easiest platform to find rental houses, rooms, hostels, and roommates. AI-powered search, zero brokerage, verified listings across Hyderabad, Bangalore, Mumbai, Delhi & more."
+        description="India’s easiest platform to find rental houses, rooms, hostels, and roommates. AI-powered search, zero brokerage, verified listings across Hyderabad, Bangalore, Mumbai, Delhi & more."
         url="/"
       />
       <JsonLd data={websiteSchema} />
