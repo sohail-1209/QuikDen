@@ -272,7 +272,7 @@ export default function Navbar() {
             )}
 
             <Link to="/" className="shrink-0 group">
-              <img src="https://res.cloudinary.com/dldgj84bm/image/upload/v1784198779/ChatGPT_Image_Jul_16_2026_04_15_03_PM_wtomms.png" alt="Quikden" className="h-12 md:h-16 w-auto object-contain rounded-xl" />
+              <img src="https://res.cloudinary.com/dldgj84bm/image/upload/v1784198779/Quikden.png" alt="Quikden" className="h-12 md:h-16 w-auto object-contain rounded-xl" />
             </Link>
 
             {user && !isDashboard && (
@@ -467,7 +467,7 @@ export default function Navbar() {
           <aside className="relative w-72 max-w-[85vw] h-full bg-white p-4 flex flex-col z-50 animate-slide-in-left shadow-2xl">
             {/* Header of the drawer */}
             <div className="flex items-center justify-between pb-4 border-b border-surface-100 mb-4">
-              <img src="https://res.cloudinary.com/dldgj84bm/image/upload/v1784198779/ChatGPT_Image_Jul_16_2026_04_15_03_PM_wtomms.png" alt="Quikden" className="h-10 w-auto object-contain rounded-lg" />
+              <img src="https://res.cloudinary.com/dldgj84bm/image/upload/v1784198779/Quikden.png" alt="Quikden" className="h-10 w-auto object-contain rounded-lg" />
               <button onClick={() => setMobileOpen(false)} className="p-1.5 rounded-full hover:bg-surface-100 transition-colors">
                 <X size={18} className="text-surface-600" />
               </button>

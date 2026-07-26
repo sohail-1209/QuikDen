@@ -55,7 +55,7 @@ export default function Footer() {
           <div className="flex flex-col space-y-4">
             <Link to="/" className="group inline-block w-fit">
               <img
-                src="https://res.cloudinary.com/dldgj84bm/image/upload/v1784198779/ChatGPT_Image_Jul_16_2026_04_15_03_PM_wtomms.png"
+                src="https://res.cloudinary.com/dldgj84bm/image/upload/v1784198779/Quikden.png"
                 alt="Quikden Logo"
                 className="h-10 sm:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-103"
               />

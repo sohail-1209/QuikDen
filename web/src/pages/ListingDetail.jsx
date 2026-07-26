@@ -91,7 +91,7 @@ const ListingDetail = () => {
 
   const photos = data.photos || [];
   const amenities = getAmenityList(data.amenities);
-  const primaryPhoto = photos.find((p) => p.isPrimary)?.url || photos[0]?.url || 'https://res.cloudinary.com/dldgj84bm/image/upload/v1784198779/ChatGPT_Image_Jul_16_2026_04_15_03_PM_wtomms.png';
+  const primaryPhoto = photos.find((p) => p.isPrimary)?.url || photos[0]?.url || 'https://res.cloudinary.com/dldgj84bm/image/upload/v1784198779/Quikden.png';
 
   const listingSchema = {
     '@context': 'https://schema.org',

@@ -228,7 +228,7 @@ export default function HomePage() {
     '@type': 'Organization',
     name: 'Quikden',
     url: 'https://quikden.in',
-    logo: 'https://res.cloudinary.com/dldgj84bm/image/upload/v1784198779/ChatGPT_Image_Jul_16_2026_04_15_03_PM_wtomms.png',
+    logo: 'https://res.cloudinary.com/dldgj84bm/image/upload/v1784198779/Quikden.png',
     sameAs: ['https://instagram.com/quikden'],
     contactPoint: {
       '@type': 'ContactPoint',
